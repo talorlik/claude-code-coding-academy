@@ -1,6 +1,7 @@
 import { hasLocale, NextIntlClientProvider } from "next-intl"
 import { setRequestLocale } from "next-intl/server"
 import { Geist_Mono, Inter } from "next/font/google"
+import type { Viewport } from "next"
 import { notFound } from "next/navigation"
 
 import "../globals.css"
@@ -29,6 +30,21 @@ const fontMono = Geist_Mono({
  */
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
+}
+
+/**
+ * Document-level viewport metadata. `width`/`initialScale` make mobile scaling
+ * explicit (no accidental desktop-width zoom-out on phones), and `themeColor`
+ * tints the mobile browser chrome to match the active theme. The colors track
+ * the light/dark `--background` values.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 }
 
 /**

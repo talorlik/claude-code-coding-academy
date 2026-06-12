@@ -43,7 +43,7 @@ export default async function Page({
             })}
           </p>
         </CardContent>
-        <CardFooter className="flex gap-3">
+        <CardFooter className="flex flex-wrap gap-3">
           <Button render={<Link href="/login" />} nativeButton={false}>
             {t("getStarted")}
           </Button>

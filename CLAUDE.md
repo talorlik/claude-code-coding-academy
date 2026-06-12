@@ -39,6 +39,25 @@ Non-negotiables:
   false positive with a scoped, commented `eslint-disable-next-line`, never by
   weakening the rule globally.
 
+## Responsive and Mobile
+
+The site must be fully responsive and mobile-friendly, carried through all
+future work. Before adding or changing any user-facing UI, read
+`docs/RESPONSIVE.md`.
+
+Non-negotiables:
+
+- No horizontal overflow at 390 / 768 / 1280 px, in English (LTR) and Hebrew
+  (RTL). The rule is `scrollWidth - clientWidth <= 1`.
+- Mobile-first Tailwind: base styles for narrow screens, `sm:`/`md:`/`lg:`
+  overrides upward. The header nav collapses into the `Sheet` drawer below `md`.
+- Let flex children shrink (`min-w-0`), keep fixed controls `shrink-0`, wrap
+  button rows (`flex-wrap`), break long strings, and use logical RTL utilities.
+- `npm run test:e2e` (Playwright) enforces the no-overflow + RTL + theme +
+  header-collapse contract. It is NOT in `prebuild`; run it before merging any
+  UI change, and extend `e2e/responsive.spec.ts` when you add pages or wide
+  components.
+
 ## Git
 
 Per-branch worktree off clean `main` -> gates pass -> squash-merge into local

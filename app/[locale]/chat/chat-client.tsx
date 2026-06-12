@@ -61,15 +61,23 @@ export function ChatClient() {
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center gap-2 border-t p-3"
+      >
         <Input
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder={t("inputPlaceholder")}
           disabled={isStreaming}
           aria-label={t("inputLabel")}
+          className="min-w-0 flex-1"
         />
-        <Button type="submit" disabled={isStreaming || !input.trim()}>
+        <Button
+          type="submit"
+          disabled={isStreaming || !input.trim()}
+          className="shrink-0"
+        >
           {t("send")}
         </Button>
       </form>
