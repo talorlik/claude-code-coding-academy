@@ -1,0 +1,11 @@
+-- Harden the rls_auto_enable event-trigger function.
+--
+-- `public.rls_auto_enable()` is a SECURITY DEFINER function backing the
+-- `ensure_rls` event trigger, which auto-enables row level security on any new
+-- table created in `public`. It is invoked only by the trigger machinery on
+-- `ddl_command_end`, never as a REST RPC. The default grant left EXECUTE open to
+-- `public`, `anon`, and `authenticated`, which the Supabase security advisor
+-- flags as a SECURITY DEFINER function callable by external roles. No role needs
+-- to call it directly, so revoke those grants. The function and the event
+-- trigger are otherwise unchanged; service_role retains EXECUTE.
+revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
