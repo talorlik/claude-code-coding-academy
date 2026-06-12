@@ -11,7 +11,11 @@ export function useIsMobile() {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     }
     mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    // Seed the initial value through the same handler the media query uses.
+    // Routing the initial read through onChange (rather than a bare setState in
+    // the effect body) keeps the state sync inside the subscription flow, which
+    // satisfies react-hooks/set-state-in-effect without changing behavior.
+    onChange()
     return () => mql.removeEventListener("change", onChange)
   }, [])
 

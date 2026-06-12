@@ -95,7 +95,11 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    onSelect(api)
+    // Defer the initial scroll-state sync off the effect body so the setState
+    // happens after commit rather than synchronously inside the effect. This
+    // satisfies react-hooks/set-state-in-effect; behavior is unchanged because
+    // onSelect only reads api.canScroll* and is idempotent.
+    queueMicrotask(() => onSelect(api))
     api.on("reInit", onSelect)
     api.on("select", onSelect)
 
