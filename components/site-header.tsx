@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 import { Link } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { LanguageSwitcher } from "@/components/language-switcher"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { ModeToggle } from "@/components/mode-toggle"
 
 /**
  * Global top navigation, server-rendered so it reflects the current auth state
@@ -53,7 +53,7 @@ export async function SiteHeader() {
             </Link>
           )}
           <LanguageSwitcher />
-          <ThemeToggle />
+          <ModeToggle />
         </nav>
       </div>
     </header>
