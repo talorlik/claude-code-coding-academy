@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ModeToggle } from "@/components/mode-toggle"
+import { InstallPrompt } from "@/components/install-prompt"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -77,6 +78,7 @@ export async function SiteHeader() {
         {/* Controls cluster: always visible. ms-auto pushes it to the inline
             end on mobile, where the inline nav above is hidden. */}
         <div className="ms-auto flex items-center gap-2 md:ms-0">
+          <InstallPrompt className="hidden sm:flex" />
           <LanguageSwitcher />
           <ModeToggle />
 

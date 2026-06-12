@@ -1,7 +1,7 @@
 import { hasLocale, NextIntlClientProvider } from "next-intl"
 import { setRequestLocale } from "next-intl/server"
 import { Geist_Mono, Inter } from "next/font/google"
-import type { Viewport } from "next"
+import type { Metadata, Viewport } from "next"
 import { notFound } from "next/navigation"
 
 import "../globals.css"
@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { SkipLink } from "@/components/skip-link"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+import { ServiceWorkerRegister } from "@/components/service-worker-register"
 import { cn } from "@/lib/utils"
 import {
   localeDirection,
@@ -30,6 +31,25 @@ const fontMono = Geist_Mono({
  */
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
+}
+
+/**
+ * PWA document metadata: links the Web App Manifest (so the browser offers
+ * install) and declares the iOS standalone web-app behavior. `appleWebApp`
+ * supplies the Add-to-Home-Screen title and is paired with the `apple` touch
+ * icon iOS reads instead of the manifest icons. `app/favicon.ico` is served
+ * automatically by Next and is not re-declared here.
+ */
+export const metadata: Metadata = {
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Academy",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon-180.png",
+  },
 }
 
 /**
@@ -84,6 +104,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           <ThemeProvider>
             <SkipLink />
+            <ServiceWorkerRegister />
             <SiteHeader />
             <div className="flex flex-1 flex-col">{children}</div>
             <SiteFooter />

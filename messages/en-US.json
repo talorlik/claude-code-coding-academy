@@ -102,5 +102,21 @@
     "instructorGreeting": "Welcome, instructor. This is your dashboard.",
     "studentGreeting": "Welcome, student. This is your dashboard.",
     "signOut": "Sign out"
+  },
+  "Pwa": {
+    "install": {
+      "button": "Install app",
+      "dismiss": "Dismiss install prompt",
+      "iosTitle": "Install Coding Academy",
+      "iosIntro": "Add Coding Academy to your Home Screen for a full-screen, app-like experience.",
+      "iosStep1": "Tap the Share button in Safari's toolbar.",
+      "iosStep2": "Choose \"Add to Home Screen\".",
+      "iosStep3": "Tap \"Add\" to finish."
+    },
+    "offline": {
+      "title": "You're offline",
+      "description": "Coding Academy can't reach the network right now. Check your connection and try again.",
+      "retry": "Try again"
+    }
   }
 }
