@@ -24,7 +24,7 @@ export default async function ForgotPasswordPage({
   const noticeMessage = resolveAuthMessage(t, sp.notice)
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-background px-4 py-12 text-foreground">
+    <main id="main-content" className="flex flex-1 items-center justify-center bg-background px-4 py-12 text-foreground">
       <div className="w-full max-w-sm rounded-lg border bg-card p-8">
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-xl font-medium">{tAuth("forgotTitle")}</h1>
@@ -69,6 +69,6 @@ export default async function ForgotPasswordPage({
           </Link>
         </p>
       </div>
-    </div>
+    </main>
   )
 }

@@ -17,6 +17,28 @@ Non-negotiables:
   `next/navigation` inside the app tree.
 - Hebrew is RTL: prefer Tailwind logical utilities so layout mirrors correctly.
 
+## Accessibility and Progressive Enhancement
+
+Accessibility and no-JavaScript resilience are non-negotiable and must be carried
+through all future work. Before adding any user-facing UI, read
+`docs/ACCESSIBILITY.md`.
+
+Non-negotiables:
+
+- Every page exposes a `<main id="main-content">`; use semantic landmarks
+  (`<header>`, `<nav aria-label>`, `<footer>`) and exactly one `<h1>`.
+- Forms follow the 3-tier no-JS policy: real `<form>` + `type="submit"` +
+  `<label for>` fields. Tier 1 (auth) and Tier 2 (simple data forms) are full
+  no-JS via `FormData` server actions with query-param feedback; Tier 3
+  (live chat, realtime APIs) is semantic markup only.
+- Feedback flows through the `?error=`/`?notice=` query-param channel resolved
+  to a localized banner, never JS-only inline state.
+- Icon-only controls carry `sr-only` text; decorative images use `aria-hidden`/
+  `alt=""`; focus stays visible; motion respects `prefers-reduced-motion`.
+- `npm run lint` enforces `eslint-plugin-jsx-a11y`; keep it green. Resolve a
+  false positive with a scoped, commented `eslint-disable-next-line`, never by
+  weakening the rule globally.
+
 ## Git
 
 Per-branch worktree off clean `main` -> gates pass -> squash-merge into local

@@ -22,8 +22,10 @@
   "Nav": {
     "home": "Home",
     "chat": "Chat",
+    "dashboard": "Dashboard",
     "signIn": "Sign in",
     "signOut": "Sign out",
+    "skipToContent": "Skip to content",
     "mainNavigation": "Main navigation",
     "openMenu": "Open navigation menu"
   },

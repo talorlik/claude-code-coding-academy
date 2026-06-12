@@ -41,7 +41,7 @@ export function ChatClient() {
 
   return (
     <div>
-      <header>{t("heading")}</header>
+      <h1 className="text-lg font-semibold">{t("heading")}</h1>
 
       <ScrollArea>
         <div>

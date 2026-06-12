@@ -5,6 +5,9 @@ import { notFound } from "next/navigation"
 
 import "../globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { SkipLink } from "@/components/skip-link"
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
 import { cn } from "@/lib/utils"
 import {
   localeDirection,
@@ -61,9 +64,14 @@ export default async function LocaleLayout({
         inter.variable,
       )}
     >
-      <body>
+      <body className="flex min-h-svh flex-col">
         <NextIntlClientProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <SkipLink />
+            <SiteHeader />
+            <div className="flex flex-1 flex-col">{children}</div>
+            <SiteFooter />
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

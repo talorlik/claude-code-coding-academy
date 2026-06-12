@@ -13,5 +13,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function ChatPage() {
-  return <ChatClient />
+  return (
+    <main id="main-content" className="flex flex-1 flex-col">
+      <ChatClient />
+    </main>
+  )
 }

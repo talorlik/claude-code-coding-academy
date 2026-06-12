@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Moon, Sun } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button"
  * cannot know the resolved theme during SSR).
  */
 export function ThemeToggle() {
+  const t = useTranslations("ThemeToggle")
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
@@ -24,7 +26,7 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      aria-label="Toggle theme"
+      aria-label={t("label")}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       {mounted && isDark ? (

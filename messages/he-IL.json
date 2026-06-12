@@ -22,8 +22,10 @@
   "Nav": {
     "home": "בית",
     "chat": "צ׳אט",
+    "dashboard": "לוח הבקרה",
     "signIn": "התחברות",
     "signOut": "התנתקות",
+    "skipToContent": "דילוג לתוכן",
     "mainNavigation": "ניווט ראשי",
     "openMenu": "פתיחת תפריט הניווט"
   },
