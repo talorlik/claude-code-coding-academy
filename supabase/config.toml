@@ -1,0 +1,4 @@
+# Supabase CLI project configuration. `project_id` is the project ref used by
+# `supabase link` / `supabase db push`. The stack (auth, database) is managed
+# remotely; this file pins the ref so CLI commands target the right project.
+project_id = "nlqpuppwjtxhfcfyjfre"

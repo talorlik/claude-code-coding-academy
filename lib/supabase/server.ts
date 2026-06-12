@@ -1,10 +1,19 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
+import {
+  REMEMBER_FLAG,
+  SESSION_ONLY,
+  isAuthCookie,
+  stripPersistence,
+} from "@/lib/supabase/cookie-persistence"
+
 /**
  * Request-scoped Supabase client using the publishable key. RLS applies and the
  * client acts on behalf of the signed-in user, reading and refreshing the
- * session from request cookies.
+ * session from request cookies. When the user opted out of persistent login
+ * (the remember-me flag is session-only), auth cookies are forced to session
+ * scope on every write so they vanish on browser close.
  */
 export async function createClient() {
   const cookieStore = await cookies()
@@ -19,15 +28,23 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
+            const sessionOnly =
+              cookieStore.get(REMEMBER_FLAG)?.value === SESSION_ONLY
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
+              cookieStore.set(
+                name,
+                value,
+                sessionOnly && isAuthCookie(name)
+                  ? stripPersistence(options)
+                  : options
+              )
             )
           } catch {
             // Called from a Server Component - the proxy handles refresh.
           }
         },
       },
-    },
+    }
   )
 }
 
@@ -52,6 +69,6 @@ export function createAdminClient() {
           // Admin client does not persist sessions.
         },
       },
-    },
+    }
   )
 }

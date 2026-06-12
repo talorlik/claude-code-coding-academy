@@ -56,5 +56,49 @@
     "inputLabel": "הקלידו הודעה",
     "inputPlaceholder": "הקלידו הודעה",
     "send": "שליחה"
+  },
+  "Auth": {
+    "welcomeTitle": "ברוכים הבאים",
+    "welcomeSubtitle": "התחברו לחשבון שלכם, או צרו חשבון חדש.",
+    "signIn": "התחברות",
+    "signUp": "הרשמה",
+    "createAccount": "יצירת חשבון",
+    "emailLabel": "דוא״ל",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "סיסמה",
+    "passwordPlaceholder": "לפחות 8 תווים",
+    "forgotPassword": "שכחתם סיסמה?",
+    "rememberMe": "זכרו אותי",
+    "backToHome": "חזרה לדף הבית",
+    "backToSignIn": "חזרה להתחברות",
+    "forgotTitle": "איפוס הסיסמה",
+    "forgotSubtitle": "הזינו את הדוא״ל שלכם ונשלח לכם קישור לאיפוס.",
+    "sendResetLink": "שליחת קישור לאיפוס",
+    "resetTitle": "סיסמה חדשה",
+    "resetSubtitle": "בחרו סיסמה חדשה לחשבון שלכם.",
+    "newPasswordLabel": "סיסמה חדשה",
+    "confirmPasswordLabel": "אישור הסיסמה החדשה",
+    "setNewPassword": "הגדרת סיסמה חדשה"
+  },
+  "AuthMessages": {
+    "credentialsRequired": "יש להזין דוא״ל וסיסמה.",
+    "invalidEmail": "הזינו כתובת דוא״ל תקינה.",
+    "passwordTooShort": "הסיסמה חייבת להכיל לפחות 8 תווים.",
+    "invalidCredentials": "דוא״ל או סיסמה שגויים.",
+    "signupFailed": "לא הצלחנו ליצור את החשבון. נסו שוב.",
+    "checkEmailToConfirm": "בדקו את הדוא״ל שלכם כדי לאשר את החשבון.",
+    "accountMaybeExists": "אם זה חשבון חדש, בדקו את הדוא״ל כדי לאשר אותו. אם כבר יש לכם חשבון, התחברו או אפסו את הסיסמה.",
+    "signInToContinue": "התחברו כדי להמשיך.",
+    "resetLinkSent": "אם קיים חשבון עבור דוא״ל זה, שלחנו קישור לאיפוס.",
+    "resetLinkInvalid": "קישור האיפוס אינו תקין או שפג תוקפו.",
+    "passwordsDoNotMatch": "הסיסמאות אינן תואמות.",
+    "updateFailed": "לא הצלחנו לעדכן את הסיסמה. נסו שוב.",
+    "passwordUpdated": "הסיסמה עודכנה, התחברו מחדש."
+  },
+  "Dashboard": {
+    "title": "לוח הבקרה",
+    "instructorGreeting": "ברוכים הבאים, מדריך. זהו לוח הבקרה שלכם.",
+    "studentGreeting": "ברוכים הבאים, תלמיד. זהו לוח הבקרה שלכם.",
+    "signOut": "התנתקות"
   }
 }

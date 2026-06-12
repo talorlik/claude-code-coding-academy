@@ -1,27 +1,63 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-/** App sections that require a signed-in user. Extend as the app grows. */
-const PROTECTED_SEGMENTS = ["profile", "dashboard"] as const
+import {
+  REMEMBER_FLAG,
+  SESSION_ONLY,
+  isAuthCookie,
+  stripPersistence,
+} from "@/lib/supabase/cookie-persistence"
+import { routing } from "@/i18n/routing"
+
+/** Locale-prefixed app sections that require a signed-in user. */
+const PROTECTED_SEGMENTS = ["dashboard", "profile"] as const
+
+/**
+ * Strips a leading supported-locale prefix from a pathname for route matching.
+ *
+ * With `localePrefix: "always"` every app path is locale-prefixed (`/en/dashboard`,
+ * `/he/profile`), so protection checks must compare against the path *after* the
+ * prefix. Returns the locale-free path (always leading-slashed) and the locale
+ * that was stripped, or `null` when no supported prefix was present.
+ *
+ * @param pathname - The request pathname, e.g. `/he/profile`.
+ */
+function splitLocale(pathname: string): {
+  locale: string | null
+  rest: string
+} {
+  const segments = pathname.split("/")
+  const maybeLocale = segments[1]
+  if (
+    maybeLocale &&
+    (routing.locales as readonly string[]).includes(maybeLocale)
+  ) {
+    const rest = "/" + segments.slice(2).join("/")
+    return { locale: maybeLocale, rest }
+  }
+  return { locale: null, rest: pathname }
+}
 
 /**
  * Refreshes the Supabase session on every request and enforces route
- * protection. Auth cookies are written onto the response so a refreshed session
- * travels back to the browser.
+ * protection, writing auth cookies onto the response produced by the next-intl
+ * locale middleware so locale routing and session refresh share one response.
  *
  * Protected routes are an allowlist so new public pages are not accidentally
- * gated. Everything not under a protected segment (home, login, the auth
- * handlers, the API) is public.
+ * gated. The `/dashboard` and `/profile` sections (under any locale prefix)
+ * require a signed-in user; everything else (home, login, the auth handlers,
+ * the API) is public. When the user opted out of persistent login, auth cookies
+ * are stripped of expiry on the response write so a per-request refresh does not
+ * silently re-persist the session.
  *
  * @param request - The incoming request.
- * @param response - Optional base response to write cookies onto. The proxy
- *   passes the next-intl locale-routing response here so the locale rewrite
- *   headers and the refreshed auth cookies travel back on one response. When
- *   omitted, a fresh pass-through response is used.
+ * @param response - The response from the next-intl middleware to attach auth
+ *   cookies to. When omitted, a fresh `NextResponse.next()` is used, preserving
+ *   the original standalone behavior.
  */
 export async function updateSession(
   request: NextRequest,
-  response?: NextResponse,
+  response?: NextResponse
 ) {
   const supabaseResponse = response ?? NextResponse.next({ request })
 
@@ -34,15 +70,26 @@ export async function updateSession(
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
+          const sessionOnly =
+            request.cookies.get(REMEMBER_FLAG)?.value === SESSION_ONLY
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
+            request.cookies.set(name, value)
           )
+          // Write the refreshed auth cookies onto the existing response (the
+          // next-intl one when composed) rather than discarding it, so the
+          // locale rewrite/redirect headers it carries are preserved.
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
+            supabaseResponse.cookies.set(
+              name,
+              value,
+              sessionOnly && isAuthCookie(name)
+                ? stripPersistence(options)
+                : options
+            )
           )
         },
       },
-    },
+    }
   )
 
   // IMPORTANT: do not run code between createServerClient and getUser.
@@ -51,15 +98,19 @@ export async function updateSession(
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl
+  const { locale, rest } = splitLocale(request.nextUrl.pathname)
   const isProtected = PROTECTED_SEGMENTS.some(
-    (segment) => pathname === `/${segment}` || pathname.startsWith(`/${segment}/`),
+    (segment) => rest === `/${segment}` || rest.startsWith(`/${segment}/`)
   )
 
   if (!user && isProtected) {
+    // Preserve the active locale on the bounce to login so a Hebrew visitor
+    // lands on `/he/login`, not the default-locale page.
+    const prefix = locale ?? routing.defaultLocale
     const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = "/login"
+    loginUrl.pathname = `/${prefix}/login`
     loginUrl.search = ""
+    loginUrl.searchParams.set("notice", "signInToContinue")
     return NextResponse.redirect(loginUrl)
   }
 

@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "eslint",
     "lint:i18n": "node scripts/check-i18n-sync.mjs",
+    "seed": "node scripts/seed.mjs",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "pretypecheck": "node scripts/guard-no-middleware.mjs",
     "typecheck": "tsc --noEmit"
