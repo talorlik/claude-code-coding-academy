@@ -1,19 +1,55 @@
+import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
+    <div className="flex min-h-svh flex-col">
+      <header className="flex items-center justify-between p-6">
+        <span className="font-mono text-sm font-medium">
+          claude-code-coding-academy
+        </span>
+        <ThemeToggle />
+      </header>
+
+      <main className="flex flex-1 items-center justify-center p-6">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl">Coding Academy</CardTitle>
+            <CardDescription>
+              A starter built on Next.js and Supabase. Sign in to start
+              building, or jump straight in.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-sm leading-loose text-muted-foreground">
+            <p>
+              Authentication, database, and edge functions are wired through
+              Supabase. Press <kbd>d</kbd> anywhere to toggle dark mode.
+            </p>
+          </CardContent>
+          <CardFooter className="flex gap-3">
+            <Button render={<Link href="/login" />} nativeButton={false}>
+              Get Started
+            </Button>
+            <Button
+              render={<Link href="/login" />}
+              nativeButton={false}
+              variant="outline"
+            >
+              Sign In
+            </Button>
+          </CardFooter>
+        </Card>
+      </main>
     </div>
   )
 }

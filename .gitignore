@@ -22,6 +22,12 @@
 .DS_Store
 *.pem
 
+# editor
+.vscode/
+
+# vercel
+.vercel
+
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -40,3 +46,14 @@ pnpm-debug.log*
 next-env.d.ts
 
 context-practice-files/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Claude Code transient runtime artifacts (commands/skills/settings stay tracked)
+.claude/scheduled_tasks.lock
+
+# Project-local git worktrees (per-batch isolated workspaces)
+.worktrees/
