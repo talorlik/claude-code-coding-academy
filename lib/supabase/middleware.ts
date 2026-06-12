@@ -14,9 +14,16 @@ const PROTECTED_SEGMENTS = ["profile", "dashboard"] as const
  * handlers, the API) is public.
  *
  * @param request - The incoming request.
+ * @param response - Optional base response to write cookies onto. The proxy
+ *   passes the next-intl locale-routing response here so the locale rewrite
+ *   headers and the refreshed auth cookies travel back on one response. When
+ *   omitted, a fresh pass-through response is used.
  */
-export async function updateSession(request: NextRequest) {
-  const supabaseResponse = NextResponse.next({ request })
+export async function updateSession(
+  request: NextRequest,
+  response?: NextResponse,
+) {
+  const supabaseResponse = response ?? NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

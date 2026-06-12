@@ -1,0 +1,60 @@
+{
+  "Common": {
+    "appName": "Coding Academy",
+    "loading": "Loading...",
+    "error": {
+      "title": "Something went wrong",
+      "description": "We could not load this page. Please try again.",
+      "retry": "Try again"
+    }
+  },
+  "LanguageSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "he": "Hebrew"
+  },
+  "ThemeToggle": {
+    "label": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "Nav": {
+    "home": "Home",
+    "chat": "Chat",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "mainNavigation": "Main navigation",
+    "openMenu": "Open navigation menu"
+  },
+  "Footer": {
+    "tagline": "Coding Academy",
+    "home": "Home",
+    "rights": "© {year} Coding Academy. All rights reserved."
+  },
+  "Metadata": {
+    "home": {
+      "siteName": "Coding Academy",
+      "title": "Coding Academy",
+      "description": "A starter built on Next.js and Supabase. Sign in to start building, or jump straight in."
+    }
+  },
+  "Home": {
+    "badge": "claude-code-coding-academy",
+    "title": "Coding Academy",
+    "description": "A starter built on Next.js and Supabase. Sign in to start building, or jump straight in.",
+    "body": "Authentication, database, and edge functions are wired through Supabase. Press <kbd>d</kbd> anywhere to toggle dark mode.",
+    "getStarted": "Get Started",
+    "signIn": "Sign In"
+  },
+  "Chat": {
+    "metaTitle": "Chat",
+    "heading": "Chat",
+    "empty": "Ask me anything to get started.",
+    "thinking": "Thinking…",
+    "error": "Something went wrong.",
+    "inputLabel": "Type a message",
+    "inputPlaceholder": "Type a message",
+    "send": "Send"
+  }
+}

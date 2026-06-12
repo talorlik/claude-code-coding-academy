@@ -1,0 +1,60 @@
+{
+  "Common": {
+    "appName": "אקדמיית קוד",
+    "loading": "טוען...",
+    "error": {
+      "title": "משהו השתבש",
+      "description": "לא הצלחנו לטעון את הדף הזה. נסו שוב.",
+      "retry": "נסו שוב"
+    }
+  },
+  "LanguageSwitcher": {
+    "label": "שפה",
+    "en": "אנגלית",
+    "he": "עברית"
+  },
+  "ThemeToggle": {
+    "label": "החלפת ערכת נושא",
+    "light": "בהיר",
+    "dark": "כהה",
+    "system": "מערכת"
+  },
+  "Nav": {
+    "home": "בית",
+    "chat": "צ׳אט",
+    "signIn": "התחברות",
+    "signOut": "התנתקות",
+    "mainNavigation": "ניווט ראשי",
+    "openMenu": "פתיחת תפריט הניווט"
+  },
+  "Footer": {
+    "tagline": "אקדמיית קוד",
+    "home": "בית",
+    "rights": "© {year} אקדמיית קוד. כל הזכויות שמורות."
+  },
+  "Metadata": {
+    "home": {
+      "siteName": "אקדמיית קוד",
+      "title": "אקדמיית קוד",
+      "description": "תבנית התחלה מבוססת Next.js ו-Supabase. התחברו כדי להתחיל לבנות, או היכנסו ישירות."
+    }
+  },
+  "Home": {
+    "badge": "claude-code-coding-academy",
+    "title": "אקדמיית קוד",
+    "description": "תבנית התחלה מבוססת Next.js ו-Supabase. התחברו כדי להתחיל לבנות, או היכנסו ישירות.",
+    "body": "אימות, מסד נתונים ו-edge functions מחוברים דרך Supabase. הקישו <kbd>d</kbd> בכל מקום כדי להחליף למצב כהה.",
+    "getStarted": "בואו נתחיל",
+    "signIn": "התחברות"
+  },
+  "Chat": {
+    "metaTitle": "צ׳אט",
+    "heading": "צ׳אט",
+    "empty": "שאלו אותי כל דבר כדי להתחיל.",
+    "thinking": "חושב…",
+    "error": "משהו השתבש.",
+    "inputLabel": "הקלידו הודעה",
+    "inputPlaceholder": "הקלידו הודעה",
+    "send": "שליחה"
+  }
+}

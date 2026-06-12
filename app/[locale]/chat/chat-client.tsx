@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport, type UIMessage } from "ai"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +23,7 @@ function textOf(message: UIMessage): string {
  * ones via `useChat`.
  */
 export function ChatClient() {
+  const t = useTranslations("Chat")
   const [input, setInput] = useState("")
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -39,12 +41,12 @@ export function ChatClient() {
 
   return (
     <div>
-      <header>Chat</header>
+      <header>{t("heading")}</header>
 
       <ScrollArea>
         <div>
           {messages.length === 0 ? (
-            <p>Ask me anything to get started.</p>
+            <p>{t("empty")}</p>
           ) : (
             messages.map((message) => (
               <div key={message.id}>
@@ -54,8 +56,8 @@ export function ChatClient() {
               </div>
             ))
           )}
-          {isStreaming && <p>Thinking…</p>}
-          {error != null && <p role="alert">Something went wrong.</p>}
+          {isStreaming && <p>{t("thinking")}</p>}
+          {error != null && <p role="alert">{t("error")}</p>}
         </div>
       </ScrollArea>
 
@@ -63,12 +65,12 @@ export function ChatClient() {
         <Input
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Type a message"
+          placeholder={t("inputPlaceholder")}
           disabled={isStreaming}
-          aria-label="Type a message"
+          aria-label={t("inputLabel")}
         />
         <Button type="submit" disabled={isStreaming || !input.trim()}>
-          Send
+          {t("send")}
         </Button>
       </form>
     </div>
