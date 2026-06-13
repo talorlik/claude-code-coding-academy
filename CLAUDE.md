@@ -1,9 +1,66 @@
-# Project Conventions
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+npm run dev          # start dev server (Turbopack, port 3000)
+npm run build        # type-check + i18n lint + Next.js build
+npm run typecheck    # tsc --noEmit
+npm run lint         # ESLint (jsx-a11y enforced)
+npm run lint:i18n    # verify en-US.json and he-IL.json are key-identical
+npm run format       # Prettier on all .ts/.tsx files
+npm run test:e2e     # Playwright E2E suite (responsive, RTL, theme, auth)
+npm run seed         # create instructor + student users via Supabase Admin API
+npm run setup        # first-time project bootstrap (generates .env.local)
+```
+
+E2E tests start their own dev server on port 3100 (configurable via `E2E_PORT`).
+They are NOT part of `prebuild`; run them before merging any UI change.
+
+## Architecture
+
+**Stack:** Next.js App Router (Turbopack), React 18, TypeScript strict, Tailwind CSS,
+shadcn/ui, Supabase (auth + DB), Vercel AI Gateway.
+
+**Routing split:**
+
+- `app/[locale]/` - all user-facing pages; locale prefix is mandatory
+- `app/api/` - API routes (no locale)
+- `app/auth/` - Supabase auth callbacks (`/confirm`, `/signout`) (no locale)
+
+`app/layout.tsx` is a pass-through shell. `app/[locale]/layout.tsx` owns
+`<html lang dir>` and `NextIntlClientProvider`.
+
+**No `middleware.ts`.** A guard script (`scripts/guard-no-middleware.mjs`) runs in
+`predev`/`prebuild`/`pretypecheck` and hard-fails if `middleware.ts` exists.
+Locale routing and Supabase session refresh are composed in `lib/proxy.ts`
+(a Next.js route handler) instead. Do not create `middleware.ts`.
+
+**Localization** is via next-intl. Message catalogs live in `messages/en-US.json`
+and `messages/he-IL.json`. They must stay key-identical; `npm run lint:i18n`
+enforces this in `prebuild`. Use `@/i18n/navigation` (re-exports from next-intl)
+instead of `next/link`/`next/navigation` inside the app tree.
+
+**Auth** uses Supabase SSR (`@supabase/ssr`). Roles are `instructor` and `student`.
+Server-side guards are `requireUser` and `requireInstructor` in `lib/auth/`.
+`is_instructor()` requires service-role access; RLS cannot call it directly.
+Supabase captcha is disabled.
+
+**AI chat** routes through Vercel AI Gateway (`@ai-sdk/gateway`) via
+`app/api/chat/`. The gateway key is `AI_GATEWAY_API_KEY` in `.env.local`.
+
+**PWA:** installable via `app/manifest.ts` + `public/sw.js` (single service worker
+with dormant push stub). Install button is hidden on desktop (`sm:flex`).
+Offline fallback at `app/[locale]/offline/`.
+
+**Component library:** shadcn/ui (`components.json`). Add components with
+`npx shadcn@latest add <name>`. Custom components live in `components/`.
 
 ## Localization (English + Hebrew)
 
-This project fully supports English and Hebrew and that support must be carried
-through all future work. Before adding any user-facing UI, read `docs/I18N.md`.
+Before adding any user-facing UI, read `docs/I18N.md`.
 
 Non-negotiables:
 
@@ -19,9 +76,7 @@ Non-negotiables:
 
 ## Accessibility and Progressive Enhancement
 
-Accessibility and no-JavaScript resilience are non-negotiable and must be carried
-through all future work. Before adding any user-facing UI, read
-`docs/ACCESSIBILITY.md`.
+Before adding any user-facing UI, read `docs/ACCESSIBILITY.md`.
 
 Non-negotiables:
 
@@ -41,9 +96,7 @@ Non-negotiables:
 
 ## Responsive and Mobile
 
-The site must be fully responsive and mobile-friendly, carried through all
-future work. Before adding or changing any user-facing UI, read
-`docs/RESPONSIVE.md`.
+Before adding or changing any user-facing UI, read `docs/RESPONSIVE.md`.
 
 Non-negotiables:
 
