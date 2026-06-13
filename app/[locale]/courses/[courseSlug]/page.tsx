@@ -21,7 +21,7 @@ import { MarkWatchedButton } from "@/components/courses/mark-watched-button"
 import { EnrollmentButton } from "@/components/courses/enrollment-button"
 import { getCourseDetailBySlug } from "@/lib/courses/queries"
 import { getEnrollment, getCourseProgress } from "@/lib/progress/queries"
-import { getOrCreateConversation, getConversationMessages } from "@/lib/tutor/queries"
+import { getConversationMessages } from "@/lib/tutor/queries"
 import { createClient } from "@/lib/supabase/server"
 import type { Locale } from "@/i18n/routing"
 import {

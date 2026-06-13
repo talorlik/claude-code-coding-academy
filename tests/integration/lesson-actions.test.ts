@@ -61,7 +61,7 @@ let mockSortOrder: number | null = 3
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn().mockImplementation(() =>
     Promise.resolve({
-      from: (table: string) => ({
+      from: (_table: string) => ({
         select: (_cols?: string) => ({
           eq: () => ({
             order: () => ({

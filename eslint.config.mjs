@@ -23,6 +23,23 @@ const eslintConfig = defineConfig([
     ignores: ["components/ui/**"],
     rules: jsxA11y.flatConfigs.recommended.rules,
   },
+  // Industry-standard convention: treat underscore-prefixed identifiers as
+  // intentionally unused. This is especially common in Supabase/Vitest mock
+  // callbacks where the arg type is needed for inference but the value is
+  // ignored (e.g. `from: (_table: string) => ...`).
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     ".next/**",

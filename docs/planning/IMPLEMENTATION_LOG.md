@@ -1360,3 +1360,131 @@ Changed:
 - `app/[locale]/admin/layout.tsx` - added Dashboard nav link
 - `messages/en-US.json` - `DashboardStudent`, `DashboardAdmin`, `Admin.nav.dashboard`
 - `messages/he-IL.json` - same keys, real Hebrew
+
+
+## Batch 10: Localization, SEO, Accessibility Polish (2026-06-13)
+
+### Audit Findings
+
+**i18n / Hardcoded Strings**
+
+- Already OK: 335 keys, catalogs key-identical, `npm run lint:i18n` green.
+- Already OK: Hebrew values are real Hebrew in all batch 05-09 namespaces.
+- Fixed: `components/admin/admin-course-form.tsx` - "Intermediate" (line 218)
+  and "Advanced" (line 220) were hardcoded English; "beginner" used the broken
+  `t("courseForm.fields.level", { fallback: "beginner" })` pattern (which is
+  not a valid next-intl call). All three now use `tCourses("level.*")` from
+  the existing `Courses.level` namespace which already has correct Hebrew.
+- Fixed: `components/admin/admin-course-table.tsx` - `{course.level}` was
+  rendered raw with Tailwind `capitalize`. Now uses
+  `tCourses("level.${course.level}")` for proper localization.
+
+**SEO / Noindex**
+
+- Fixed: `app/[locale]/admin/layout.tsx` - added `export const metadata` with
+  `robots: { index: false, follow: false }`. Next.js merges layout metadata
+  into all child pages, so this single export covers all five admin pages
+  (`/admin/dashboard`, `/admin/courses`, `/admin/courses/new`,
+  `/admin/courses/[id]/edit`, `/admin/courses/[id]/lessons`). No per-page
+  changes needed.
+- Fixed: `app/[locale]/dashboard/page.tsx` - `generateMetadata` now includes
+  `robots: { index: false, follow: false }`.
+- Already OK: `app/[locale]/chat/page.tsx` - already had noindex.
+- Already OK: Home and course detail pages have good `generateMetadata` with
+  title, description, openGraph, and conditional `alternates` when
+  `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_SITE_URL` is set.
+- Added: `app/sitemap.ts` - dynamic sitemap listing EN+HE home and all
+  published courses. Falls back gracefully when base URL env is unset.
+- Added: `app/robots.ts` - allows all crawlers on public pages, disallows
+  `/*dashboard*`, `/*admin*`, `/api/`, `/auth/`, `/*chat*`, password-reset
+  flows. Sitemap URL included when base URL env is set.
+
+**Accessibility**
+
+- Already OK: every page has exactly one `<h1>` and `<main id="main-content">`.
+- Already OK: `YouTubePlayer` sets `title={title}` (lesson title) on the
+  iframe.
+- Already OK: form fields in `AdminCourseForm` use `<label htmlFor>`,
+  `aria-invalid`, `aria-describedby` for errors; no a11y regressions found.
+- Already OK: `jsx-a11y` ESLint rule is enforced (full recommended ruleset,
+  scoped to non-ui-vendored JSX/TSX).
+
+**PWA Cache Safety**
+
+- Already OK: `public/sw.js` is safe. The fetch handler intercepts only failed
+  navigations (network error path) and serves a cached offline page. All other
+  requests - including API calls, Supabase, authenticated routes - pass through
+  to the network untouched. No private data is ever written to Cache Storage
+  beyond the offline shell and manifest assets.
+
+**Secrets in Client**
+
+- Already OK: `YOUTUBE_API_KEY`, `AI_GATEWAY_API_KEY`, `SUPABASE_SERVICE_ROLE`
+  are not referenced anywhere in `components/` or `app/[locale]/`. Server-only.
+
+**Lint Warnings**
+
+- Before: 21 warnings (0 errors) - all `@typescript-eslint/no-unused-vars` on
+  underscore-prefixed mock params in integration test files, plus two unused
+  imports in app pages.
+- Fixed unused imports: removed `getOrCreateConversation` from
+  `app/[locale]/courses/[courseSlug]/page.tsx` and `getCourseDetailBySlug`
+  from `app/api/tutor/route.ts`.
+- Fixed `table` -> `_table` in `tests/integration/lesson-actions.test.ts`.
+- Configured `@typescript-eslint/no-unused-vars` in `eslint.config.mjs` with
+  `argsIgnorePattern: "^_"` so underscore-prefixed mock callback params are
+  correctly ignored (industry-standard convention).
+- After: 0 warnings, 0 errors.
+
+### Tests Added
+
+Unit tests (`tests/unit/seo-metadata.test.ts`, 5 tests):
+
+- Admin layout static `metadata` has `robots.index === false`.
+- Dashboard `generateMetadata` has `robots.index === false`.
+- Chat `generateMetadata` has `robots.index === false`.
+- Home `generateMetadata` does NOT set `robots.index === false`.
+- Course page `generateMetadata` does NOT set `robots.index === false`.
+
+E2E tests (`e2e/seo-a11y.spec.ts`, 7 tests):
+
+- `/en` html lang starts with "en", dir=ltr.
+- `/he` html lang starts with "he", dir=rtl.
+- `/en` home has `<main id="main-content">` and exactly one `<h1>`.
+- `/en/login` has `<main id="main-content">` and exactly one `<h1>`.
+- `/he` home has `<main id="main-content">` and exactly one `<h1>`.
+- Unauthenticated `/en/dashboard` redirects to login.
+- Unauthenticated `/en/admin/courses` redirects to login.
+
+### Gates
+
+- `npm run lint` - 0 errors, 0 warnings (was 21 warnings before).
+- `npm run lint:i18n` - 335 keys in sync.
+- `npm run typecheck` - clean.
+- `npm run test` - 338 passed (333 prior + 5 new).
+- `npm run build` - clean; `/robots.txt` static, `/sitemap.xml` dynamic.
+- `npm run test:e2e` - 61 passed, 1 skipped (E2E_REAL_AI gate), 0 failed.
+
+### Files Changed
+
+Created:
+
+- `app/sitemap.ts` - dynamic sitemap for public pages + published courses
+- `app/robots.ts` - robots.txt allowing public, disallowing private routes
+- `tests/unit/seo-metadata.test.ts` - SEO noindex unit tests (5 tests)
+- `e2e/seo-a11y.spec.ts` - lang/dir, h1, landmark, auth-redirect e2e (7 tests)
+
+Changed:
+
+- `app/[locale]/admin/layout.tsx` - added `export const metadata` with noindex
+- `app/[locale]/dashboard/page.tsx` - added robots noindex to generateMetadata
+- `app/api/tutor/route.ts` - removed unused `getCourseDetailBySlug` import
+- `app/[locale]/courses/[courseSlug]/page.tsx` - removed unused
+  `getOrCreateConversation` import
+- `components/admin/admin-course-form.tsx` - fixed hardcoded "Intermediate" /
+  "Advanced" / broken beginner key to use `tCourses("level.*")`
+- `components/admin/admin-course-table.tsx` - fixed raw `course.level` display
+  to use `tCourses("level.*")`
+- `tests/integration/lesson-actions.test.ts` - `table` -> `_table`
+- `eslint.config.mjs` - added `argsIgnorePattern: "^_"` to
+  `@typescript-eslint/no-unused-vars` rule

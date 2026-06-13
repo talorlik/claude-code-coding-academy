@@ -119,6 +119,7 @@ function DeleteCourseButton({
  */
 export function AdminCourseTable({ courses }: AdminCourseTableProps) {
   const t = useTranslations("Admin")
+  const tCourses = useTranslations("Courses")
 
   if (courses.length === 0) {
     return (
@@ -175,7 +176,9 @@ export function AdminCourseTable({ courses }: AdminCourseTableProps) {
                   /{course.slug}
                 </span>
               </td>
-              <td className="hidden px-4 py-3 capitalize sm:table-cell">{course.level}</td>
+              <td className="hidden px-4 py-3 sm:table-cell">
+                {tCourses(`level.${course.level}` as Parameters<typeof tCourses>[0])}
+              </td>
               <td className="px-3 py-3 sm:px-4">
                 <StatusBadge status={course.status as CourseStatus} />
               </td>

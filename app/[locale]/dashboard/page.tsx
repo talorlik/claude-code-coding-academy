@@ -23,7 +23,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: "DashboardStudent" })
-  return { title: t("pageTitle") }
+  return {
+    title: t("pageTitle"),
+    robots: { index: false, follow: false },
+  }
 }
 
 /**

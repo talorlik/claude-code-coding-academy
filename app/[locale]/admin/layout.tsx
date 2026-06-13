@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { requireInstructor } from "@/lib/auth/require-user"
@@ -11,7 +12,15 @@ import type { Locale } from "@/i18n/routing"
  *
  * One <h1> per PAGE, not here. This layout renders a nav landmark and links;
  * each child page owns its own <h1>.
+ *
+ * Layout-level metadata: all /admin/* pages are private - noindex so crawlers
+ * do not index the management UI. Next.js merges layout metadata into child
+ * page metadata; child pages' own title overrides the layout title.
  */
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 export default async function AdminLayout({
   children,
   params,

@@ -56,6 +56,7 @@ export function AdminCourseForm({
   defaultValues,
 }: AdminCourseFormProps) {
   const t = useTranslations("Admin")
+  const tCourses = useTranslations("Courses")
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -212,12 +213,14 @@ export function AdminCourseForm({
               {t("courseForm.fields.levelPlaceholder")}
             </NativeSelectOption>
             <NativeSelectOption value="beginner">
-              {t("courseForm.fields.level", { fallback: "beginner" })}
+              {tCourses("level.beginner")}
             </NativeSelectOption>
             <NativeSelectOption value="intermediate">
-              Intermediate
+              {tCourses("level.intermediate")}
             </NativeSelectOption>
-            <NativeSelectOption value="advanced">Advanced</NativeSelectOption>
+            <NativeSelectOption value="advanced">
+              {tCourses("level.advanced")}
+            </NativeSelectOption>
           </NativeSelect>
           {fieldErrors["level"] && (
             <FieldError>{fieldErrors["level"]}</FieldError>

@@ -343,3 +343,32 @@ declared dependency in package.json (it only resolves because Next ships it).
 Add `server-only` to dependencies and apply the marker consistently to the
 other server-only modules (lib/youtube/metadata, lib/admin/*, lib/tutor/*,
 lib/courses/queries, lib/progress/*) in the tech-debt batch.
+
+### 2026-06-13 - Batch 10 - Polish: noindex private pages, sitemap/robots, lint clean
+
+Cross-cutting polish over batches 02-09 (no redesign). Key changes:
+
+- Private pages are now noindex: `app/[locale]/admin/layout.tsx` exports
+  `metadata.robots {index:false, follow:false}` (Next merges it into all
+  /admin/* children) and `app/[locale]/dashboard/page.tsx` sets the same in
+  generateMetadata. Public pages (home, catalog, /courses/[slug]) stay
+  indexable with openGraph + conditional alternates.
+- Added `app/sitemap.ts` (dynamic: EN+HE home + all published course slugs) and
+  `app/robots.ts` (disallows dashboard, admin, api, auth, chat, password
+  flows). Build emits /sitemap.xml + /robots.txt.
+- Localized two hardcoded admin strings: course level option labels and the
+  course-table level cell now use the existing `Courses.level.*` keys instead
+  of raw values / a broken `t(..., {fallback})` call.
+- Lint is now 0 warnings / 0 errors: removed unused imports, renamed an unused
+  test mock param, and added `argsIgnorePattern: "^_"` to the ESLint config
+  (so intentionally-unused `_`-prefixed params are allowed). This clears the
+  prior ~21-warning tech-debt item.
+- Audit confirmed already-OK: a11y (one h1 + main#main-content per page, iframe
+  title, label/aria-invalid/aria-describedby on forms, jsx-a11y enforced), PWA
+  (sw.js only serves cache on navigation failure - never caches authenticated
+  or /api traffic), and no client-side secret references.
+
+**Why:** noindex via layout metadata is the least-invasive way to cover the
+whole admin tree at once. The ESLint argsIgnorePattern aligns the config with
+the `_`-prefix convention already used in the codebase, making the warnings
+correct rather than suppressed.

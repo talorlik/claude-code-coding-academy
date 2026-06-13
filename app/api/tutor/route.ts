@@ -23,7 +23,6 @@
 import { convertToModelMessages, streamText, type UIMessage } from "ai"
 
 import { createClient } from "@/lib/supabase/server"
-import { getCourseDetailBySlug } from "@/lib/courses/queries"
 import { getEnrollment } from "@/lib/progress/queries"
 import { tutorMessageSchema } from "@/lib/validation/tutor"
 import { buildTutorSystemPrompt, capHistory } from "@/lib/tutor/prompt"
