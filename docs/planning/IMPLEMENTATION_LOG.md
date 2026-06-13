@@ -653,3 +653,128 @@ npm run typecheck  - PASS (tsc --noEmit clean)
 npm run test       - PASS (107 tests in 5 files, 1.05s)
 npm run build      - PASS (23 static pages, Turbopack)
 ```
+
+## Batch 4: YouTube Parser And Metadata (2026-06-13)
+
+### Files Created
+
+- `lib/youtube/types.ts` - shared types: `ParsedYouTubeUrl`, `VideoMetadata`,
+  `LessonDraft` (all importable from client and server)
+- `lib/youtube/parser.ts` - pure parser, no network, no env
+- `lib/youtube/metadata.ts` - server-only metadata helpers
+- `tests/unit/youtube-parser.test.ts` - exhaustive parser + iso8601 tests
+- `tests/unit/youtube-metadata.test.ts` - fetch-mocked metadata tests
+
+### Parser URL Shapes Supported
+
+`extractVideoId` accepts all of the following host families:
+`www.youtube.com`, `youtube.com`, `m.youtube.com`, `music.youtube.com`,
+`youtu.be` - with `http://` or `https://` only (no protocol-relative).
+
+Path patterns handled:
+
+- `/watch?v=ID` - standard watch
+- `youtu.be/ID` - short link
+- `/embed/ID` - embed player
+- `/shorts/ID` - YouTube Shorts
+- `/v/ID` - legacy player
+
+Video id shape: exactly 11 chars from `[A-Za-z0-9_-]` validated by
+`/^[A-Za-z0-9_-]{11}$/`.
+
+`extractPlaylistId` captures the `list=` query param from any YouTube URL.
+Playlist id shape: `/^[A-Za-z0-9_-]{13,}$/` (minimum 13 chars, no upper
+bound). This covers `PL`, `UU`, `LL`, `FL`, `RD`, `OL` prefixed IDs and
+accommodates future YouTube ID length increases.
+
+### parseYouTubeUrl Precedence
+
+When a URL carries both a video id and a playlist id (`watch?v=ID&list=PL`),
+`kind` is `"video"` and both `videoId` and `playlistId` are populated. A URL
+with only a playlist id (`/playlist?list=PL`) returns `kind: "playlist"`.
+
+### oEmbed: No Duration
+
+YouTube's oEmbed endpoint does not return duration. `fetchVideoOEmbed` leaves
+`durationSeconds` undefined on the returned `VideoMetadata`. Callers that need
+duration must either call `videos.list?part=contentDetails` (requires
+`YOUTUBE_API_KEY`) or accept the field as missing.
+
+### Playlist Import: Missing Key Behavior
+
+`fetchPlaylistItems` checks `process.env["YOUTUBE_API_KEY"]` at call time.
+When absent or empty, it returns immediately with:
+
+```
+Playlist import requires a server-side YOUTUBE_API_KEY. Add the key to your
+.env.local file and restart the server.
+```
+
+This exact string is exported as `MISSING_API_KEY_MESSAGE` so test assertions
+and any future UI copy reference the same source of truth.
+
+### Server-Only Boundary
+
+`lib/youtube/metadata.ts` accesses `process.env["YOUTUBE_API_KEY"]` (no
+`NEXT_PUBLIC_` prefix). The file is documented as server-only in its module
+docblock. The `server-only` npm package is not installed; the boundary is
+enforced by convention and code review rather than a compile-time hard stop.
+
+### Result Type
+
+`ActionResult<T>` from `lib/types/action-result.ts` is reused directly. Both
+`fetchVideoOEmbed` and `fetchPlaylistItems` return
+`Promise<ActionResult<T>>`. This composes with existing server actions that
+already use `ok()`/`fail()`.
+
+### Pagination and Duration Cap
+
+- `playlistItems.list` paginates via `pageToken` up to 200 items (4 pages of
+  50). Controlled by `MAX_PLAYLIST_ITEMS = 200`.
+- Duration enrichment calls `videos.list?part=contentDetails` in batches of
+  50 ids. If any batch call fails (non-200 or network error), enrichment is
+  abandoned and remaining drafts return without `durationSeconds` - the full
+  import still succeeds.
+
+### Abort/Timeout Error Detection
+
+`DOMException` with `name === "AbortError"` does not pass `instanceof Error`
+in jsdom test environments. Both catch blocks check
+`(err instanceof Error || err instanceof DOMException) && err.name === "AbortError"`
+to remain correct in all environments.
+
+### Tests Added
+
+- `tests/unit/youtube-parser.test.ts` - 69 tests: valid watch/youtu.be/
+  embed/shorts/v/ URLs, m./music. hosts, extra query params, playlist URLs,
+  rejections (vimeo, garbage, wrong-length ids, bare ids, protocol-relative,
+  javascript: scheme), `parseYouTubeUrl` precedence, `buildWatchUrl`,
+  `buildThumbnailUrl`, `iso8601DurationToSeconds` (7 duration cases including
+  `P0D`, bare `PT`, empty string, garbage)
+- `tests/unit/youtube-metadata.test.ts` - 18 tests: `fetchVideoOEmbed` happy
+  path (bare id and full URL), 404/401/500/network/timeout/bad-JSON fail
+  cases; `fetchPlaylistItems` missing-key, full happy path with duration
+  enrichment, degraded without duration, 403/404/network fail cases, empty
+  playlist
+
+Total test count after batch: 187 tests in 7 files (all pass).
+
+### Deferred To Later Batches
+
+- Admin import UI and save-to-Supabase server action (batch 07).
+- `youtubeUrlSchema` Zod refine in `lib/validation/lesson.ts` using the
+  parser is deferred; the existing `z.string().url()` + separate parser call
+  is sufficient for batch 07.
+- Pagination beyond page 1 is implemented but untested for multi-page
+  playlists (no integration test fixture set up).
+
+### Gate Results
+
+All commands run on 2026-06-13 with Node 22.16.0:
+
+```
+npm run lint       - PASS (0 errors, 0 warnings)
+npm run typecheck  - PASS (tsc --noEmit clean)
+npm run test       - PASS (187 tests in 7 files, 1.50s)
+npm run build      - PASS (23 static pages, Turbopack)
+```

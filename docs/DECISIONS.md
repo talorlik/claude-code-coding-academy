@@ -173,3 +173,21 @@ Deferred (by scope, not oversight): all `lib/<domain>/actions.ts` server
 actions, `lib/auth/guards.ts`, `lib/progress/queries.ts`, and the YouTube
 parser (batch 04). Factories were left on their local interfaces (they match
 the generated rows exactly); re-pointing is cosmetic tech-debt.
+
+### 2026-06-13 - Batch 04 - YouTube parser pure; metadata server-only, key optional
+
+`lib/youtube/parser.ts` is pure (no env, no network): extractVideoId /
+extractPlaylistId / parseYouTubeUrl handle watch, youtu.be, embed, shorts, /v/
+across www/m/music hosts. `lib/youtube/metadata.ts` is server-only (reads
+`process.env.YOUTUBE_API_KEY`, never `NEXT_PUBLIC_`): `fetchVideoOEmbed` works
+without a key (oEmbed, but returns no duration), `fetchPlaylistItems` returns a
+`fail()` ActionResult with `MISSING_API_KEY_MESSAGE` when the key is absent and
+otherwise paginates playlistItems (cap 200) + best-effort videos.list for
+durations. Both return `ActionResult<T>`.
+
+**Why:** The YouTube key is optional (section 5.2) and not set in `.env.local`,
+so single-video metadata had to work keyless while playlist import degrades to
+a clear message. Batch 07 (admin import UI) consumes `LessonDraft[]` and
+`VideoMetadata` directly and wires the save-to-Supabase action. Follow-up
+tech-debt: the `server-only` npm package is not installed, so the server
+boundary on `metadata.ts` is convention-only, not compile-enforced.
