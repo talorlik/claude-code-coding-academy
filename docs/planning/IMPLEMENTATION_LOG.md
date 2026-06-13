@@ -338,3 +338,187 @@ npm run lint                # ESLint clean - PASS
 npm run typecheck           # guard + tsc --noEmit clean - PASS
 npx prettier --check vitest.config.ts "tests/**/*.ts"  # clean
 ```
+
+
+## Batch 2: Database Schema (2026-06-13)
+
+Implements the full course-platform schema on the remote Supabase project via
+a single atomic migration `0003_course_platform_core.sql`. RLS policies,
+views, seed data, and generated TypeScript types are included.
+
+### Reconciliation Decisions
+
+The spec in `TECHNICAL_REQUIREMENTS.md` sections 6 and 7 was written against
+a clean-slate schema. The existing migrations (`0001`, `0002`) predated it and
+diverged in three ways. The following decisions resolve the conflicts without
+altering the existing tables or breaking auth.
+
+**Profiles - extend, not replace**
+
+The existing `public.profiles` table uses `user_id uuid primary key` (not
+`id`). The spec table calls the PK column `id`. Because `0001` is committed
+and already applied, the table is NOT recreated. Instead `0003` extends it
+with three new columns via `ALTER TABLE`:
+
+- `email text` (nullable; denormalized for admin display)
+- `avatar_url text` (nullable)
+- `locale text not null default 'en' check (locale in ('en','he'))`
+
+The spec column `role user_role` is NOT added. Roles live in the separate
+`public.user_roles` table with the `app_role` enum (`instructor`, `student`).
+Adding a redundant `role` column would create a second source of truth.
+
+All foreign keys that the spec writes as `references profiles(id)` are
+written here as `references profiles(user_id)`, because that is the actual
+primary key.
+
+**instructor == admin; private.is_admin() helper**
+
+The existing project uses the role value `'instructor'` for the privileged
+account. The spec's `'admin'` role is mapped to `'instructor'` throughout.
+The spec's `public.is_admin()` function (which queries a `role` column on
+`profiles`) cannot be used as written. Instead a new `private.is_admin()`
+function is created:
+
+- Schema `private` is created if absent; PostgREST does not expose it as
+  REST RPCs.
+- The function is `security definer`, `stable`, `set search_path = public`,
+  and checks `user_roles.role = 'instructor'` for `auth.uid()`.
+- `EXECUTE` is revoked from `public`/`anon`; `authenticated` retains it
+  because RLS policies (which run as the invoker) call it.
+- Policies use `(select private.is_admin())` (wrapped in a subselect) for
+  initplan caching - one lookup per statement instead of one per row.
+
+This approach keeps the admin helper off the REST surface while making it
+callable from within RLS, and it avoids conflicting with the existing
+`public.is_instructor()` (which is service_role-only).
+
+**Naming convention deviation**
+
+The prompt's `TASK_BREAKDOWN.md` specifies timestamp-prefixed migration
+filenames (e.g. `20240613000000_...`). The existing convention (established
+by `0001` and `0002`) uses sequential four-digit prefixes. The sequential
+convention wins because changing it would break the applied-migration order
+tracking in the Supabase dashboard. This deviation is noted here.
+
+**Enums created**
+
+The following enums are created (they do not conflict with existing types):
+
+- `course_level` ('beginner', 'intermediate', 'advanced')
+- `course_status` ('draft', 'published', 'archived')
+- `tutor_message_role` ('user', 'assistant', 'system')
+- `payment_status` ('pending', 'paid', 'failed', 'refunded')
+- `reminder_status` ('queued', 'sent', 'failed', 'skipped')
+
+The spec's `user_role` enum ('student', 'admin') is NOT created because
+`public.app_role` ('instructor', 'student') already exists and serves the
+same purpose.
+
+### Tables Created
+
+All 12 new tables plus 3 `ALTER TABLE` columns on profiles:
+
+- `courses` - course catalog with status, level, language, slug
+- `lessons` - YouTube-backed video lessons per course
+- `enrollments` - student enrollment per course with completion tracking
+- `lesson_progress` - per-lesson watch record with course/lesson trigger
+- `ai_tutor_conversations` - AI tutor session per user/course/lesson
+- `ai_tutor_messages` - messages within a conversation
+- `certificates` - completion certificate per user/course
+- `class_groups` - named student groups with slug
+- `class_group_members` - group membership
+- `reminder_events` - queued/sent reminder queue
+- `course_prices` - simulation-only pricing per course
+- `payments` - simulation-only payment records
+
+### RLS Strategy
+
+Every new table has RLS enabled. Policies follow the matrix in section 7.2
+with the instructor-as-admin mapping:
+
+- Courses and lessons: anon and authenticated may SELECT rows where
+  `status = 'published'` (lessons: where the parent course is published).
+  This powers the public SEO catalog without requiring a login. Admin has
+  full CRUD.
+- Student-private tables (enrollments, lesson_progress, certificates,
+  payments, ai_tutor_conversations, ai_tutor_messages,
+  class_group_members): students see and write only their own rows.
+- Admin-only tables (reminder_events): no student access.
+- course_prices: anon and authenticated may read active prices for published
+  courses; admin has full CRUD.
+- profiles: the existing own-row policies from 0001 are preserved; a new
+  admin-read-all SELECT policy is added so admin dashboards can list
+  students.
+
+All policies that check admin status use `(select private.is_admin())` for
+initplan caching, following the Supabase best practice of avoiding per-row
+re-evaluation of stable security definer functions.
+
+### Anon Read Scope
+
+Anonymous (not logged in) users can SELECT published courses, their lessons,
+and active course prices. This enables the public course catalog and SEO
+pages. Anon cannot enroll, track progress, or access any student-private
+data. Enrollment gates are enforced by the INSERT policy (authenticated only)
+and the application layer.
+
+### Views Created
+
+Five security-invoker views are created. They inherit RLS from underlying
+tables, so they never leak rows the caller could not read directly:
+
+- `course_lesson_counts` - count + total duration per course
+- `student_course_progress` - watched/total/percent per user per course
+- `admin_stuck_students` - enrollment rows with no progress in 7+ days
+- `group_progress_summary` - aggregate completion per group per course
+- `search_documents` - published course + lesson text for full-text search
+
+`admin_common_tutor_questions` is SKIPPED. A normalized question aggregate
+requires either a separate NLP step or a GROUP BY on free-text content, which
+is not cleanly derivable from the current schema. Forcing it would produce
+misleading output. This is a follow-up for a later batch.
+
+### RLS Verification
+
+Results observed via `mcp__supabase__execute_sql` with SET LOCAL role:
+
+```
+anon   -> courses SELECT           : 2  (both seeded courses are published)
+anon   -> enrollments SELECT       : 0  (no anon policy - correct)
+auth (random uuid) -> enrollments  : 0  (own-row isolation - correct)
+anon   -> lessons SELECT           : 6  (3 per course * 2 published courses)
+anon   -> course_prices SELECT     : 1  (JS course active price)
+auth (random uuid) -> class_groups : 0  (not a member - correct)
+```
+
+Full repeatable checks saved to `supabase/tests/RLS_CHECKS.sql`.
+
+### Files Written
+
+- `supabase/migrations/0003_course_platform_core.sql` - schema + RLS +
+  views
+- `supabase/seed.sql` - idempotent seed: 2 courses, 3 lessons each, 1
+  class group, 1 course_prices row
+- `supabase/tests/RLS_CHECKS.sql` - repeatable RLS isolation checks
+- `lib/supabase/database.types.ts` - generated TypeScript types
+- `tests/unit/database-types.test.ts` - type-level assertions
+
+### Follow-Ups For Later Batches
+
+- `admin_common_tutor_questions` view: implement once tutor messages
+  accumulate; requires a normalization strategy for free-text questions.
+- `profiles.role` absence: the application must resolve admin status via
+  `user_roles.role = 'instructor'`; any admin-facing UI that wants to
+  display a role label should use that join, not a profiles column.
+- Anon read scope: the catalog is intentionally public; if a future batch
+  adds gated previews or paywall-before-view, the SELECT policy on courses
+  must add a price/enrollment check.
+- `enrollments.last_accessed_lesson_id` consistency trigger: skipped as
+  noted in prompt (only trivial to do for lesson_progress course/lesson
+  check, which IS implemented). The enrollment FK is enforced by DB
+  constraints at insert time; application logic in Batch 6 must set it
+  correctly.
+- `profiles.email` population: the column exists but is not auto-populated
+  on signup. Batch 3 or the auth trigger should backfill it from
+  `auth.users.email`.

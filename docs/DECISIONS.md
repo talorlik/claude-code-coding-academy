@@ -114,3 +114,34 @@ Three structural decisions:
 prompt's own rule) beats the literal directory list. Factories are
 deterministic (shared counter + fixed timestamps, `resetFactorySequence()`)
 so snapshot/data tests stay stable across runs.
+
+### 2026-06-13 - Batch 02 - Course schema reconciled with existing auth model
+
+The course-platform schema (TECHNICAL_REQUIREMENTS section 6/7) diverged from
+the existing auth schema (migration 0001). Reconciled rather than replaced:
+
+- `profiles` was EXTENDED (ALTER TABLE adds email, avatar_url, locale), not
+  recreated. The PK stays `user_id` (not the spec's `id`); every new-table FK
+  the spec writes as `references profiles(id)` instead references
+  `profiles(user_id)`.
+- The spec's "admin" role == this project's existing "instructor" role. No
+  `user_role` enum was created (it would clash with the existing `app_role`).
+  The RLS admin helper is `private.is_admin()` (security definer, granted to
+  authenticated, revoked from anon, off the PostgREST RPC surface because the
+  `private` schema is not exposed) and checks `user_roles.role = 'instructor'`.
+- Migrations keep the sequential `0003_*` convention, not the timestamped name
+  the task breakdown suggested.
+- Anon AND authenticated may SELECT published courses/lessons/active prices -
+  this powers the public SEO catalog. All private tables are own-row only.
+
+Skipped: `admin_common_tutor_questions` view (needs question-text
+normalization not derivable from the schema; a later batch can add it once the
+tutor stores normalized prompts), and the `enrollments.last_accessed_lesson_id`
+consistency trigger (only `lesson_progress` got the course/lesson-match
+trigger).
+
+**Why:** Breaking the working auth model (which `lib/auth/roles.ts` and the
+seed depend on) to match the spec's profiles/role shape would be a rewrite for
+no functional gain. The reconciliation preserves auth and satisfies every
+product requirement. Later batches: roles are read from `user_roles`, NOT a
+`profiles.role` column; "admin" in any prompt means the `instructor` role.

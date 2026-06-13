@@ -7,6 +7,7 @@ import {
   isAuthCookie,
   stripPersistence,
 } from "@/lib/supabase/cookie-persistence"
+import type { Database } from "@/lib/supabase/database.types"
 
 /**
  * Request-scoped Supabase client using the publishable key. RLS applies and the
@@ -18,7 +19,7 @@ import {
 export async function createClient() {
   const cookieStore = await cookies()
 
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
@@ -57,7 +58,7 @@ export async function createClient() {
  * the role resolves to service_role and RLS is bypassed as intended.
  */
 export function createAdminClient() {
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SECRET_KEY!,
     {
