@@ -1963,3 +1963,123 @@ The section-10 reviewer steps map to automated e2e equivalents:
 All flows are to be **spot-checked on the live Vercel URL** by the
 orchestrator post-deploy using real seeded credentials from `npm run seed`
 (run against the Supabase production project).
+
+## Batch 14: YouTube Playlist Import - Live Key Activation (2026-06-14)
+
+### API Shape Verification
+
+Inspected `lib/youtube/metadata.ts` against the YouTube Data API v3 real
+response shape. Findings:
+
+- `playlistItems.list` is called with `part=snippet` (not
+  `part=snippet,contentDetails`). The `resourceId.videoId` field is present
+  under `snippet` when `part=snippet` is requested. The code reads
+  `item.snippet.resourceId.videoId` - this matches the real API shape.
+  No field-path fix was required.
+- Pagination via `pageToken` is correctly implemented; the loop caps at
+  `MAX_PLAYLIST_ITEMS` (200 items, 4 pages of 50).
+- Duration enrichment calls `videos.list?part=contentDetails` in batches
+  of 50, parses `PT[H][M][S]` via `iso8601DurationToSeconds`, and degrades
+  gracefully (drafts returned without `durationSeconds`) if that call fails.
+- Thumbnails use `snippet.thumbnails.high ?? medium ?? default` with a
+  fallback to the canonical `hqdefault.jpg` URL. Correct for the real shape.
+- No field-path mismatch found. No code changes made to the API call logic.
+
+A one-off manual sanity check was NOT performed in this batch (the
+orchestrator pre-verified HTTP 200 from `videos.list` against a live video
+ID before batch start). The default test suite stays fully mocked and offline.
+
+### Hardened Error UX
+
+Exported four sentinel string constants from `lib/youtube/metadata.ts`:
+
+- `MISSING_API_KEY_MESSAGE` - already existed; no change to value.
+- `QUOTA_EXCEEDED_MESSAGE` - returned on HTTP 403 from `playlistItems.list`.
+- `PLAYLIST_NOT_FOUND_MESSAGE` - returned on HTTP 404 from `playlistItems.list`.
+- `INVALID_PLAYLIST_URL_MESSAGE` - returned by `importPlaylist` when
+  `extractPlaylistId` cannot parse a playlist ID from the URL.
+
+`lib/youtube/playlist.ts` re-exports all four sentinels so client
+components can import them from a single, non-server-only path.
+
+`importPlaylist` and `previewPlaylist` now use `INVALID_PLAYLIST_URL_MESSAGE`
+as the `fail()` message string (instead of an inline literal) so the
+component can match it by reference equality.
+
+`fetchPlaylistItems` uses `QUOTA_EXCEEDED_MESSAGE` and
+`PLAYLIST_NOT_FOUND_MESSAGE` as the `fail()` message strings for HTTP 403
+and 404 respectively.
+
+`components/admin/youtube-playlist-import.tsx` updated to match each
+sentinel and resolve to a localized i18n key:
+
+| Sentinel | i18n key | UI surface |
+| --- | --- | --- |
+| `MISSING_API_KEY_MESSAGE` | `Admin.playlistImport.missingKey` | Alert block |
+| `INVALID_PLAYLIST_URL_MESSAGE` | `Admin.playlistImport.validation.urlInvalid` | Field error |
+| `QUOTA_EXCEEDED_MESSAGE` | `Admin.playlistImport.errorQuota` | Root error |
+| `PLAYLIST_NOT_FOUND_MESSAGE` | `Admin.playlistImport.errorNotFound` | Root error |
+| anything else | `Admin.playlistImport.error` | Root error (generic) |
+
+### New i18n Keys
+
+Two keys added to both `messages/en-US.json` and `messages/he-IL.json`
+under `Admin.playlistImport`:
+
+- `errorQuota` - quota exceeded / invalid key message.
+- `errorNotFound` - playlist not found / private / bad URL message.
+
+Catalogs remain key-identical: `lint:i18n` exits 0 with 446 keys in sync.
+
+### Save Path Status
+
+`importPlaylist` already saves drafts to Supabase (`lessons` table) in the
+same action call (batch 07 implementation was complete). The save is
+admin-guarded via `requireAdmin()` (which delegates to `requireInstructor`).
+Sort order is appended after the course's current `max(sort_order)`, so
+existing lessons are never reordered. No changes to the save path were
+required.
+
+### Opt-In Live Test
+
+`tests/integration/youtube-live.test.ts` added. All tests inside use
+`it.skipIf(!enabled)` where `enabled` requires both:
+
+- `YOUTUBE_LIVE_TEST=true` in the environment
+- `YOUTUBE_API_KEY` present in the environment
+
+By default `npm run test` skips both tests in that file (2 skipped shown
+in the test output). To run them locally:
+
+```sh
+YOUTUBE_LIVE_TEST=true \
+YOUTUBE_API_KEY=<key> \
+PATH="$HOME/.nvm/versions/node/v22.16.0/bin:$PATH" \
+npm run test -- tests/integration/youtube-live.test.ts
+```
+
+The live tests assert: `fetchPlaylistItems` returns `>=1 LessonDraft` with
+an 11-char `youtubeVideoId`, and at least one item has `durationSeconds > 0`.
+
+### Gate Results (Observed Exit Codes)
+
+All commands run in worktree `/Users/talo/www/academy-14-youtube-live` with
+`PATH="$HOME/.nvm/versions/node/v22.16.0/bin:$PATH"`:
+
+- `npm run lint` - exit 0; 0 errors, 0 warnings.
+- `npm run lint:i18n` - exit 0; 446 keys in sync.
+- `npm run typecheck` - exit 0 (guard + tsc --noEmit clean).
+- `npm run test` - exit 0; 405 passed, 2 skipped (live tests), 0 failed
+  (32 test files total, 1 skipped file = youtube-live.test.ts).
+- `npm run build` - exit 0; 27 routes, no type errors.
+- `npm run test:e2e` - exit 0; 72 passed, 4 skipped (pre-existing live
+  service skips), 0 failed.
+
+### Key Stays Server-Only
+
+`YOUTUBE_API_KEY` is read exclusively in `lib/youtube/metadata.ts` via
+`process.env["YOUTUBE_API_KEY"]`. The `import "server-only"` at the top of
+that file enforces the server boundary at build time. The key carries no
+`NEXT_PUBLIC_` prefix. No client component or client bundle path imports
+from `metadata.ts`; the component imports from `playlist.ts` (sentinels
+only, not the fetch function).

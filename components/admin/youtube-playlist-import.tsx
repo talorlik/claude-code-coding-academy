@@ -10,7 +10,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { importPlaylist, MISSING_API_KEY_MESSAGE } from "@/lib/youtube/playlist"
+import {
+  importPlaylist,
+  MISSING_API_KEY_MESSAGE,
+  QUOTA_EXCEEDED_MESSAGE,
+  PLAYLIST_NOT_FOUND_MESSAGE,
+  INVALID_PLAYLIST_URL_MESSAGE,
+} from "@/lib/youtube/playlist"
 
 interface YouTubePlaylistImportProps {
   courseId: string
@@ -19,10 +25,12 @@ interface YouTubePlaylistImportProps {
 /**
  * Playlist import UI. Client component.
  *
- * - Accepts a YouTube playlist URL.
- * - Calls the server action importPlaylist.
- * - Shows the MISSING_API_KEY_MESSAGE prominently when the API key is absent.
- * - Shows import count on success.
+ * Error handling maps server-side sentinel strings to localized i18n keys:
+ * - MISSING_API_KEY_MESSAGE  -> playlistImport.missingKey (prominent alert)
+ * - INVALID_PLAYLIST_URL_MESSAGE -> playlistImport.validation.urlInvalid (field error)
+ * - QUOTA_EXCEEDED_MESSAGE   -> playlistImport.errorQuota (root error)
+ * - PLAYLIST_NOT_FOUND_MESSAGE -> playlistImport.errorNotFound (root error)
+ * - anything else            -> playlistImport.error (generic root error)
  */
 export function YouTubePlaylistImport({ courseId }: YouTubePlaylistImportProps) {
   const t = useTranslations("Admin")
@@ -51,20 +59,25 @@ export function YouTubePlaylistImport({ courseId }: YouTubePlaylistImportProps) 
         if (count === 0) {
           toast.info(t("playlistImport.noItems"))
         } else {
-          toast.success(
-            t("playlistImport.success", { count })
-          )
+          toast.success(t("playlistImport.success", { count }))
           setUrl("")
           router.refresh()
         }
       } else {
-        // Detect missing API key by comparing message content.
+        // Map server-side sentinel strings to localized UI messages.
         if (result.message === MISSING_API_KEY_MESSAGE) {
           setMissingKey(true)
-        } else if (result.fieldErrors?.url) {
-          setUrlError(result.fieldErrors.url)
+        } else if (
+          result.message === INVALID_PLAYLIST_URL_MESSAGE ||
+          result.fieldErrors?.url
+        ) {
+          setUrlError(t("playlistImport.validation.urlInvalid"))
+        } else if (result.message === QUOTA_EXCEEDED_MESSAGE) {
+          setRootError(t("playlistImport.errorQuota"))
+        } else if (result.message === PLAYLIST_NOT_FOUND_MESSAGE) {
+          setRootError(t("playlistImport.errorNotFound"))
         } else {
-          setRootError(result.message)
+          setRootError(t("playlistImport.error"))
         }
       }
     })

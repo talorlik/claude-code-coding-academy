@@ -216,6 +216,34 @@ export const MISSING_API_KEY_MESSAGE =
   "Add the key to your .env.local file and restart the server."
 
 /**
+ * Sentinel returned when the YouTube API responds with HTTP 403.
+ * Indicates quota exhaustion or an invalid/revoked API key.
+ * Exported so the UI can detect this case and show a localized message.
+ */
+export const QUOTA_EXCEEDED_MESSAGE =
+  "YouTube API returned 403: quota exceeded or invalid API key."
+
+/**
+ * Sentinel returned when the YouTube API responds with HTTP 404.
+ * Indicates the playlist is private, deleted, or the ID is wrong.
+ * Exported so the UI can detect this case and show a localized message.
+ */
+export const PLAYLIST_NOT_FOUND_MESSAGE =
+  "Playlist not found: it may be private or the ID is incorrect."
+
+/**
+ * Sentinel returned when the playlist URL cannot be parsed to extract a
+ * playlist ID (e.g. not a YouTube URL, missing `list=` param).
+ * Exported so the UI can detect this case and show a localized message.
+ *
+ * This constant is produced by `importPlaylist` in playlist.ts, not by
+ * `fetchPlaylistItems`, but is co-located here with the other sentinels for
+ * a single import surface.
+ */
+export const INVALID_PLAYLIST_URL_MESSAGE =
+  "Invalid playlist URL. Please enter a valid YouTube playlist URL containing a 'list=' parameter."
+
+/**
  * Fetches all items in a YouTube playlist and returns them as lesson drafts.
  *
  * Requires `process.env.YOUTUBE_API_KEY` to be set. If the key is absent,
@@ -299,14 +327,10 @@ export async function fetchPlaylistItems(
     }
 
     if (response.status === 403) {
-      return fail<LessonDraft[]>(
-        "YouTube API returned 403: quota exceeded or invalid API key."
-      )
+      return fail<LessonDraft[]>(QUOTA_EXCEEDED_MESSAGE)
     }
     if (response.status === 404) {
-      return fail<LessonDraft[]>(
-        "Playlist not found: it may be private or the ID is incorrect."
-      )
+      return fail<LessonDraft[]>(PLAYLIST_NOT_FOUND_MESSAGE)
     }
     if (!response.ok) {
       return fail<LessonDraft[]>(

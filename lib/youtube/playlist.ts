@@ -21,12 +21,23 @@ import { requireAdmin } from "@/lib/auth/guards"
 import { createClient } from "@/lib/supabase/server"
 import { ok, fail, type ActionResult } from "@/lib/types/action-result"
 import { extractPlaylistId } from "@/lib/youtube/parser"
-import { fetchPlaylistItems, MISSING_API_KEY_MESSAGE } from "@/lib/youtube/metadata"
+import {
+  fetchPlaylistItems,
+  MISSING_API_KEY_MESSAGE,
+  QUOTA_EXCEEDED_MESSAGE,
+  PLAYLIST_NOT_FOUND_MESSAGE,
+  INVALID_PLAYLIST_URL_MESSAGE,
+} from "@/lib/youtube/metadata"
 import type { LessonDraft } from "@/lib/youtube/types"
 
-// Re-export so UI components can show the localized version of this message
-// without importing from metadata.ts (which pulls in server-only code).
-export { MISSING_API_KEY_MESSAGE }
+// Re-export sentinels so UI components can match error messages and show
+// localized text without importing from metadata.ts (server-only module).
+export {
+  MISSING_API_KEY_MESSAGE,
+  QUOTA_EXCEEDED_MESSAGE,
+  PLAYLIST_NOT_FOUND_MESSAGE,
+  INVALID_PLAYLIST_URL_MESSAGE,
+}
 
 // ---------------------------------------------------------------------------
 // importPlaylist
@@ -55,10 +66,9 @@ export async function importPlaylist(
   // 2. Parse playlist ID.
   const playlistId = extractPlaylistId(playlistUrl)
   if (!playlistId) {
-    return fail<{ imported: number }>(
-      "Invalid playlist URL. Please enter a valid YouTube playlist URL containing a 'list=' parameter.",
-      { url: "Could not extract a playlist ID from this URL." }
-    )
+    return fail<{ imported: number }>(INVALID_PLAYLIST_URL_MESSAGE, {
+      url: "Could not extract a playlist ID from this URL.",
+    })
   }
 
   // 3. Fetch playlist items (may fail with MISSING_API_KEY_MESSAGE).
@@ -146,10 +156,9 @@ export async function previewPlaylist(
   // 2. Parse playlist ID.
   const playlistId = extractPlaylistId(playlistUrl)
   if (!playlistId) {
-    return fail<LessonDraft[]>(
-      "Invalid playlist URL. Please enter a valid YouTube playlist URL.",
-      { url: "Could not extract a playlist ID from this URL." }
-    )
+    return fail<LessonDraft[]>(INVALID_PLAYLIST_URL_MESSAGE, {
+      url: "Could not extract a playlist ID from this URL.",
+    })
   }
 
   // 3. Fetch items (propagates MISSING_API_KEY_MESSAGE when key absent).

@@ -539,3 +539,31 @@ now alias `Database["public"]["Tables"]["courses"]["Row"]` and `lessons Row`
 respectively. `UserFactoryRecord` remains local because the `profiles` Row
 diverges on primary key name (`user_id` vs `id`), `role` column absence, and
 nullable email/full_name. Divergences are documented in the interface JSDoc.
+
+### 2026-06-14 - Batch 14 - YouTube playlist import activated live; error mapping hardened
+
+YOUTUBE_API_KEY is now provisioned (Vercel Preview+Production + .env.local) and
+the batch-04/07 playlist-import path is verified working against the REAL
+YouTube Data API v3. No code shape fix was needed: fetchPlaylistItems uses
+part=snippet (snippet.resourceId.videoId), paginates via pageToken (200 cap),
+and enriches durations via videos.list?part=contentDetails in batches of 50,
+degrading non-fatally.
+
+- Hardened error mapping: distinct localized messages for invalid/unparseable
+  playlist URL, not-found/private (404), quota/forbidden (403), and the
+  still-handled missing-key case. New i18n keys
+  Admin.playlistImport.errorQuota + errorNotFound (446 keys in sync).
+- The key stays SERVER-ONLY (lib/youtube/metadata.ts, process.env, no
+  NEXT_PUBLIC, no client import).
+- Opt-in live test tests/integration/youtube-live.test.ts, guarded by
+  YOUTUBE_LIVE_TEST=true (skipped by default so `npm run test` stays offline).
+
+**Why / verification catch:** the orchestrator RAN the opt-in live test (not
+just read the code) and it FAILED - the original fixture playlist
+(PLbpi6ZahtOH6Ar_3GPy3workLIoAFkvYhU, "YouTube Developers Live") is DEAD and
+returned a correctly-mapped 404. The code was right; the test fixture was
+stale. Repointed the live test at a stable public educational playlist
+(Traversy crash courses, PLillGF-RfqbZTASqIqdvm1R5mLrQq79CU - live-verified
+2026-06-14: 65 items, durations present); live test now 2/2 green. Lesson:
+live-data test fixtures rot - a live test must be run, and its playlist
+re-verified, not assumed.

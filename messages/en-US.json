@@ -345,6 +345,8 @@
       },
       "success": "{count, plural, one {Imported # lesson.} other {Imported # lessons.}}",
       "error": "Failed to import playlist. Please try again.",
+      "errorQuota": "YouTube API quota exceeded or the API key is invalid. Please check your YOUTUBE_API_KEY and try again later.",
+      "errorNotFound": "Playlist not found. It may be private, deleted, or the URL is incorrect.",
       "noItems": "The playlist appears to be empty.",
       "preview": {
         "heading": "Preview ({count} lessons)",
