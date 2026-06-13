@@ -160,9 +160,12 @@ bash <(curl -fsSL https://raw.githubusercontent.com/RanNahmany/game-changer-app-
 | `npm run dev` | שרת פיתוח עם Turbopack |
 | `npm run build` | build לפרודקשן |
 | `npm run start` | הרצת הפרודקשן build מקומית |
-| `npm run lint` | בדיקת ESLint |
+| `npm run lint` | בדיקת ESLint (כולל jsx-a11y) |
+| `npm run lint:i18n` | וידוא שקבצי התרגום מסונכרנים |
 | `npm run format` | עיצוב קוד עם Prettier |
 | `npm run typecheck` | בדיקת TypeScript בלי build |
+| `npm run seed` | יצירת משתמשי instructor + student לפיתוח |
+| `npm run test:e2e` | Playwright — responsive, RTL, נגישות |
 
 ---
 
@@ -196,14 +199,26 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```bash
 .
 ├── app/                    # Next.js App Router
-│   ├── layout.tsx
-│   ├── page.tsx
+│   ├── [locale]/           # כל הדפים תחת prefix שפה (en-US / he-IL)
+│   │   ├── layout.tsx      # מגדיר <html lang dir> + NextIntlClientProvider
+│   │   ├── page.tsx        # דף הבית
+│   │   ├── dashboard/
+│   │   ├── chat/
+│   │   └── ...
+│   ├── api/                # API routes (ללא locale)
+│   │   └── chat/
+│   ├── auth/               # Supabase callbacks (ללא locale)
+│   │   ├── confirm/
+│   │   └── signout/
 │   └── globals.css
 ├── components/             # components שלך
 │   └── ui/                 # shadcn components (כל ה-components מותקנים מראש)
 ├── hooks/                  # React hooks
-├── lib/                    # utilities (cn, וכו')
-├── public/                 # קבצים סטטיים
+├── i18n/                   # הגדרות next-intl + navigation helpers
+├── lib/                    # utilities, auth guards, Supabase clients
+├── messages/               # קבצי תרגום (en-US.json, he-IL.json)
+├── e2e/                    # Playwright tests
+├── public/                 # קבצים סטטיים (כולל sw.js ל-PWA)
 ├── scripts/
 │   └── setup.mjs           # סקריפט האתחול
 ├── .claude/
