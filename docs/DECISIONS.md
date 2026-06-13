@@ -216,3 +216,31 @@ key-identical EN/HE (119 keys).
 **Why:** Returning a result code instead of redirecting keeps the enroll action
 composable and testable, and lets the button decide UX. Batch 06 owns
 `/courses/[slug]`; the full sign-in+enroll E2E is deferred to Batch 12.
+
+### 2026-06-13 - Batch 06 - Course learning at /courses/[slug]?lesson=; per-lesson preview gating
+
+The student learning experience lives at
+`app/[locale]/courses/[courseSlug]/page.tsx` with lesson selection via
+`?lesson=<slug>` (NOT a `/learn/[[...lessonSlug]]` route) because the batch 05
+catalog already links to `/courses/<slug>` - one canonical URL per course,
+lesson swaps via router.push.
+
+- The course page is PUBLIC (SEO + preview). The YouTube iframe renders only
+  when `lesson.is_preview` OR (authenticated AND enrolled); otherwise a locked
+  state with EnrollmentButton. requireUser is NOT called at page top.
+- Video embed uses `youtube-nocookie.com/embed/<id>` (privacy-enhanced), id
+  validated to 11 chars, server-rendered iframe (no client component), no
+  autoplay, accessible title.
+- `lib/progress/actions.ts#markLessonWatched`: REQUIRES enrollment (fail
+  "notEnrolled", no auto-enroll), upserts lesson_progress idempotently
+  (onConflict user_id,lesson_id), updates last_accessed_lesson_id, sets
+  enrollments.completed_at once when all lessons done, returns
+  {progress, nextLessonId, courseCompleted}. RLS + auth.uid() only.
+- Auto-next-lesson: mark-watched-button (client) navigates to the next
+  incomplete lesson's `?lesson=` on success, or refreshes into the completion
+  state. Mobile sidebar is a Sheet (client toggle); everything else server.
+
+**Why:** Keeping the route aligned with the existing catalog links avoids
+redirect indirection. Batch 11 (certificates) replaces the completion panel's
+`/dashboard` link with a real certificate route (forward-ref comment in
+CourseCompletionState). New `Course` i18n namespace; 141 keys in sync.

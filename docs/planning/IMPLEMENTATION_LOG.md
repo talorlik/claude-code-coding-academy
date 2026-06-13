@@ -898,3 +898,133 @@ npm run test:e2e   - PASS (25 tests, 17.9s; 6 new catalog specs all pass)
 - Toast/error notification on enroll failure (batch 12) - the button returns
   to idle silently on server error; a toast layer will surface this in the
   final UX.
+
+## Batch 6: Course Page And Progress (2026-06-13)
+
+### Route Decision
+
+Route: `app/[locale]/courses/[courseSlug]/page.tsx` with `?lesson=<slug>`
+search param for lesson selection.
+
+Why search param instead of nested segment: The batch-05 catalog links to
+`/courses/<slug>` (one URL per course). A nested segment
+`/courses/[courseSlug]/[lessonSlug]` would require a redirect from
+`/courses/[courseSlug]` to the first lesson, adding latency and complexity.
+The search-param approach keeps a single canonical course URL while letting
+lesson selection change without a hard navigation. The URL updates via
+`router.push` from `MarkWatchedButton` after each lesson is watched.
+
+### Per-Lesson Preview Gating
+
+The page is public (no `requireUser` at page top). Gating is per-lesson:
+
+- Preview lessons (`is_preview = true`) are watchable by anyone.
+- Non-preview lessons: the YouTube iframe renders only for authed + enrolled
+  users. Anon or unenrolled users see a localized locked state with an
+  `EnrollmentButton` CTA.
+
+This design supports SEO (the page title, description, and lesson list are
+always server-rendered) while keeping course content behind enrollment.
+
+### YouTube Privacy-Enhanced Embed
+
+Uses `https://www.youtube-nocookie.com/embed/<id>` to minimize cross-site
+tracking. The video id comes directly from the trusted DB row
+(`youtube_video_id` column). An 11-char `[A-Za-z0-9_-]` regex validates it
+before rendering; invalid or missing ids show a localized placeholder.
+Autoplay is intentionally disabled (no `autoplay=1` param). The iframe is
+`loading="lazy"` and uses the `aspect-video` Tailwind class for responsive
+16:9 sizing.
+
+### Mark-Watched Action: Idempotency And Completion
+
+`markLessonWatched` in `lib/progress/actions.ts`:
+
+- Auth: `createClient().auth.getUser()` - never trusts a client-supplied id.
+- Enrollment check: queries `enrollments` for (user, course); returns
+  `fail("notEnrolled")` if absent. No auto-enrollment.
+- Idempotency: upserts `lesson_progress` with
+  `onConflict("user_id,lesson_id") ignoreDuplicates`. Re-marking a watched
+  lesson is a no-op at the DB level; the action recomputes progress and
+  returns an accurate state regardless.
+- Completion: after the upsert, all `lesson_progress` rows for the user +
+  course are fetched, `calculateCourseProgress` is called with the full
+  lesson list. When `isComplete = true` and `enrollments.completed_at` is
+  null, `completed_at` is set to `now()`. If `completed_at` was already set
+  (a previous call already completed the course), `courseCompleted` is still
+  returned as `true`.
+- `last_accessed_lesson_id` is updated on every successful mark-watched call.
+- `revalidatePath` is called with the course path so the server component
+  re-renders fresh progress on the next page load.
+
+### Auto Next-Lesson Navigation
+
+`MarkWatchedButton` (client component) calls `markLessonWatched` via
+`useTransition`. On success:
+
+- If `data.courseCompleted` or no next lesson: calls `router.refresh()` so
+  the server re-renders the completion panel.
+- Otherwise: calls `router.push(/courses/<slug>?lesson=<nextSlug>)` to
+  navigate to the next incomplete lesson.
+
+### Mobile Sidebar Sheet
+
+`LessonSidebarMobile` wraps `LessonSidebar` in a Base UI Sheet/drawer. The
+trigger button (`md:hidden`) is visible only below the `md` breakpoint. On
+desktop, the sidebar is a persistent `w-72` column via `hidden md:block`.
+Clicking any lesson link closes the sheet by setting `open = false` via an
+`onClick` wrapper div.
+
+### New Course i18n Namespace
+
+A new `"Course"` namespace was added to both `messages/en-US.json` and
+`messages/he-IL.json` (key-identical, real Hebrew translations). Keys cover:
+lesson list label, preview badge, completed label, no-lessons states, back
+links, mark-watched states (markWatched, markingWatched, watched, nextLesson),
+progress bar (progressLabel, progressLessons ICU plural), completion panel
+(completionTitle, completionBody), gated lesson (lockedTitle, lockedBody),
+videoUnavailable, metadata fallback, and error states.
+
+### Certificate/Dashboard Forward-Refs
+
+`CourseCompletionState` links to `/dashboard` as a placeholder. Certificates
+are planned for batch 11. The component documents this with a code comment.
+
+### Files Created
+
+- `lib/progress/queries.ts` - `getCourseProgress`, `getEnrollment`
+- `lib/progress/actions.ts` - `markLessonWatched` server action
+- `components/courses/course-progress-bar.tsx` - server component
+- `components/courses/lesson-sidebar.tsx` - server component (nav landmark)
+- `components/courses/lesson-sidebar-mobile.tsx` - client Sheet wrapper
+- `components/youtube/youtube-player.tsx` - server iframe component
+- `components/courses/mark-watched-button.tsx` - client component
+- `app/[locale]/courses/[courseSlug]/page.tsx` - course learning page
+- `app/[locale]/courses/[courseSlug]/loading.tsx` - Suspense skeleton
+- `tests/integration/mark-watched.test.ts` - 6 integration tests
+- `tests/unit/lesson-sidebar.test.tsx` - 8 unit tests
+- `tests/unit/youtube-player.test.tsx` - 8 unit tests
+- `e2e/course-progress.spec.ts` - guest + authenticated smoke tests
+
+### Gate Results
+
+```
+npm run lint       - PASS (0 errors, 0 warnings)
+npm run lint:i18n  - PASS (141 keys in sync, up from 119)
+npm run typecheck  - PASS (tsc --noEmit clean)
+npm run test       - PASS (232 tests in 12 files, 2.87s; +25 new tests)
+npm run build      - PASS (/[locale]/courses/[courseSlug] registered as dynamic)
+npm run test:e2e   - PASS (32 tests, 28.9s; 7 new course-progress specs all pass)
+```
+
+### Deferred To Later Batches
+
+- Certificates (batch 11) - `CourseCompletionState` links to `/dashboard`
+  as a placeholder with a forward-ref comment in the code.
+- Full enroll->watch->complete E2E with authenticated student (batch 12) -
+  seeded student is set in .env.local but student is not enrolled in the test
+  course; the authenticated tests assert page structure and lesson content
+  render correctly for a logged-in non-enrolled user viewing a preview lesson.
+- Toast/error notifications on mark-watched failure (batch 12) - the
+  MarkWatchedButton logs errors to the console silently; a toast layer will
+  surface these in the final UX.
