@@ -94,19 +94,19 @@ export default async function LocaleLayout({
       dir={localeDirection(locale as Locale)}
       suppressHydrationWarning
       className={cn(
-        "antialiased",
+        "antialiased overflow-x-hidden",
         fontMono.variable,
         "font-sans",
         inter.variable,
       )}
     >
-      <body className="flex min-h-svh flex-col">
+      <body className="flex min-h-svh flex-col overflow-x-hidden">
         <NextIntlClientProvider>
           <ThemeProvider>
             <SkipLink />
             <ServiceWorkerRegister />
             <SiteHeader />
-            <div className="flex flex-1 flex-col">{children}</div>
+            <div className="flex min-w-0 flex-1 flex-col">{children}</div>
             <SiteFooter />
           </ThemeProvider>
         </NextIntlClientProvider>

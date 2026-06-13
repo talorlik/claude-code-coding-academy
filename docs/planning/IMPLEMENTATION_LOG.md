@@ -1028,3 +1028,87 @@ npm run test:e2e   - PASS (32 tests, 28.9s; 7 new course-progress specs all pass
 - Toast/error notifications on mark-watched failure (batch 12) - the
   MarkWatchedButton logs errors to the console silently; a toast layer will
   surface these in the final UX.
+
+## Batch 07: Admin Course Management and YouTube Import (2026-06-13)
+
+Implements the full instructor admin surface: course CRUD, lesson management,
+YouTube playlist import, and drag-free lesson reorder. All guarded behind
+`requireInstructor()` at both layout and action level.
+
+### What Was Built
+
+| Area | Implementation | Key files |
+| ---- | -------------- | --------- |
+| Admin guard | `requireAdmin()` thin alias of `requireInstructor()`; `getIsAdmin()` non-redirecting boolean for UI gating | `lib/auth/guards.ts` |
+| Admin layout | Server layout calls `requireInstructor()` before rendering; renders nav landmark with courses link; `<main id="main-content">` for child content | `app/[locale]/admin/layout.tsx` |
+| Admin queries | `listAllCourses()` returns all statuses with `lessonCount + createdAt`; `getCourseForEdit()`; `listLessonsForCourse()` | `lib/admin/queries.ts` |
+| Course actions | `createCourse` (validates, handles 23505 duplicate-slug), `updateCourse`, `deleteCourse` (fetches slug before delete for revalidation); all re-check `requireAdmin()` | `lib/admin/course-actions.ts` |
+| Lesson actions | `addLessonFromUrl` (extracts video id, fetches oEmbed with graceful degradation, computes MAX sort_order+1, inserts); `updateLesson`; `deleteLesson` | `lib/admin/lesson-actions.ts` |
+| Lesson reorder | Two-phase update strategy: Phase 1 offsets all sort_order values by `+10_000` (avoids unique-constraint collision on non-deferrable constraint); Phase 2 sets final values | `lib/admin/reorder-lessons.ts` |
+| YouTube playlist import | `importPlaylist` (extractPlaylistId → fetchPlaylistItems → bulk insert with sequential sort_order); `previewPlaylist`; propagates `MISSING_API_KEY_MESSAGE` to UI | `lib/youtube/playlist.ts` |
+| Admin pages | Course list, new course, edit course, lesson list pages | `app/[locale]/admin/courses/{page,new/page,[courseId]/edit/page,[courseId]/lessons/page}.tsx` |
+| Admin components | `AdminCourseTable` (responsive, table-fixed layout, columns hidden at mobile), `AdminCourseForm`, `AdminLessonList`, `AdminLessonForm`, `AddLessonForm`, `YouTubePlaylistImport` | `components/admin/` |
+| i18n | Admin namespace added to both catalogs (264 total keys, key-identical); covers nav, course/lesson CRUD, status badges, playlist import, reorder | `messages/en-US.json`, `messages/he-IL.json` |
+| Integration tests | Guards (getIsAdmin/requireAdmin roles), course-actions (validate/insert/23505/delete), lesson-actions (addFromUrl/update/delete), playlist-import (missing-key/import/preview), reorder-lessons (two-phase verification) | `tests/integration/` |
+| Unit tests | AdminCourseForm (renders fields, field errors, mode buttons) | `tests/unit/admin-course-form.test.tsx` |
+| E2E tests | Anonymous redirect to login (EN+HE); instructor access + no horizontal overflow at 390px | `e2e/admin.spec.ts` |
+
+### Key Decisions
+
+**admin == instructor**: No separate admin role is introduced. `requireAdmin()`
+is a thin alias of `requireInstructor()` and `getIsAdmin()` checks
+`isInstructor` from `getCurrentUserRole()`. The `user_roles` table has a single
+`app_role` enum (`instructor | student`); RLS policy `private.is_admin()`
+already maps to instructor.
+
+**Two-phase reorder over SQL function**: The lessons table has a non-deferrable
+`UNIQUE(course_id, sort_order)` constraint. A naive single-pass update would
+transiently collide. The TypeScript two-phase approach (offset all by +10_000,
+then set finals) avoids adding a migration for deferability and keeps all logic
+in the application layer.
+
+**Request-scoped client for writes**: `createClient()` (RLS enforced) is used
+for all admin writes. Instructor RLS policies grant full CRUD on courses and
+lessons without needing `createAdminClient()`.
+
+**oEmbed graceful degradation**: If the YouTube oEmbed fetch fails (private
+video, rate-limit, etc.), `addLessonFromUrl` still creates the lesson with a
+title derived from the video ID. The instructor can edit it afterward.
+
+**Responsive table without min-width**: `AdminCourseTable` uses `table-fixed`
+with `colgroup` widths and responsive column hiding (`sm:`, `md:`, `lg:`)
+instead of `min-w-[640px]`. This keeps `document.documentElement.scrollWidth`
+within viewport at 390px (Chromium's `scrollWidth` includes content inside
+`overflow:auto` children, so clipping alone is insufficient).
+
+**Vitest UUID strictness**: Zod v4's UUID validator enforces RFC 4122 variant
+bits (variant nibble must be `[89abAB]`). Zero-padded sequential IDs like
+`000000000001` fail. All test UUIDs use real v4 format.
+
+**vi.mock hoisting and MISSING_API_KEY_MESSAGE**: Vitest hoists `vi.mock()`
+factory calls above imports. Referencing an imported constant inside a factory
+causes a ReferenceError at hoist time. The constant is inlined as a string
+literal in the test file, and `vi.fn()` without factory is used for modules
+whose return values are controlled via `vi.mocked()` in `beforeEach`.
+
+**Body overflow-x-hidden + table-fixed**: Added `overflow-x-hidden` to `<body>`
+and `min-w-0` to the children flex wrapper in the locale layout as defensive
+mobile hygiene. The actual overflow fix is the `table-fixed` column layout in
+the course table.
+
+### Gate Results
+
+```
+npm run lint       - PASS (0 errors, 16 warnings - unused mock params in test files)
+npm run lint:i18n  - PASS (264 keys in sync, up from 141)
+npm run typecheck  - PASS (tsc --noEmit clean)
+npm run test       - PASS (266 tests in 18 files; +34 new tests across 6 new test files)
+npm run build      - PASS (5 admin routes registered as dynamic ƒ)
+npm run test:e2e   - PASS (36 tests; 2 new admin guard specs + 2 new responsive specs)
+```
+
+### Deferred To Later Batches
+
+- Drag-and-drop reorder UI (current implementation uses up/down buttons).
+- Playlist import preview UI beyond the basic form (thumbnails, duration).
+- Bulk lesson operations (select-all delete, bulk status change).

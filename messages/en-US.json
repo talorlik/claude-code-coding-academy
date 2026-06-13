@@ -182,6 +182,187 @@
     "studentGreeting": "Welcome, student. This is your dashboard.",
     "signOut": "Sign out"
   },
+  "Admin": {
+    "nav": {
+      "courses": "Courses",
+      "adminPanel": "Admin Panel"
+    },
+    "title": "Admin Panel",
+    "courseList": {
+      "heading": "Manage Courses",
+      "newCourse": "New Course",
+      "empty": {
+        "title": "No Courses Yet",
+        "body": "Create your first course to get started."
+      },
+      "table": {
+        "title": "Title",
+        "slug": "Slug",
+        "level": "Level",
+        "status": "Status",
+        "lessons": "Lessons",
+        "createdAt": "Created",
+        "actions": "Actions"
+      },
+      "actions": {
+        "edit": "Edit",
+        "manageLessons": "Manage Lessons",
+        "delete": "Delete"
+      }
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "courseForm": {
+      "createTitle": "Create Course",
+      "editTitle": "Edit Course",
+      "fields": {
+        "title": "Title",
+        "titlePlaceholder": "e.g. JavaScript for Beginners",
+        "slug": "Slug",
+        "slugPlaceholder": "e.g. javascript-for-beginners",
+        "slugHint": "URL-safe identifier. Lowercase letters, digits, and hyphens only.",
+        "description": "Description",
+        "descriptionPlaceholder": "Describe what students will learn...",
+        "level": "Level",
+        "levelPlaceholder": "Select level",
+        "language": "Language",
+        "languagePlaceholder": "Select language",
+        "status": "Status",
+        "statusPlaceholder": "Select status",
+        "coverImageUrl": "Cover Image URL",
+        "coverImageUrlPlaceholder": "https://example.com/cover.jpg"
+      },
+      "language": {
+        "en": "English",
+        "he": "Hebrew",
+        "mixed": "Mixed"
+      },
+      "submit": {
+        "create": "Create Course",
+        "update": "Save Changes",
+        "creating": "Creating...",
+        "updating": "Saving..."
+      },
+      "cancel": "Cancel",
+      "validation": {
+        "titleRequired": "Title is required.",
+        "slugRequired": "Slug is required.",
+        "slugInvalid": "Slug may only contain lowercase letters, digits, and hyphens.",
+        "slugTaken": "A course with this slug already exists.",
+        "descriptionRequired": "Description is required.",
+        "levelRequired": "Please select a level.",
+        "languageRequired": "Please select a language.",
+        "statusRequired": "Please select a status.",
+        "coverImageInvalid": "Cover image must be a valid URL."
+      },
+      "success": {
+        "created": "Course created successfully.",
+        "updated": "Course updated successfully."
+      }
+    },
+    "deleteCourse": {
+      "confirmTitle": "Delete Course",
+      "confirmBody": "Are you sure you want to delete \"{title}\"? This will also delete all lessons. This action cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "success": "Course deleted.",
+      "error": "Failed to delete course. Please try again."
+    },
+    "lessonList": {
+      "heading": "Lessons",
+      "backToCourses": "Back to Courses",
+      "addLesson": "Add Lesson",
+      "empty": {
+        "title": "No Lessons Yet",
+        "body": "Add your first lesson using a YouTube video URL."
+      },
+      "table": {
+        "order": "Order",
+        "title": "Title",
+        "duration": "Duration",
+        "preview": "Preview",
+        "actions": "Actions"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "moveUp": "Move up",
+        "moveDown": "Move down"
+      },
+      "preview": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "addLessonForm": {
+      "heading": "Add Lesson from YouTube URL",
+      "urlLabel": "YouTube Video URL",
+      "urlPlaceholder": "https://www.youtube.com/watch?v=...",
+      "submit": "Add Lesson",
+      "submitting": "Adding...",
+      "validation": {
+        "urlRequired": "Please enter a YouTube video URL.",
+        "urlInvalid": "Invalid YouTube URL. Could not extract a video ID."
+      },
+      "success": "Lesson added successfully.",
+      "error": "Failed to add lesson. Please try again."
+    },
+    "lessonForm": {
+      "editTitle": "Edit Lesson",
+      "fields": {
+        "title": "Title",
+        "titlePlaceholder": "Lesson title",
+        "description": "Description",
+        "descriptionPlaceholder": "Optional lesson description...",
+        "youtubeUrl": "YouTube URL",
+        "youtubeUrlPlaceholder": "https://www.youtube.com/watch?v=...",
+        "sortOrder": "Sort Order",
+        "isPreview": "Free Preview"
+      },
+      "submit": {
+        "update": "Save Changes",
+        "updating": "Saving..."
+      },
+      "cancel": "Cancel",
+      "success": "Lesson updated successfully.",
+      "error": "Failed to update lesson. Please try again."
+    },
+    "deleteLesson": {
+      "confirmTitle": "Delete Lesson",
+      "confirmBody": "Are you sure you want to delete \"{title}\"? This action cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "success": "Lesson deleted.",
+      "error": "Failed to delete lesson. Please try again."
+    },
+    "playlistImport": {
+      "heading": "Import from YouTube Playlist",
+      "urlLabel": "Playlist URL",
+      "urlPlaceholder": "https://www.youtube.com/playlist?list=...",
+      "submit": "Import Playlist",
+      "submitting": "Importing...",
+      "missingKey": "Playlist import requires a server-side YOUTUBE_API_KEY. Add the key to your .env.local file and restart the server.",
+      "validation": {
+        "urlRequired": "Please enter a YouTube playlist URL.",
+        "urlInvalid": "Invalid playlist URL. Could not extract a playlist ID."
+      },
+      "success": "{count, plural, one {Imported # lesson.} other {Imported # lessons.}}",
+      "error": "Failed to import playlist. Please try again.",
+      "noItems": "The playlist appears to be empty.",
+      "preview": {
+        "heading": "Preview ({count} lessons)",
+        "confirm": "Import All",
+        "cancel": "Cancel"
+      }
+    },
+    "reorder": {
+      "success": "Lesson order saved.",
+      "error": "Failed to save order. Please try again."
+    }
+  },
   "Pwa": {
     "install": {
       "button": "Install app",

@@ -182,6 +182,187 @@
     "studentGreeting": "ברוכים הבאים, תלמיד. זהו לוח הבקרה שלכם.",
     "signOut": "התנתקות"
   },
+  "Admin": {
+    "nav": {
+      "courses": "קורסים",
+      "adminPanel": "פאנל ניהול"
+    },
+    "title": "פאנל ניהול",
+    "courseList": {
+      "heading": "ניהול קורסים",
+      "newCourse": "קורס חדש",
+      "empty": {
+        "title": "אין קורסים עדיין",
+        "body": "צרו את הקורס הראשון שלכם כדי להתחיל."
+      },
+      "table": {
+        "title": "כותרת",
+        "slug": "כתובת URL",
+        "level": "רמה",
+        "status": "סטטוס",
+        "lessons": "שיעורים",
+        "createdAt": "נוצר",
+        "actions": "פעולות"
+      },
+      "actions": {
+        "edit": "עריכה",
+        "manageLessons": "ניהול שיעורים",
+        "delete": "מחיקה"
+      }
+    },
+    "status": {
+      "draft": "טיוטה",
+      "published": "פורסם",
+      "archived": "בארכיון"
+    },
+    "courseForm": {
+      "createTitle": "יצירת קורס",
+      "editTitle": "עריכת קורס",
+      "fields": {
+        "title": "כותרת",
+        "titlePlaceholder": "לדוגמה: JavaScript למתחילים",
+        "slug": "מזהה URL",
+        "slugPlaceholder": "לדוגמה: javascript-for-beginners",
+        "slugHint": "מזהה URL בטוח. אותיות קטנות, ספרות ומקפים בלבד.",
+        "description": "תיאור",
+        "descriptionPlaceholder": "תארו מה הסטודנטים ילמדו...",
+        "level": "רמה",
+        "levelPlaceholder": "בחרו רמה",
+        "language": "שפה",
+        "languagePlaceholder": "בחרו שפה",
+        "status": "סטטוס",
+        "statusPlaceholder": "בחרו סטטוס",
+        "coverImageUrl": "כתובת תמונת שער",
+        "coverImageUrlPlaceholder": "https://example.com/cover.jpg"
+      },
+      "language": {
+        "en": "אנגלית",
+        "he": "עברית",
+        "mixed": "מעורב"
+      },
+      "submit": {
+        "create": "יצירת קורס",
+        "update": "שמירת שינויים",
+        "creating": "יוצר...",
+        "updating": "שומר..."
+      },
+      "cancel": "ביטול",
+      "validation": {
+        "titleRequired": "כותרת היא שדה חובה.",
+        "slugRequired": "מזהה URL הוא שדה חובה.",
+        "slugInvalid": "מזהה URL יכול להכיל רק אותיות קטנות, ספרות ומקפים.",
+        "slugTaken": "קורס עם מזהה URL זה כבר קיים.",
+        "descriptionRequired": "תיאור הוא שדה חובה.",
+        "levelRequired": "אנא בחרו רמה.",
+        "languageRequired": "אנא בחרו שפה.",
+        "statusRequired": "אנא בחרו סטטוס.",
+        "coverImageInvalid": "כתובת תמונת השער חייבת להיות כתובת URL תקינה."
+      },
+      "success": {
+        "created": "הקורס נוצר בהצלחה.",
+        "updated": "הקורס עודכן בהצלחה."
+      }
+    },
+    "deleteCourse": {
+      "confirmTitle": "מחיקת קורס",
+      "confirmBody": "האם אתם בטוחים שברצונכם למחוק את \"{title}\"? פעולה זו תמחק גם את כל השיעורים ולא ניתן לבטלה.",
+      "confirm": "מחיקה",
+      "cancel": "ביטול",
+      "success": "הקורס נמחק.",
+      "error": "מחיקת הקורס נכשלה. נסו שוב."
+    },
+    "lessonList": {
+      "heading": "שיעורים",
+      "backToCourses": "חזרה לקורסים",
+      "addLesson": "הוספת שיעור",
+      "empty": {
+        "title": "אין שיעורים עדיין",
+        "body": "הוסיפו את השיעור הראשון באמצעות כתובת URL של וידאו YouTube."
+      },
+      "table": {
+        "order": "סדר",
+        "title": "כותרת",
+        "duration": "משך",
+        "preview": "תצוגה מקדימה",
+        "actions": "פעולות"
+      },
+      "actions": {
+        "edit": "עריכה",
+        "delete": "מחיקה",
+        "moveUp": "העברה למעלה",
+        "moveDown": "העברה למטה"
+      },
+      "preview": {
+        "yes": "כן",
+        "no": "לא"
+      }
+    },
+    "addLessonForm": {
+      "heading": "הוספת שיעור מכתובת YouTube",
+      "urlLabel": "כתובת URL של וידאו YouTube",
+      "urlPlaceholder": "https://www.youtube.com/watch?v=...",
+      "submit": "הוספת שיעור",
+      "submitting": "מוסיף...",
+      "validation": {
+        "urlRequired": "אנא הזינו כתובת URL של וידאו YouTube.",
+        "urlInvalid": "כתובת YouTube לא תקינה. לא ניתן לחלץ מזהה וידאו."
+      },
+      "success": "השיעור נוסף בהצלחה.",
+      "error": "הוספת השיעור נכשלה. נסו שוב."
+    },
+    "lessonForm": {
+      "editTitle": "עריכת שיעור",
+      "fields": {
+        "title": "כותרת",
+        "titlePlaceholder": "כותרת השיעור",
+        "description": "תיאור",
+        "descriptionPlaceholder": "תיאור שיעור אופציונלי...",
+        "youtubeUrl": "כתובת YouTube",
+        "youtubeUrlPlaceholder": "https://www.youtube.com/watch?v=...",
+        "sortOrder": "סדר",
+        "isPreview": "תצוגה מקדימה חינמית"
+      },
+      "submit": {
+        "update": "שמירת שינויים",
+        "updating": "שומר..."
+      },
+      "cancel": "ביטול",
+      "success": "השיעור עודכן בהצלחה.",
+      "error": "עדכון השיעור נכשל. נסו שוב."
+    },
+    "deleteLesson": {
+      "confirmTitle": "מחיקת שיעור",
+      "confirmBody": "האם אתם בטוחים שברצונכם למחוק את \"{title}\"? פעולה זו לא ניתנת לביטול.",
+      "confirm": "מחיקה",
+      "cancel": "ביטול",
+      "success": "השיעור נמחק.",
+      "error": "מחיקת השיעור נכשלה. נסו שוב."
+    },
+    "playlistImport": {
+      "heading": "ייבוא מרשימת השמעה של YouTube",
+      "urlLabel": "כתובת URL של רשימת ההשמעה",
+      "urlPlaceholder": "https://www.youtube.com/playlist?list=...",
+      "submit": "ייבוא רשימת השמעה",
+      "submitting": "מייבא...",
+      "missingKey": "ייבוא רשימת השמעה דורש YOUTUBE_API_KEY בצד השרת. הוסיפו את המפתח לקובץ .env.local והפעילו מחדש את השרת.",
+      "validation": {
+        "urlRequired": "אנא הזינו כתובת URL של רשימת השמעה ב-YouTube.",
+        "urlInvalid": "כתובת URL לא תקינה. לא ניתן לחלץ מזהה רשימת השמעה."
+      },
+      "success": "{count, plural, one {יובא שיעור אחד.} other {יובאו # שיעורים.}}",
+      "error": "ייבוא רשימת ההשמעה נכשל. נסו שוב.",
+      "noItems": "רשימת ההשמעה נראית ריקה.",
+      "preview": {
+        "heading": "תצוגה מקדימה ({count} שיעורים)",
+        "confirm": "ייבוא הכול",
+        "cancel": "ביטול"
+      }
+    },
+    "reorder": {
+      "success": "סדר השיעורים נשמר.",
+      "error": "שמירת הסדר נכשלה. נסו שוב."
+    }
+  },
   "Pwa": {
     "install": {
       "button": "התקנת האפליקציה",

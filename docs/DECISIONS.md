@@ -244,3 +244,34 @@ lesson swaps via router.push.
 redirect indirection. Batch 11 (certificates) replaces the completion panel's
 `/dashboard` link with a real certificate route (forward-ref comment in
 CourseCompletionState). New `Course` i18n namespace; 141 keys in sync.
+
+### 2026-06-13 - Batch 07 - Admin = instructor; RLS request client; two-phase reorder
+
+Admin course/lesson management lives under `app/[locale]/admin/`. The
+`app/[locale]/admin/layout.tsx` calls `requireInstructor()` so every admin page
+is guarded server-side, and EVERY server action additionally calls
+`requireAdmin()` (alias of requireInstructor in the new `lib/auth/guards.ts`) -
+defense in depth, never trusting the client.
+
+- Writes use the REQUEST-scoped Supabase client, not the service-role client:
+  the batch-02 RLS policy grants instructors full CRUD via `private.is_admin()`,
+  so RLS enforces authorization at the DB and no privileged client is needed.
+- Lesson reorder uses a two-phase TS update (offset every affected row by
+  +10000, then set final sort_order) to avoid transiently violating the
+  unique(course_id, sort_order) constraint. No SQL function / migration was
+  added - the two-phase approach is sufficient and keeps the schema stable.
+- Single-video lesson add works keyless via oEmbed; playlist import surfaces
+  the localized MISSING_API_KEY_MESSAGE when YOUTUBE_API_KEY is unset and never
+  exposes the key (server actions only, no NEXT_PUBLIC). sort_order for new
+  lessons = max(existing)+1.
+- Admin course table uses table-fixed + colgroup widths + responsive column
+  hiding to satisfy the no-overflow-at-390px contract (an auto-layout table
+  with min-width overflowed; Chromium's scrollWidth counts clipped content).
+- New `Admin` i18n namespace; 264 keys in sync.
+
+**Why:** RLS-as-authorization keeps a single source of truth and avoids a
+parallel service-role write path that could bypass policy. The two-phase
+reorder is the simplest collision-free strategy that needs no schema change.
+
+**Tech-debt:** 16 lint WARNINGS remain (unused `_table`/`_cols` mock params in
+admin test files) - cosmetic, gate is 0 errors. Clean in the tech-debt batch.
