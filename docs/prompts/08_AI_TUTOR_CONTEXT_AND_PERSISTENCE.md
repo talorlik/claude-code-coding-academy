@@ -3,6 +3,12 @@
 ```text
 Build the contextual AI tutor for the course learning page.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 7.1-7.4.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 5, 6.3, 8, 9.5, 10, 11, 14, 15.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - The current project already has Vercel AI SDK and an /api/chat route streaming with openai/gpt-4o-mini through the AI gateway.
 - Preserve that implementation pattern unless there is a clear reason to create a dedicated /api/tutor route.

@@ -4,25 +4,78 @@
 
 1. Work in small to medium tasks.
 2. Complete Task 0 before implementing new features.
-3. Preserve existing functionality unless a verified defect requires a targeted fix.
+3. Preserve existing functionality unless a verified defect requires a targeted
+   fix.
 4. Prefer add/update over rewrite.
 5. Every batch must end with verification commands and manual checks.
 6. New user-visible strings must be added to English and Hebrew catalogs.
 7. New exported utilities and server functions must include TSDoc.
 8. Do not commit secrets.
 9. Use Claude Code Skills and MCPs according to task type.
+10. Before starting a task, open the prompt file mapped to that task below.
+
+## Prompt File Map
+
+Use this map when handing the task document to Claude Code. Each task inherits
+the listed prompt file, even when the task section does not repeat the prompt
+inline.
+
+- Tasks 0.1-0.5: `docs/prompts/00_VERIFY_EXISTING_IMPLEMENTATION.md`
+- Tasks 1.1-1.3:
+  `docs/prompts/01_PLANNING_ALIGNMENT_AND_TEST_HARNESS.md`
+- Tasks 2.1-2.5: `docs/prompts/02_DATABASE_SCHEMA_AND_RLS.md`
+- Tasks 3.1, 3.2, 3.4, 3.5:
+  `docs/prompts/03_DOMAIN_TYPES_VALIDATION_AND_DATA_ACCESS.md`
+- Task 3.3: `docs/prompts/04_YOUTUBE_PARSER_AND_METADATA.md`
+- Tasks 4.1-4.3: `docs/prompts/05_HOME_PAGE_AND_CATALOG.md`
+- Tasks 5.1-5.5: `docs/prompts/06_COURSE_PAGE_AND_PROGRESS.md`
+- Tasks 6.1-6.6: `docs/prompts/07_ADMIN_COURSE_MANAGEMENT.md`
+- Tasks 7.1-7.4:
+  `docs/prompts/08_AI_TUTOR_CONTEXT_AND_PERSISTENCE.md`
+- Tasks 8.1-8.4: `docs/prompts/09_DASHBOARDS.md`
+- Tasks 9.1-9.5:
+  `docs/prompts/10_LOCALIZATION_SEO_ACCESSIBILITY_POLISH.md`
+- Tasks 10.1-10.5: `docs/prompts/11_REQUIRED_EXTENDED_FEATURES.md`
+- Tasks 11.1-11.3: `docs/prompts/12_TESTING_AND_QA.md`
+- Tasks 12.1-12.3: `docs/prompts/13_DEPLOYMENT_AND_FINAL_REVIEW.md`
+
+## Requirement Cross-Reference Map
+
+Use this map before each Claude Code run. The prompt is the execution brief.
+The task range is the acceptance checklist. The technical sections are the
+source of truth for implementation details that the prompt may summarize.
+
+| Batch | Tasks | Prompt File | Technical Requirements |
+| --- | --- | --- | --- |
+| 0 | 0.1-0.5 | `docs/prompts/00_VERIFY_EXISTING_IMPLEMENTATION.md` | Sections 1, 2, 3, 4, 5, 11, 12, 13, 15, 16, 17 |
+| 1 | 1.1-1.3 | `docs/prompts/01_PLANNING_ALIGNMENT_AND_TEST_HARNESS.md` | Sections 1, 2, 14, 15, 17 |
+| 2 | 2.1-2.5 | `docs/prompts/02_DATABASE_SCHEMA_AND_RLS.md` | Sections 5, 6, 7, 15, 16 |
+| 3 | 3.1, 3.2, 3.4, 3.5 | `docs/prompts/03_DOMAIN_TYPES_VALIDATION_AND_DATA_ACCESS.md` | Sections 6.3, 6.4, 8, 14, 15 |
+| 3 | 3.3 | `docs/prompts/04_YOUTUBE_PARSER_AND_METADATA.md` | Sections 5, 6.3, 8.2, 9.4, 14, 15 |
+| 4 | 4.1-4.3 | `docs/prompts/05_HOME_PAGE_AND_CATALOG.md` | Sections 4, 8.1, 10, 11, 12, 15 |
+| 5 | 5.1-5.5 | `docs/prompts/06_COURSE_PAGE_AND_PROGRESS.md` | Sections 4, 6.3, 8, 9.1, 9.2, 10, 11, 15 |
+| 6 | 6.1-6.6 | `docs/prompts/07_ADMIN_COURSE_MANAGEMENT.md` | Sections 4, 7, 9.3, 9.4, 10, 11, 15 |
+| 7 | 7.1-7.4 | `docs/prompts/08_AI_TUTOR_CONTEXT_AND_PERSISTENCE.md` | Sections 5, 6.3, 8, 9.5, 10, 11, 14, 15 |
+| 8 | 8.1-8.4 | `docs/prompts/09_DASHBOARDS.md` | Sections 6.4, 8, 10, 11, 15 |
+| 9 | 9.1-9.5 | `docs/prompts/10_LOCALIZATION_SEO_ACCESSIBILITY_POLISH.md` | Sections 10, 11, 12, 13, 15, 17 |
+| 10 | 10.1-10.5 | `docs/prompts/11_REQUIRED_EXTENDED_FEATURES.md` | Sections 6.2.1, 6.3, 6.4, 7, 8, 9.1, 10, 11, 14, 15 |
+| 11 | 11.1-11.3 | `docs/prompts/12_TESTING_AND_QA.md` | Sections 15, 17 |
+| 12 | 12.1-12.3 | `docs/prompts/13_DEPLOYMENT_AND_FINAL_REVIEW.md` | Sections 5, 16, 17 |
 
 ## Batch 0: Verify Existing Implementation And Establish Baseline
 
 ### Task 0.1: Verify Repository And Template State
 
-Objective: Confirm the installed template, project scripts, dependency versions, and project structure.
+Objective: Confirm the installed template, project scripts, dependency versions,
+and project structure.
 
 Actions:
 
-- Inspect `package.json`, lockfile, app directory, component directories, Supabase utilities, localization config, middleware, and environment examples.
+- Inspect `package.json`, lockfile, app directory, component directories,
+  Supabase utilities, localization config, middleware, and environment examples.
 - Confirm scripts for `dev`, `build`, `lint`, `format`, `typecheck`, and tests.
-- Confirm current Next.js, React, TypeScript, Tailwind, shadcn, Supabase, Vercel AI, next-intl, Turnstile, Vitest, and Playwright packages.
+- Confirm current Next.js, React, TypeScript, Tailwind, shadcn, Supabase, Vercel
+  AI, next-intl, Turnstile, Vitest, and Playwright packages.
 
 Acceptance:
 
@@ -39,7 +92,8 @@ Prompt file: `docs/prompts/00_VERIFY_EXISTING_IMPLEMENTATION.md`
 
 ### Task 0.2: Verify Environment Variables
 
-Objective: Confirm `.env.local` has all required variables without exposing values.
+Objective: Confirm `.env.local` has all required variables without exposing
+values.
 
 Actions:
 
@@ -62,7 +116,8 @@ Tests:
 
 ### Task 0.3: Verify Auth And Session Flow
 
-Objective: Confirm sign up, login, logout, remember me, forgot password, and request session refresh.
+Objective: Confirm sign up, login, logout, remember me, forgot password, and
+request session refresh.
 
 Actions:
 
@@ -111,7 +166,8 @@ Actions:
 
 Acceptance:
 
-- AI tutor can extend current AI route pattern or use a dedicated route based on documented reasoning.
+- AI tutor can extend current AI route pattern or use a dedicated route based on
+  documented reasoning.
 
 ## Batch 1: Planning Alignment And Test Harness
 
@@ -175,7 +231,8 @@ Objective: Produce a database plan before migrations.
 
 Actions:
 
-- Define tables: `profiles`, `courses`, `lessons`, `enrollments`, `lesson_progress`, `ai_tutor_conversations`, `ai_tutor_messages`.
+- Define tables: `profiles`, `courses`, `lessons`, `enrollments`,
+  `lesson_progress`, `ai_tutor_conversations`, `ai_tutor_messages`.
 - Define indexes, constraints, triggers, views, and RLS policies.
 - Decide whether to use enums or text constraints.
 
@@ -183,7 +240,7 @@ Acceptance:
 
 - Schema plan is documented before SQL is applied.
 
-Prompt file: `docs/prompts/01_DATABASE_SCHEMA_AND_RLS.md`
+Prompt file: `docs/prompts/02_DATABASE_SCHEMA_AND_RLS.md`
 
 ### Task 2.2: Create Initial Course Platform Migration
 
@@ -302,7 +359,7 @@ Acceptance:
 - Rejects non-YouTube URLs.
 - Does not call external APIs in parser tests.
 
-Prompt file: `docs/prompts/02_YOUTUBE_PARSER_AND_METADATA.md`
+Prompt file: `docs/prompts/04_YOUTUBE_PARSER_AND_METADATA.md`
 
 ### Task 3.4: Add Course Query Functions
 
@@ -354,7 +411,7 @@ Acceptance:
 - Home page reads courses from Supabase.
 - Loading and empty states are handled.
 
-Prompt file: `docs/prompts/03_HOME_PAGE_AND_CATALOG.md`
+Prompt file: `docs/prompts/05_HOME_PAGE_AND_CATALOG.md`
 
 ### Task 4.2: Build Course Card And Catalog Components
 
@@ -402,14 +459,15 @@ Objective: Create student course experience.
 
 Files:
 
-- `app/[locale]/.../courses/[courseSlug]/learn/[[...lessonSlug]]/page.tsx` or existing route convention.
+- `app/[locale]/.../courses/[courseSlug]/learn/[[...lessonSlug]]/page.tsx` or
+  existing route convention.
 
 Acceptance:
 
 - Loads course, lessons, selected lesson, and current student's progress.
 - Requires auth for non-preview learning.
 
-Prompt file: `docs/prompts/04_COURSE_PAGE_AND_PROGRESS.md`
+Prompt file: `docs/prompts/06_COURSE_PAGE_AND_PROGRESS.md`
 
 ### Task 5.2: Build Lesson Sidebar
 
@@ -509,7 +567,7 @@ Acceptance:
 - Shows draft/published/archived courses.
 - Admin can navigate to edit/create.
 
-Prompt file: `docs/prompts/05_ADMIN_COURSE_MANAGEMENT.md`
+Prompt file: `docs/prompts/07_ADMIN_COURSE_MANAGEMENT.md`
 
 ### Task 6.3: Build Course Create/Edit Form
 
@@ -583,7 +641,8 @@ Files:
 Acceptance:
 
 - Order persists.
-- Race conditions are handled with transaction-like update strategy where possible.
+- Race conditions are handled with transaction-like update strategy where
+  possible.
 
 ## Batch 7: AI Tutor With Context And Persistence
 
@@ -598,10 +657,11 @@ Files:
 
 Acceptance:
 
-- Includes course title, course description, lesson title, lesson description, YouTube URL, locale, and recent messages.
+- Includes course title, course description, lesson title, lesson description,
+  YouTube URL, locale, and recent messages.
 - Explicitly prevents fake timestamp claims.
 
-Prompt file: `docs/prompts/06_AI_TUTOR_CONTEXT_AND_PERSISTENCE.md`
+Prompt file: `docs/prompts/08_AI_TUTOR_CONTEXT_AND_PERSISTENCE.md`
 
 ### Task 7.2: Add Tutor Data Access
 
@@ -673,10 +733,11 @@ Files:
 
 Acceptance:
 
-- Returns enrolled courses, progress percent, recent lessons, weekly activity, badges.
+- Returns enrolled courses, progress percent, recent lessons, weekly activity,
+  badges.
 - Data is scoped to current user.
 
-Prompt file: `docs/prompts/07_DASHBOARDS.md`
+Prompt file: `docs/prompts/09_DASHBOARDS.md`
 
 ### Task 8.2: Build Student Dashboard Page
 
@@ -703,7 +764,8 @@ Files:
 
 Acceptance:
 
-- Returns student count, enrollment count, course completion rates, inactive students, common tutor questions, recent activity.
+- Returns student count, enrollment count, course completion rates, inactive
+  students, common tutor questions, recent activity.
 - Requires admin role.
 
 ### Task 8.4: Build Teacher Dashboard Page
@@ -741,7 +803,7 @@ Tests:
 - Static grep or review.
 - E2E Hebrew route smoke test.
 
-Prompt file: `docs/prompts/08_LOCALIZATION_SEO_ACCESSIBILITY_POLISH.md`
+Prompt file: `docs/prompts/10_LOCALIZATION_SEO_ACCESSIBILITY_POLISH.md`
 
 ### Task 9.2: Add SEO Metadata
 
@@ -763,8 +825,10 @@ Objective: Keep the app usable and reviewable.
 
 Actions:
 
-- Check headings, labels, error messages, focus order, keyboard navigation, color contrast, and video titles.
-- Verify modals/drawers from Magic MCP components are accessible after adaptation.
+- Check headings, labels, error messages, focus order, keyboard navigation,
+  color contrast, and video titles.
+- Verify modals/drawers from Magic MCP components are accessible after
+  adaptation.
 
 Acceptance:
 
@@ -792,9 +856,143 @@ Actions:
 - Confirm RLS is enabled.
 - Confirm AI route does not expose raw internal errors.
 
-## Batch 10: Test Completion
+## Batch 10: Required Extended Features
 
-### Task 10.1: Complete Unit Test Suite
+### Task 10.1: Build Completion Certificates
+
+Objective: Generate and persist certificates for completed courses.
+
+Files:
+
+- `lib/certificates/actions.ts`
+- `lib/certificates/queries.ts`
+- `app/[locale]/certificates/[certificateId]/page.tsx`
+- `components/certificates/CERTIFICATE_CARD.tsx`
+- `components/certificates/CERTIFICATE_DOWNLOAD_BUTTON.tsx`
+
+Acceptance:
+
+- Completing a course creates or exposes a certificate idempotently.
+- Certificate metadata is stored in Supabase.
+- Student can view and download their own certificate.
+- Admin can verify certificate ownership/status.
+- Certificate strings are localized in EN/HE.
+
+Tests:
+
+- Unit tests for certificate eligibility.
+- Integration tests for certificate creation and access control.
+- E2E certificate visibility after course completion.
+
+Prompt file: `docs/prompts/11_REQUIRED_EXTENDED_FEATURES.md`
+
+### Task 10.2: Build Smart Search
+
+Objective: Let students search courses and lessons.
+
+Files:
+
+- `lib/search/queries.ts`
+- `components/search/COURSE_SEARCH.tsx`
+- `app/[locale]/search/page.tsx` or existing search route convention.
+
+Acceptance:
+
+- Students can search course titles, lesson titles, and lesson descriptions.
+- Search respects published course visibility.
+- Transcript search is included when transcript data is available.
+- Empty and no-result states are localized.
+
+Tests:
+
+- Unit tests for query normalization.
+- Integration tests for search result scoping.
+- E2E search smoke flow.
+
+### Task 10.3: Build Class Groups
+
+Objective: Support cohorts/groups and group dashboards.
+
+Files:
+
+- `lib/groups/queries.ts`
+- `lib/groups/actions.ts`
+- `app/[locale]/admin/groups/page.tsx`
+- `app/[locale]/dashboard/groups/page.tsx`
+- `components/groups/GROUP_DASHBOARD.tsx`
+
+Acceptance:
+
+- Admin can create and manage class groups.
+- Admin can assign students to groups.
+- Students can see their group dashboard.
+- Group progress is scoped by membership and admin role.
+
+Tests:
+
+- Integration tests for group membership access.
+- E2E admin group creation and student group dashboard flow.
+
+### Task 10.4: Build Reminders
+
+Objective: Track and send reminders for inactive students.
+
+Files:
+
+- `lib/reminders/queries.ts`
+- `lib/reminders/actions.ts`
+- `app/api/reminders/route.ts` or server action by existing convention.
+- `components/admin/REMINDER_QUEUE.tsx`
+
+Acceptance:
+
+- Inactive students are identified from progress/activity data.
+- Admin can review reminder candidates.
+- Reminder sends are recorded to avoid duplicate notifications.
+- If an external delivery provider is not configured, reminders are queued and
+  visible without failing silently.
+
+Tests:
+
+- Unit tests for inactivity detection.
+- Integration tests for reminder queue idempotency.
+- E2E admin reminder review flow.
+
+### Task 10.5: Build Payments
+
+Objective: Support paid courses through a simulated payment flow.
+
+Files:
+
+- `lib/payments/checkout.ts`
+- `lib/payments/simulation.ts`
+- `app/api/payments/checkout/route.ts`
+- `app/api/payments/simulate/route.ts`
+- `components/payments/COURSE_PURCHASE_BUTTON.tsx`
+
+Acceptance:
+
+- Paid courses require successful purchase or admin access before enrollment.
+- A complete payment flow exists, but it is simulation-only.
+- No real money changes hands.
+- No real credit card, bank, wallet, or other payment method details are
+  required, collected, transmitted, or stored.
+- Any payment details shown or entered in the UI are fake/demo-only values.
+- Successful simulated checkout marks the payment record as `paid`.
+- Simulated payment events persist payment state safely and idempotently.
+- Student purchase/enrollment state is clear in the UI.
+- The UI clearly labels the flow as simulated payment, not real payment.
+
+Tests:
+
+- Unit tests for payment state mapping.
+- Integration tests for simulated checkout creation.
+- Integration tests for simulated payment idempotency.
+- E2E paid-course purchase path with fake payment details.
+
+## Batch 11: Test Completion
+
+### Task 11.1: Complete Unit Test Suite
 
 Objective: Cover core pure logic.
 
@@ -806,10 +1004,15 @@ Required tests:
 - Slug generation.
 - Validation.
 - Tutor prompt builder.
+- Certificate eligibility.
+- Search query normalization.
+- Group membership helpers.
+- Reminder inactivity detection.
+- Payment state mapping.
 
-Prompt file: `docs/prompts/09_TESTING_AND_QA.md`
+Prompt file: `docs/prompts/12_TESTING_AND_QA.md`
 
-### Task 10.2: Complete Integration Test Suite
+### Task 11.2: Complete Integration Test Suite
 
 Objective: Cover server actions and route behavior with mocks.
 
@@ -821,8 +1024,13 @@ Required tests:
 - Lesson creation.
 - Tutor route persistence.
 - YouTube metadata route.
+- Certificate creation.
+- Search scoping.
+- Group membership management.
+- Reminder queue idempotency.
+- Simulated checkout and payment-state handling.
 
-### Task 10.3: Complete Playwright E2E Suite
+### Task 11.3: Complete Playwright E2E Suite
 
 Objective: Cover reviewer-critical flows.
 
@@ -834,10 +1042,15 @@ Required flows:
 - Admin course creation and lesson add.
 - Admin route protection.
 - Hebrew RTL smoke test.
+- Certificate download after course completion.
+- Search finds a course or lesson.
+- Admin creates a class group and student sees group dashboard.
+- Admin reviews inactive-student reminders.
+- Simulated paid-course purchase/enrollment state.
 
-## Batch 11: Deployment And Submission
+## Batch 12: Deployment And Submission
 
-### Task 11.1: Pre-Deployment Checks
+### Task 12.1: Pre-Deployment Checks
 
 Objective: Confirm project is ready for production.
 
@@ -855,9 +1068,9 @@ Acceptance:
 
 - All required checks pass or failures are documented and fixed.
 
-Prompt file: `docs/prompts/10_DEPLOYMENT_AND_FINAL_REVIEW.md`
+Prompt file: `docs/prompts/13_DEPLOYMENT_AND_FINAL_REVIEW.md`
 
-### Task 11.2: Vercel Environment Verification
+### Task 12.2: Vercel Environment Verification
 
 Objective: Confirm production config.
 
@@ -865,10 +1078,12 @@ Actions:
 
 - Add required env vars to Vercel.
 - Add optional `YOUTUBE_API_KEY` if playlist import is required.
+- Add reminder delivery env vars if a delivery provider is configured.
+- Confirm payment simulation requires no real provider keys.
 - Confirm Supabase auth redirect URLs include production URL.
 - Confirm AI tutor route works in deployed environment.
 
-### Task 11.3: Final Reviewer Flow
+### Task 12.3: Final Reviewer Flow
 
 Objective: Validate assignment completion standard.
 
@@ -883,32 +1098,12 @@ Flow:
 7. Ask AI tutor a contextual question.
 8. Open student dashboard.
 9. Open teacher dashboard.
+10. Search for a course or lesson.
+11. Complete a course and download a certificate.
+12. Open a class group dashboard.
+13. Review inactive-student reminder status.
+14. Verify simulated paid-course purchase/enrollment state.
 
 Acceptance:
 
 - Flow passes in production.
-
-## Optional Bonus Batch
-
-### Bonus 1: Completion Certificates
-
-- Generate PDF certificate when a course is completed.
-- Store certificate metadata.
-- Add download link to dashboard.
-
-### Bonus 2: Smart Search
-
-- Add search inside lesson titles/descriptions.
-- Optionally add transcript-based search if transcript API is integrated.
-
-### Bonus 3: Class Groups
-
-- Add class groups and group dashboard.
-
-### Bonus 4: Reminders
-
-- Notify inactive students if email/message integration exists.
-
-### Bonus 5: Payments
-
-- Add Stripe product/payment flow after core platform is stable.

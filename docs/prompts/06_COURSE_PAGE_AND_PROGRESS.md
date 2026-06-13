@@ -5,6 +5,12 @@ Use frontend-design, ui-ux-pro-max, and Magic MCP.
 
 Build the student course learning experience for Eyal's Coding Academy.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 5.1-5.5.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 4, 6.3, 8, 9.1, 9.2, 10, 11, 15.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - Existing auth, Supabase clients, localization, theme, accessibility, and PWA functionality must be preserved.
 - Courses and lessons are stored in Supabase.

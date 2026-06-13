@@ -5,6 +5,12 @@ Use frontend-design, ui-ux-pro-max, and Magic MCP.
 
 Build student and teacher dashboards for Eyal's Coding Academy.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 8.1-8.4.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 6.4, 8, 10, 11, 15.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - Student dashboard is available at /dashboard under the localized route structure.
 - Teacher dashboard is available at /admin/dashboard under the localized route structure.

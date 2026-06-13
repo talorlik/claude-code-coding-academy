@@ -3,6 +3,12 @@
 ```text
 Implement YouTube video and playlist support for the admin lesson workflow.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Task 3.3.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 5, 6.3, 8.2, 9.4, 14, 15.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - The platform stores YouTube lessons in Supabase.
 - A lesson may be added from a single YouTube video URL.

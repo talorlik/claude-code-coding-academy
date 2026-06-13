@@ -3,6 +3,12 @@
 ```text
 Complete the testing and QA layer for Eyal's Coding Academy.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 11.1-11.3.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 15, 17.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - The project uses Vitest, jsdom, Testing Library, and Playwright.
 - Core implementation should already exist.
@@ -17,6 +23,11 @@ Required unit tests:
 6. Badge calculation.
 7. AI tutor prompt builder.
 8. Role guard helpers.
+9. Certificate eligibility.
+10. Search query normalization.
+11. Group membership helpers.
+12. Reminder inactivity detection.
+13. Payment state mapping.
 
 Required integration tests:
 1. Course catalog query with mocked Supabase.
@@ -26,6 +37,11 @@ Required integration tests:
 5. Admin lesson create/reorder/delete action.
 6. YouTube metadata route/helper with mocked fetch.
 7. AI tutor route with mocked AI stream and mocked Supabase persistence.
+8. Certificate creation and access control.
+9. Search result scoping.
+10. Group creation and membership management.
+11. Reminder queue idempotency.
+12. Simulated checkout and payment-state handling.
 
 Required Playwright e2e tests:
 1. Public home loads course catalog.
@@ -34,6 +50,12 @@ Required Playwright e2e tests:
 4. Admin creates course and adds YouTube lesson.
 5. Non-admin cannot access admin pages.
 6. Hebrew route renders translated RTL UI.
+7. Student downloads a certificate after course completion.
+8. Search finds a course or lesson.
+9. Admin creates a class group and student sees the group dashboard.
+10. Admin reviews inactive-student reminders.
+11. Paid-course purchase/enrollment state works with fake payment details and
+    simulated `paid` state.
 
 QA checklist:
 1. Run npm run lint.

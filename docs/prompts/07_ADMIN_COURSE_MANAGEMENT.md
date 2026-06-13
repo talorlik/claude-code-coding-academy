@@ -5,6 +5,12 @@ Use frontend-design, ui-ux-pro-max, Magic MCP, and supabase-postgres-best-practi
 
 Build the admin course management flow for Eyal's Coding Academy.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 6.1-6.6.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 4, 7, 9.3, 9.4, 10, 11, 15.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - Admin pages must be protected server-side using the existing Supabase auth/session pattern.
 - Eyal/admin users can manage courses and lessons.

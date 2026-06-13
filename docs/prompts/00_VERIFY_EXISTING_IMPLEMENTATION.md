@@ -5,6 +5,12 @@ Use this as Task 0 before implementing any new feature.
 ```text
 You are working inside an existing Next.js course-platform project. Do not rewrite the project. First verify what already exists, how it was implemented, and why it was likely implemented that way.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 0.1-0.5.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 1, 2, 3, 4, 5, 11, 12, 13, 15, 16, 17.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - The project is for Eyal's Coding Academy, an online course platform and AI tutor.
 - The current stack is Next.js 16.1.7 App Router, React 19.2.4, TypeScript 5.9, ESM, Tailwind CSS 4, shadcn 4, Base UI, Lucide, next-themes, Recharts, next-intl, Supabase, Vercel AI SDK, Cloudflare Turnstile, Vitest, Testing Library, and Playwright.

@@ -5,6 +5,12 @@ Use frontend-design, ui-ux-pro-max, and Magic MCP.
 
 Build the public localized home page and course catalog for Eyal's Coding Academy using the existing project architecture.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 4.1-4.3.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 4, 8.1, 10, 11, 12, 15.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - Do not rewrite existing layout, theme, localization, or auth foundations.
 - The app uses next-intl under app/[locale]/ with EN/HE and RTL support.

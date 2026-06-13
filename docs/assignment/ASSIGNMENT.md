@@ -25,9 +25,10 @@ Eyal's Coding Academy.
 - [Milestone 7 - Build The AI Tutor][milestone-7]
 - [Milestone 8 - Build Dashboards][milestone-8]
 - [Milestone 9 - Polish The Product][milestone-9]
-- [Milestone 10 - Save And Deploy][milestone-10]
+- [Milestone 10 - Build Required Extended Features][milestone-10]
+- [Milestone 11 - Save And Deploy][milestone-11]
 - [Sample Course Content][sample-course-content]
-- [Optional Bonus Features][optional-bonus-features]
+- [Required Extended Features][required-extended-features]
 - [Final Submission Checklist][final-submission-checklist]
 - [Evaluation Rubric][evaluation-rubric]
 
@@ -47,9 +48,10 @@ Eyal's Coding Academy.
 [milestone-7]: #milestone-7---build-the-ai-tutor
 [milestone-8]: #milestone-8---build-dashboards
 [milestone-9]: #milestone-9---polish-the-product
-[milestone-10]: #milestone-10---save-and-deploy
+[milestone-10]: #milestone-10---build-required-extended-features
+[milestone-11]: #milestone-11---save-and-deploy
 [sample-course-content]: #sample-course-content
-[optional-bonus-features]: #optional-bonus-features
+[required-extended-features]: #required-extended-features
 [final-submission-checklist]: #final-submission-checklist
 [evaluation-rubric]: #evaluation-rubric
 
@@ -134,6 +136,10 @@ The student side must include:
 - A "Mark as watched" action for each lesson.
 - A personal dashboard that shows current courses and progress.
 - An AI tutor chat that answers using the current course and lesson context.
+- Smart search across courses and lessons.
+- Completion certificates after finishing courses.
+- Class group dashboard when the student belongs to a group.
+- Simulated paid-course purchase/enrollment state.
 
 ### Teacher Features
 
@@ -147,6 +153,10 @@ The teacher/admin side must include:
 - A teacher dashboard with student progress.
 - A way to identify students who may be stuck.
 - A summary of common AI tutor questions.
+- Class group management.
+- Inactive-student reminder review and sending.
+- Simulated paid-course management.
+- Certificate verification.
 
 ### Technical Requirements
 
@@ -161,6 +171,8 @@ Your application must:
 - Run locally with `npm run dev`.
 - Deploy successfully on Vercel.
 - Work well on desktop and mobile screens.
+- Include certificates, smart search, class groups, reminders, and simulated
+  payments as required product scope.
 
 ## Prerequisites
 
@@ -406,7 +418,8 @@ Use supabase-postgres-best-practices.
 
 Plan the database schema for an online course platform for Eyal's Coding
 Academy. The app needs courses, lessons, enrollments, student progress,
-AI tutor conversations, and teacher dashboard data.
+AI tutor conversations, teacher dashboard data, certificates, search, class
+groups, reminders, and simulated payments.
 
 Include table relationships, indexes, row level security policies, and sample
 seed data. After the plan, generate the Supabase migration.
@@ -423,9 +436,15 @@ Your schema should include at least:
 - `lesson_progress`
 - `ai_tutor_conversations`
 - `ai_tutor_messages`
+- `certificates`
+- `class_groups`
+- `class_group_members`
+- `reminder_events`
+- `course_prices`
+- `payments`
 
-You may add more tables if your design needs them, such as `badges`,
-`course_categories`, or `student_notes`.
+You may add more supporting tables if your design needs them, such as `badges`,
+`course_categories`, `student_notes`, or search index tables.
 
 ### Suggested Data Model
 
@@ -438,6 +457,10 @@ Use these relationships as a starting point:
 - A tutor conversation belongs to one user, one course, and optionally one
   lesson.
 - Tutor messages belong to a tutor conversation.
+- A certificate belongs to one user and one completed course.
+- A class group has many student memberships.
+- A reminder event belongs to a student and may reference a course.
+- A simulated payment belongs to one user and one paid course.
 
 ### Row Level Security Expectations
 
@@ -447,8 +470,12 @@ At minimum:
 - Students can only read and update their own enrollments.
 - Students can only read and update their own progress.
 - Students can only read their own AI tutor conversations.
+- Students can only read their own certificates, group memberships, and payment
+  state.
 - Eyal/admin users can manage courses and lessons.
 - Eyal/admin users can view student progress.
+- Eyal/admin users can manage groups, reminders, certificates, and simulated
+  paid-course state.
 
 ### Seed Data
 
@@ -748,7 +775,55 @@ This milestone is complete when:
 - Loading, empty, and error states are not broken or confusing.
 - No major layout issues appear on small screens.
 
-## Milestone 10 - Save And Deploy
+## Milestone 10 - Build Required Extended Features
+
+These features are required product scope. Implement them before final QA and
+deployment.
+
+Suggested prompt:
+
+```text
+Use frontend-design, ui-ux-pro-max, Magic MCP, and
+supabase-postgres-best-practices.
+
+Build the required extended features for Eyal's Coding Academy: completion
+certificates, smart search, class groups, reminders, and simulated paid courses.
+Integrate them with the existing Supabase schema, admin pages, student
+dashboards, localization, testing, and deployment checks.
+```
+
+### Required Capabilities
+
+- Generate and store completion certificates when students complete courses.
+- Let students view and download their own certificates.
+- Let students search course titles, lesson titles, and lesson descriptions.
+- Include transcript search when transcript data exists.
+- Let Eyal create class groups and assign students.
+- Show group dashboards to admins and scoped group dashboards to students.
+- Identify inactive students and queue or send reminders.
+- Record reminder events so notifications are idempotent.
+- Add a complete simulated payment flow so Eyal can demonstrate paid courses.
+- Gate paid-course enrollment by simulated purchase state or admin access.
+- Make it explicit in the UI that no actual payment takes place and no money
+  exchanges hands.
+- Require only fake/demo payment details. Do not request real credit card, bank,
+  wallet, or other payment method details.
+- Mark successful simulated payments as `paid`.
+
+### Acceptance Criteria
+
+This milestone is complete when:
+
+- Certificates are created after course completion.
+- Search returns scoped, relevant course or lesson results.
+- Group dashboards show only authorized data.
+- Reminder review/sending is visible and does not fail silently.
+- Simulated checkout and payment state are implemented without real payment
+  provider secrets.
+- Unit, integration, and e2e tests cover these required features with mocks for
+  external services where appropriate.
+
+## Milestone 11 - Save And Deploy
 
 Save the current stage in GitHub and deploy the application to Vercel.
 
@@ -811,9 +886,10 @@ https://www.youtube.com/playlist?list=PLkmvmF0zhgT_cKQTLZOSlnEHtynu4JcpY
 
 You may also use your own content if it fits the learning platform.
 
-## Optional Bonus Features
+## Required Extended Features
 
-If you finish the required work early, choose one or more bonus features.
+The following features are required for the final product. Implement them as
+part of the main product scope.
 
 ### Completion Certificates
 
@@ -822,7 +898,7 @@ Generate a PDF certificate when a student completes a course.
 ### Smart Search
 
 Allow students to search inside lesson titles, descriptions, or video
-transcripts.
+transcripts when transcript data exists.
 
 Possible tool:
 
@@ -840,7 +916,11 @@ Send an email or message to a student who has not logged in for a week.
 
 ### Payments
 
-Connect Stripe so Eyal can sell paid courses.
+Add a complete simulated payment flow so Eyal can demonstrate paid courses.
+No actual payment takes place, no money exchanges hands, and no real credit
+card, bank, wallet, or other payment method details are required. Any payment
+details are fake/demo-only, and successful simulated checkout marks the course
+payment as `paid`.
 
 ## Final Submission Checklist
 
@@ -863,6 +943,10 @@ Before submitting, verify each item.
 - The progress bar updates correctly.
 - The student dashboard shows progress.
 - The AI tutor answers with course and lesson context.
+- The student can search for courses or lessons.
+- The student can download a certificate after completing a course.
+- The student can see class group information when assigned to a group.
+- Simulated paid-course enrollment state is clear.
 
 ### Teacher Flow
 
@@ -871,6 +955,10 @@ Before submitting, verify each item.
 - Eyal can view student progress.
 - Eyal can see students who may be stuck.
 - Eyal can view common AI tutor questions.
+- Eyal can manage class groups.
+- Eyal can review inactive-student reminders.
+- Eyal can verify certificates.
+- Eyal can manage simulated paid-course state.
 
 ### Product Quality
 

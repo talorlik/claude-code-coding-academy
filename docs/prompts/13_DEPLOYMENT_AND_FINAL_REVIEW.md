@@ -3,6 +3,12 @@
 ```text
 Prepare Eyal's Coding Academy for final GitHub/Vercel submission.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 12.1-12.3.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 5, 16, 17.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - GitHub and Vercel setup were already initialized through the template workflow.
 - Existing deployment configuration must be preserved.
@@ -28,7 +34,10 @@ Tasks:
    - NEXT_PUBLIC_TURNSTILE_SITE_KEY
    - TURNSTILE_SECRET_KEY if used server-side
    - YOUTUBE_API_KEY if playlist import is enabled
-7. Verify Supabase production auth redirect URLs include the Vercel production URL.
+   - reminder delivery provider keys if reminder sending is enabled
+   - no real payment provider keys are required for the simulated payment flow
+7. Verify Supabase production auth redirect URLs include the Vercel production
+   URL.
 8. Deploy or trigger deployment through the existing GitHub to Vercel flow.
 9. Open the deployed URL.
 10. Run final reviewer flow:
@@ -41,6 +50,12 @@ Tasks:
     - ask AI tutor a contextual question
     - open student dashboard
     - open teacher dashboard as admin
+    - search for a course or lesson
+    - complete a course and download a certificate
+    - open a class group dashboard
+    - review inactive-student reminder status
+    - verify simulated paid-course purchase/enrollment state using fake payment
+      details
 11. Document final status in docs/planning/IMPLEMENTATION_LOG.md.
 
 Rules:

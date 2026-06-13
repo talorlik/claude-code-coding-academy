@@ -5,6 +5,12 @@ Use frontend-design and ui-ux-pro-max.
 
 Review and polish Eyal's Coding Academy as a production-like SaaS product.
 
+Planning anchors:
+- Task breakdown: docs/planning/TASK_BREAKDOWN.md, Tasks 9.1-9.5.
+- Technical requirements: docs/planning/TECHNICAL_REQUIREMENTS.md,
+  Sections 10, 11, 12, 13, 15, 17.
+- Prompt map: docs/prompts/README.md.
+
 Context:
 - Existing EN/HE localization, RTL, light/dark theme, PWA, accessibility, no-JS support, and responsive behavior must be preserved.
 - Main features should already be implemented before this prompt is used.
