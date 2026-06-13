@@ -1,4 +1,5 @@
 "use server"
+import "server-only"
 
 import { createClient } from "@/lib/supabase/server"
 import { toReminderEventDTO } from "@/lib/reminders/types"

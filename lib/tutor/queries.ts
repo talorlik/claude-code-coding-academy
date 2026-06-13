@@ -1,3 +1,4 @@
+import "server-only"
 /**
  * Server-only tutor data query helpers.
  *

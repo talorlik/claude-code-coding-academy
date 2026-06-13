@@ -24,6 +24,7 @@ import { getEnrollment, getCourseProgress } from "@/lib/progress/queries"
 import { getConversationMessages } from "@/lib/tutor/queries"
 import { getActiveCoursePrice } from "@/lib/payments/checkout"
 import { createClient } from "@/lib/supabase/server"
+import { getSiteUrl } from "@/lib/utils/site-url"
 import type { Locale } from "@/i18n/routing"
 import {
   TutorChat,
@@ -71,10 +72,7 @@ export async function generateMetadata({
     }
 
     const t = await getTranslations({ locale, namespace: "Course" })
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ??
-      process.env.NEXT_PUBLIC_SITE_URL ??
-      null
+    const baseUrl = getSiteUrl()
 
     return {
       title: course.title,

@@ -1,3 +1,4 @@
+import "server-only"
 /**
  * SERVER-ONLY YouTube metadata helpers.
  *
@@ -6,10 +7,9 @@
  * the client bundle. Never import this file from a Client Component or any
  * module that is part of a client bundle.
  *
- * Pattern: use a comment guard (this file's own documentation) rather than
- * the `server-only` package because that package is not installed in this
- * project. The absence of a `NEXT_PUBLIC_` prefix on the key is the primary
- * runtime guard.
+ * The `server-only` import above enforces the server boundary at build time.
+ * The absence of a `NEXT_PUBLIC_` prefix on the key is an additional runtime
+ * guard.
  */
 
 import { fail, ok } from "@/lib/types/action-result"

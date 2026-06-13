@@ -1,4 +1,5 @@
 "use server"
+import "server-only"
 
 /**
  * @file lib/admin/reorder-lessons.ts

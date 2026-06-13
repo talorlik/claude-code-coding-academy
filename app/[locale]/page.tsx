@@ -16,6 +16,7 @@ import { CourseCatalog } from "@/components/courses/course-catalog"
 import { CourseCatalogSkeleton } from "@/components/courses/course-catalog-skeleton"
 import { getPublishedCourses } from "@/lib/courses/queries"
 import { createClient } from "@/lib/supabase/server"
+import { getSiteUrl } from "@/lib/utils/site-url"
 import type { Locale } from "@/i18n/routing"
 
 // ---------------------------------------------------------------------------
@@ -30,9 +31,7 @@ export async function generateMetadata({
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: "Metadata" })
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    null
+  const baseUrl = getSiteUrl()
 
   return {
     title: t("home.title"),

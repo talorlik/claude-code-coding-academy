@@ -1,4 +1,5 @@
 "use server"
+import "server-only"
 
 import { createClient } from "@/lib/supabase/server"
 import type { SearchResult, SearchResults } from "@/lib/search/types"

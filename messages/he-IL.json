@@ -22,7 +22,6 @@
   "Nav": {
     "home": "בית",
     "search": "חיפוש",
-    "chat": "צ׳אט",
     "dashboard": "לוח הבקרה",
     "signIn": "התחברות",
     "signOut": "התנתקות",
@@ -104,16 +103,6 @@
       "courseNotFound": "קורס זה אינו זמין עוד.",
       "generic": "ההרשמה נכשלה. נסו שוב."
     }
-  },
-  "Chat": {
-    "metaTitle": "צ׳אט",
-    "heading": "צ׳אט",
-    "empty": "שאלו אותי כל דבר כדי להתחיל.",
-    "thinking": "חושב…",
-    "error": "משהו השתבש.",
-    "inputLabel": "הקלידו הודעה",
-    "inputPlaceholder": "הקלידו הודעה",
-    "send": "שליחה"
   },
   "Auth": {
     "welcomeTitle": "ברוכים הבאים",

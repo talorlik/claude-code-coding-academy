@@ -1,3 +1,4 @@
+import type { Database } from "@/lib/supabase/database.types"
 import {
   deterministicUuid,
   ENTITY_CODES,
@@ -6,44 +7,18 @@ import {
 } from "./sequence"
 
 /**
- * Course difficulty level mirroring the planned `course_level` Postgres enum
- * (docs/planning/TECHNICAL_REQUIREMENTS.md section 6.2).
+ * Row type for the `courses` table, sourced from the generated Supabase types.
+ * Use this instead of a local interface so the factory stays in sync with the
+ * real schema.
  */
-export type CourseLevel = "beginner" | "intermediate" | "advanced"
+export type CourseFactoryRecord = Database["public"]["Tables"]["courses"]["Row"]
 
 /**
- * Course lifecycle status mirroring the planned `course_status` Postgres
- * enum (docs/planning/TECHNICAL_REQUIREMENTS.md section 6.2).
+ * Convenience aliases re-exported from the generated types so test files can
+ * import these without reaching into database.types directly.
  */
-export type CourseStatus = "draft" | "published" | "archived"
-
-/**
- * Course content language per the planned `courses.language` column
- * (docs/planning/TECHNICAL_REQUIREMENTS.md section 6.3).
- */
-export type CourseLanguage = "en" | "he" | "mixed"
-
-/**
- * Row shape of the planned `courses` table
- * (docs/planning/TECHNICAL_REQUIREMENTS.md section 6.3).
- *
- * Defined locally because domain types do not exist yet; batch 03
- * introduces the real database types, at which point this interface should
- * be replaced by (or asserted against) the generated row type.
- */
-export interface CourseFactoryRecord {
-  id: string
-  slug: string
-  title: string
-  description: string
-  level: CourseLevel
-  cover_image_url: string | null
-  status: CourseStatus
-  language: CourseLanguage
-  created_by: string
-  created_at: string
-  updated_at: string
-}
+export type CourseLevel = Database["public"]["Enums"]["course_level"]
+export type CourseStatus = Database["public"]["Enums"]["course_status"]
 
 /**
  * Builds a deterministic course record.
@@ -51,6 +26,10 @@ export interface CourseFactoryRecord {
  * Each call consumes one number from the shared factory sequence; identity
  * fields derive from that number and timestamps are fixed. Pass `overrides`
  * to pin any field - overrides always win over generated values.
+ *
+ * Note: `created_by` in the DB schema is `string | null`. The factory always
+ * generates a deterministic UUID so the default value is never null, but the
+ * type allows overriding to null for edge-case tests.
  */
 export function buildCourse(
   overrides: Partial<CourseFactoryRecord> = {}

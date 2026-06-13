@@ -2,21 +2,16 @@
  * Dynamic sitemap generation for public pages.
  *
  * Lists the home page (EN + HE) and all published course pages. Private pages
- * (dashboard, admin, chat, auth flows) are intentionally excluded - those are
+ * (dashboard, admin, auth flows) are intentionally excluded - those are
  * covered by noindex metadata and not linked from here.
- *
- * Falls back gracefully when NEXT_PUBLIC_APP_URL / NEXT_PUBLIC_SITE_URL is not
- * set (e.g. local dev): returns only the static entries with a relative-path
- * base of "" so Next.js still generates the file without crashing.
  */
 
 import type { MetadataRoute } from "next"
-import { getPublishedCourses } from "@/lib/courses/queries"
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL ??
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  ""
+import { getPublishedCourses } from "@/lib/courses/queries"
+import { getSiteUrl } from "@/lib/utils/site-url"
+
+const BASE_URL = getSiteUrl()
 
 const LOCALES = ["en", "he"] as const
 

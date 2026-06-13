@@ -493,3 +493,49 @@ complete and green after batch 12; this confirms it ships safely.
 **Orchestrator post-deploy:** verify Vercel env vars set, Supabase prod auth
 redirect URLs include the Vercel URL, seed prod accounts, then spot-check the
 reviewer flow on the live URL.
+
+### 2026-06-13 - Tech-Debt Batch - Five accumulated items cleared
+
+All five tech-debt items cleared in one pass. Gates: lint 0/0, lint:i18n
+444 keys (in sync), typecheck 0 errors, build clean (42 routes, no /chat),
+test 399 pass.
+
+**`server-only` package declared and applied:** The package was already
+transitively available via Next.js but was not in `package.json`. Installed
+explicitly. Added `import "server-only"` to 20 server-only lib modules
+(queries, actions, checkout, persistence). The `lib/dashboard/*` modules
+already had it. No client component imports these modules at runtime (action
+files are server boundaries, safe to mark). Vitest alias `server-only ->
+tests/__mocks__/server-only.ts` keeps tests working.
+
+**`NEXT_PUBLIC_SITE_URL` vs `NEXT_PUBLIC_APP_URL` consolidated:**
+Created `lib/utils/site-url.ts#getSiteUrl()` as the single source of truth.
+All 6 readers (`robots.ts`, `sitemap.ts`, home page, course page, forgot-
+password action, login action) now call `getSiteUrl()` instead of reading
+env vars directly. The `headers()` import was removed from two action files
+where it was only used to derive the origin. `.env.example` now documents
+only `NEXT_PUBLIC_APP_URL` (the canonical name); `NEXT_PUBLIC_SITE_URL` is
+commented out as a deprecated alias so existing deployments still work via
+the helper fallback. Unit test added at `tests/unit/site-url.test.ts`.
+
+**`/api/chat` and `/chat` demo removed:** The demo was unauthenticated
+gateway-billed streaming - a security/cost liability superseded by the
+properly guarded `/api/tutor` route added in batch 08. Removed:
+`app/api/chat/route.ts`, `app/[locale]/chat/page.tsx`,
+`app/[locale]/chat/chat-client.tsx`. Removed the `Chat` i18n namespace and
+`Nav.chat` key from both catalogs. Removed the nav link from
+`components/site-header.tsx`. Cleaned up the stale test case in
+`tests/unit/seo-metadata.test.ts` and the stale disallow in `robots.ts`.
+
+**Phantom `/profile` route removed:** `PROTECTED_SEGMENTS` in
+`lib/supabase/middleware.ts` (not `proxy.ts`) contained `"profile"` which
+would 404 if any valid user hit that route. Removed from `PROTECTED_SEGMENTS`
+and from `ALLOWED_NEXT` in `app/auth/confirm/route.ts`. The defensive no-user
+fallback in that handler was also pointing to `/profile`; changed to
+`/dashboard`. No profile page created (that would be a new feature).
+
+**Factory types re-pointed:** `CourseFactoryRecord` and `LessonFactoryRecord`
+now alias `Database["public"]["Tables"]["courses"]["Row"]` and `lessons Row`
+respectively. `UserFactoryRecord` remains local because the `profiles` Row
+diverges on primary key name (`user_id` vs `id`), `role` column absence, and
+nullable email/full_name. Divergences are documented in the interface JSDoc.

@@ -139,12 +139,7 @@ describe("SEO: private page generateMetadata sets robots noindex", () => {
     expect(robots?.index).toBe(false)
   })
 
-  it("chat page: robots.index === false", async () => {
-    const { generateMetadata } = await import("@/app/[locale]/chat/page")
-    const meta = await generateMetadata()
-    const robots = meta.robots as { index?: boolean } | undefined
-    expect(robots?.index).toBe(false)
-  })
+  // chat page removed (was unauthenticated demo, superseded by /api/tutor)
 })
 
 describe("SEO: public page generateMetadata does NOT set noindex", () => {

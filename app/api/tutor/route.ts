@@ -1,15 +1,13 @@
 /**
  * POST /api/tutor
  *
- * Dedicated AI tutor endpoint. Separate from /api/chat because this route:
+ * Dedicated AI tutor endpoint. This route:
  * - Requires authentication (401 if unauthenticated)
  * - Enforces enrollment or preview gating (403 if denied)
  * - Injects course+lesson context into the system prompt
  * - Persists messages to Supabase (ai_tutor_messages) with RLS isolation
  * - Manages conversation identity (create or resume)
  * - Scopes history to the conversation's own messages
- *
- * /api/chat remains an unauthenticated demo route (tech-debt, not fixed here).
  *
  * The model string "openai/gpt-4o-mini" is routed through Vercel AI Gateway
  * automatically when AI_GATEWAY_API_KEY is set. No explicit gateway client or

@@ -1,3 +1,4 @@
+import type { Database } from "@/lib/supabase/database.types"
 import {
   deterministicUuid,
   ENTITY_CODES,
@@ -6,28 +7,11 @@ import {
 } from "./sequence"
 
 /**
- * Row shape of the planned `lessons` table
- * (docs/planning/TECHNICAL_REQUIREMENTS.md section 6.3).
- *
- * Defined locally because domain types do not exist yet; batch 03
- * introduces the real database types, at which point this interface should
- * be replaced by (or asserted against) the generated row type.
+ * Row type for the `lessons` table, sourced from the generated Supabase types.
+ * All fields match the local interface that previously existed here, so no
+ * factory callsites required updating.
  */
-export interface LessonFactoryRecord {
-  id: string
-  course_id: string
-  slug: string
-  title: string
-  description: string | null
-  youtube_video_id: string
-  youtube_url: string
-  duration_seconds: number | null
-  thumbnail_url: string | null
-  sort_order: number
-  is_preview: boolean
-  created_at: string
-  updated_at: string
-}
+export type LessonFactoryRecord = Database["public"]["Tables"]["lessons"]["Row"]
 
 /**
  * Builds a deterministic lesson record.

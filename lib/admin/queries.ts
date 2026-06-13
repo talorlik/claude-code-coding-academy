@@ -1,3 +1,4 @@
+import "server-only"
 /**
  * @file lib/admin/queries.ts
  *

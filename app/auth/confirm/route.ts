@@ -10,7 +10,7 @@ import { resolvePostAuthDestination } from "@/lib/auth/post-auth-redirect"
  * the email link is honored verbatim; anything else falls through to the
  * type-based decision below.
  */
-const ALLOWED_NEXT = ["/profile", "/reset-password", "/dashboard"]
+const ALLOWED_NEXT = ["/reset-password", "/dashboard"]
 
 /**
  * GET /auth/confirm
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         await ensureProfile(data.user.id)
         redirectTo.pathname = await resolvePostAuthDestination(data.user.id)
       } else {
-        redirectTo.pathname = "/profile"
+        redirectTo.pathname = "/dashboard"
       }
       return NextResponse.redirect(redirectTo)
     }

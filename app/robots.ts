@@ -12,10 +12,9 @@
 
 import type { MetadataRoute } from "next"
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL ??
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  ""
+import { getSiteUrl } from "@/lib/utils/site-url"
+
+const BASE_URL = getSiteUrl()
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -28,7 +27,6 @@ export default function robots(): MetadataRoute.Robots {
           "/*admin*",
           "/api/",
           "/auth/",
-          "/*chat*",
           "/*reset-password*",
           "/*forgot-password*",
         ],

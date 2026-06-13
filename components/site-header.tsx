@@ -22,7 +22,7 @@ import {
  * breakpoint they collapse into a hamburger Sheet drawer so the header never
  * overflows a phone. The language and theme controls stay visible at all widths;
  * only the links collapse. Signed-out visitors see a Sign in link; signed-in
- * users see Dashboard and Chat links plus a Sign out control. Labels come from
+ * users see Dashboard and Search links plus a Sign out control. Labels come from
  * the `Nav` namespace; links use the locale-aware {@link Link}. Sign-out posts
  * to the non-localized `/auth/signout` route (POST so it cannot be triggered by
  * a cross-site navigation or prefetch).
@@ -38,7 +38,6 @@ export async function SiteHeader() {
   const navLinks = user
     ? [
         { href: "/dashboard", label: t("dashboard") },
-        { href: "/chat", label: t("chat") },
         { href: "/search", label: t("search") },
       ]
     : [{ href: "/search", label: t("search") }]

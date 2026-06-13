@@ -22,7 +22,6 @@
   "Nav": {
     "home": "Home",
     "search": "Search",
-    "chat": "Chat",
     "dashboard": "Dashboard",
     "signIn": "Sign in",
     "signOut": "Sign out",
@@ -104,16 +103,6 @@
       "courseNotFound": "This course is no longer available.",
       "generic": "Enrollment failed. Please try again."
     }
-  },
-  "Chat": {
-    "metaTitle": "Chat",
-    "heading": "Chat",
-    "empty": "Ask me anything to get started.",
-    "thinking": "Thinking…",
-    "error": "Something went wrong.",
-    "inputLabel": "Type a message",
-    "inputPlaceholder": "Type a message",
-    "send": "Send"
   },
   "Auth": {
     "welcomeTitle": "Welcome",

@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { headers, cookies } from "next/headers"
+import { cookies } from "next/headers"
 import { getLocale } from "next-intl/server"
 
 import { redirect } from "@/i18n/navigation"
@@ -10,6 +10,7 @@ import { isValidEmail } from "@/lib/auth/validation"
 import { resolvePostAuthDestination } from "@/lib/auth/post-auth-redirect"
 import { ensureProfile } from "@/lib/profile/profile-actions"
 import { REMEMBER_FLAG, SESSION_ONLY } from "@/lib/supabase/cookie-persistence"
+import { getSiteUrl } from "@/lib/utils/site-url"
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -108,13 +109,7 @@ export async function signup(formData: FormData) {
     return redirect({ href: `/login?tab=signup&error=${creds}`, locale })
   }
 
-  const h = await headers()
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    `https://${h.get("host") ?? "localhost:3000"}`.replace(
-      /^https:\/\/localhost/,
-      "http://localhost"
-    )
+  const origin = getSiteUrl()
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({

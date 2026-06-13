@@ -1,3 +1,4 @@
+import "server-only"
 /**
  * Server-only course query functions.
  *

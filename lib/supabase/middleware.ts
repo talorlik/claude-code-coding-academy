@@ -10,17 +10,17 @@ import {
 import { routing } from "@/i18n/routing"
 
 /** Locale-prefixed app sections that require a signed-in user. */
-const PROTECTED_SEGMENTS = ["dashboard", "profile"] as const
+const PROTECTED_SEGMENTS = ["dashboard"] as const
 
 /**
  * Strips a leading supported-locale prefix from a pathname for route matching.
  *
  * With `localePrefix: "always"` every app path is locale-prefixed (`/en/dashboard`,
- * `/he/profile`), so protection checks must compare against the path *after* the
+ * `/he/dashboard`), so protection checks must compare against the path *after* the
  * prefix. Returns the locale-free path (always leading-slashed) and the locale
  * that was stripped, or `null` when no supported prefix was present.
  *
- * @param pathname - The request pathname, e.g. `/he/profile`.
+ * @param pathname - The request pathname, e.g. `/he/dashboard`.
  */
 function splitLocale(pathname: string): {
   locale: string | null
@@ -44,7 +44,7 @@ function splitLocale(pathname: string): {
  * locale middleware so locale routing and session refresh share one response.
  *
  * Protected routes are an allowlist so new public pages are not accidentally
- * gated. The `/dashboard` and `/profile` sections (under any locale prefix)
+ * gated. The `/dashboard` section (under any locale prefix)
  * require a signed-in user; everything else (home, login, the auth handlers,
  * the API) is public. When the user opted out of persistent login, auth cookies
  * are stripped of expiry on the response write so a per-request refresh does not

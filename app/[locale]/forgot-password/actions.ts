@@ -1,11 +1,11 @@
 "use server"
 
-import { headers } from "next/headers"
 import { getLocale } from "next-intl/server"
 
 import { redirect } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { isValidEmail } from "@/lib/auth/validation"
+import { getSiteUrl } from "@/lib/utils/site-url"
 
 /**
  * Sends a password-reset email via Supabase. The link routes through
@@ -23,13 +23,7 @@ export async function requestPasswordReset(formData: FormData) {
     return redirect({ href: `/forgot-password?error=invalidEmail`, locale })
   }
 
-  const h = await headers()
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    `https://${h.get("host") ?? "localhost:3000"}`.replace(
-      /^https:\/\/localhost/,
-      "http://localhost"
-    )
+  const origin = getSiteUrl()
   const supabase = await createClient()
 
   // Intentionally ignore the result: surfacing success/failure per-email would

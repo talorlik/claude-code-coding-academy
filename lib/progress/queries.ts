@@ -1,3 +1,4 @@
+import "server-only"
 /**
  * Server-only progress query helpers.
  *
