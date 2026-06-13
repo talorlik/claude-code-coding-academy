@@ -20,6 +20,7 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select"
 import { createCourse, updateCourse } from "@/lib/admin/course-actions"
+import { slugify } from "@/lib/utils/slug"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -70,11 +71,7 @@ export function AdminCourseForm({
   function handleTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setTitle(e.target.value)
     if (!slugTouched) {
-      const suggested = e.target.value
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
-        .substring(0, 80)
+      const suggested = slugify(e.target.value)
       setSlug(suggested)
     }
   }

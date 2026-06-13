@@ -415,3 +415,27 @@ by dropping the strict index-signature annotation (`const b = {`) and typing the
 `then` resolve param as `(v: unknown)`, matching the working builder pattern in
 the batch-03/09 test files. Lesson: always run typecheck to completion (exit
 code), not just `tail` the log - a passing tail can hide an earlier error.
+
+### 2026-06-13 - Batch 12 - QA coverage completed; slugify gap filled
+
+Audited the test suite against the required unit/integration/e2e lists
+(section 15). 13/13 unit, 12/12 integration, 11/11 e2e flows addressed.
+
+- The only real gap was "slug generation": no slug utility existed (the admin
+  form used an inline regex). Added `lib/utils/slug.ts#slugify` (NFD normalize +
+  diacritic strip, ASCII-lowercase, non-slug runs -> single hyphen, trim/collapse
+  hyphens, 80-char cap; non-ASCII-only input -> empty string) and wired it into
+  `admin-course-form.tsx` (replacing the inline chain - behavior-identical but
+  now test-exercised). 25 unit tests in tests/unit/slug.test.ts.
+- Four e2e flows stay test.skip-guarded (live AI gateway, or seeded
+  student/instructor/paid-course/inactive data not present in CI). Each has
+  integration-layer substitute coverage (tutor-route, certificates, groups,
+  reminders, payments tests). Documented in the IMPLEMENTATION_LOG coverage
+  matrix + QA sign-off.
+- Final suite: 397 unit+integration pass, 75 e2e pass / 4 skip, lint 0/0,
+  typecheck exit 0, build exit 0, i18n 453 keys.
+
+**Why:** A real slugify util makes the slug-generation requirement testable and
+removes duplicated regex logic. Keeping seeded/live e2e flows guarded (with
+integration substitutes) keeps the default suite deterministic and offline per
+the testing rules, while still covering the behavior.

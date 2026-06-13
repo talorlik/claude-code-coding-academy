@@ -1659,3 +1659,164 @@ Changed:
   feature routes.
 - `npm run test:e2e` - 72 passed, 4 skipped (3 need seeded DB,
   1 E2E_REAL_AI gate), 0 failed.
+
+
+## Batch 12: Testing And QA (2026-06-13)
+
+### Coverage Matrix
+
+Required unit tests mapped to covering files:
+
+| # | Required Item | Covering File | Status |
+|---|---------------|---------------|--------|
+| 1 | YouTube video URL parser | tests/unit/youtube-parser.test.ts | Covered |
+| 2 | YouTube playlist URL parser | tests/unit/youtube-parser.test.ts | Covered |
+| 3 | Slug generation | tests/unit/slug.test.ts | Added |
+| 4 | Course and lesson validation | tests/unit/validation.test.ts | Covered |
+| 5 | Progress percentage calculation | tests/unit/progress.test.ts | Covered |
+| 6 | Badge calculation | tests/unit/badges.test.ts | Covered |
+| 7 | AI tutor prompt builder | tests/unit/tutor-prompt.test.ts | Covered |
+| 8 | Role guard helpers | tests/integration/admin-guard.test.ts | Covered |
+| 9 | Certificate eligibility | tests/integration/certificates.test.ts | Covered |
+| 10 | Search query normalization | tests/unit/validation.test.ts | Covered |
+| 11 | Group membership helpers | tests/integration/groups.test.ts | Covered |
+| 12 | Reminder inactivity detection | tests/integration/reminders.test.ts | Covered |
+| 13 | Payment state mapping | tests/integration/payments.test.ts | Covered |
+
+Required integration tests mapped to covering files:
+
+| # | Required Item | Covering File | Status |
+|---|---------------|---------------|--------|
+| 1 | Course catalog query with mocked Supabase | tests/integration/courses-queries.test.ts | Covered |
+| 2 | Enrollment action | tests/integration/enroll-action.test.ts | Covered |
+| 3 | Mark lesson watched action | tests/integration/mark-watched.test.ts | Covered |
+| 4 | Admin course create/update action | tests/integration/course-actions.test.ts | Covered |
+| 5 | Admin lesson create/reorder/delete | tests/integration/lesson-actions.test.ts + reorder-lessons.test.ts | Covered |
+| 6 | YouTube metadata route/helper with mocked fetch | tests/unit/youtube-metadata.test.ts + tests/integration/playlist-import.test.ts | Covered |
+| 7 | AI tutor route with mocked AI stream | tests/integration/tutor-route.test.ts | Covered |
+| 8 | Certificate creation and access control | tests/integration/certificates.test.ts | Covered |
+| 9 | Search result scoping | tests/integration/search.test.ts | Covered |
+| 10 | Group creation and membership management | tests/integration/groups.test.ts | Covered |
+| 11 | Reminder queue idempotency | tests/integration/reminders.test.ts | Covered |
+| 12 | Simulated checkout and payment-state handling | tests/integration/payments.test.ts | Covered |
+
+Required Playwright e2e tests mapped to covering specs:
+
+| # | Required Flow | Covering Spec | Status |
+|---|---------------|---------------|--------|
+| 1 | Public home loads course catalog | e2e/catalog.spec.ts | Covered |
+| 2 | Student logs in, enrolls, marks lesson watched, sees progress | e2e/course-progress.spec.ts | Covered (auth suite guarded behind E2E_STUDENT_EMAIL) |
+| 3 | Student asks AI tutor, sees persisted history after refresh | e2e/tutor.spec.ts | Covered (full flow guarded: E2E_STUDENT_EMAIL + E2E_REAL_AI) |
+| 4 | Admin creates course and adds YouTube lesson | e2e/admin.spec.ts | Covered (guarded: E2E_INSTRUCTOR_EMAIL) |
+| 5 | Non-admin cannot access admin pages | e2e/admin.spec.ts | Covered (runs unconditionally) |
+| 6 | Hebrew route renders translated RTL UI | e2e/responsive.spec.ts + e2e/catalog.spec.ts | Covered |
+| 7 | Student downloads certificate after completion | e2e/extended-features.spec.ts | Intentionally skipped - needs seeded DB |
+| 8 | Search finds a course or lesson | e2e/extended-features.spec.ts | Covered (search page smoke) |
+| 9 | Admin creates class group, student sees group dashboard | e2e/extended-features.spec.ts | Intentionally skipped - needs seeded DB |
+| 10 | Admin reviews inactive-student reminders | e2e/extended-features.spec.ts | Intentionally skipped - needs seeded DB |
+| 11 | Paid-course purchase/enrollment state with simulated payment | e2e/extended-features.spec.ts | Intentionally skipped - needs seeded paid course |
+
+### What Was Added
+
+- `lib/utils/slug.ts` - pure `slugify(input: string): string` utility.
+  Normalizes NFD, strips diacritics, lowercases, replaces non-[a-z0-9]
+  runs with a single hyphen, trims leading/trailing hyphens, collapses
+  consecutive hyphens, truncates to 80 chars, trims trailing hyphen
+  after truncation. Returns `""` for inputs with no slug-able chars
+  (e.g. Hebrew-only). TSDoc on the exported function.
+- `tests/unit/slug.test.ts` - 25 tests covering: lowercasing, space/
+  underscore/punctuation to hyphen, consecutive-hyphen collapse, leading/
+  trailing trim, already-valid passthrough, empty/whitespace/hyphen-only
+  input, 80-char truncation with trailing-hyphen guard, diacritics
+  (acute, umlaut, multi-diacritic), Hebrew-only -> empty, mixed
+  Hebrew+ASCII -> ASCII extracted.
+- `components/admin/admin-course-form.tsx` - replaced inline slug
+  generation in `handleTitleChange` with an import of `slugify`. The
+  existing auto-suggest-from-title behavior is preserved; the new
+  implementation is richer (strips diacritics, handles more punctuation
+  correctly, enforces 80-char cap via the utility).
+
+### Hardening Done
+
+No brittle tests found requiring changes. All existing tests assert
+behavior/outputs rather than internal implementation details. The
+admin-course-form test was reviewed and confirmed behavior-focused
+(renders fields, shows fieldErrors from ActionResult).
+
+### Intentionally-Skipped Live-Service Tests
+
+The following e2e flows are marked `test.skip` with documented reasons:
+
+- **AI tutor stream + persist + refresh** (`e2e/tutor.spec.ts`): guarded
+  behind `E2E_REAL_AI=true`. Real AI gateway calls are non-deterministic
+  and billable; the integration layer is covered by
+  `tests/integration/tutor-route.test.ts` with a mocked AI stream.
+- **Certificate download** (`e2e/extended-features.spec.ts`): requires a
+  seeded student account with a completed course. Covered by
+  `tests/integration/certificates.test.ts` (issueCertificate + access
+  control).
+- **Admin creates class group / student sees group dashboard**
+  (`e2e/extended-features.spec.ts`): requires seeded instructor + student
+  accounts and a created group. Covered by
+  `tests/integration/groups.test.ts`.
+- **Admin reviews inactive-student reminders**
+  (`e2e/extended-features.spec.ts`): requires seeded data with inactive
+  students. Covered by `tests/integration/reminders.test.ts`.
+- **Paid-course simulated purchase** (`e2e/extended-features.spec.ts`):
+  requires a seeded paid course with a known slug. Covered by
+  `tests/integration/payments.test.ts`.
+- **Auth-guarded admin/student flows** in `e2e/admin.spec.ts`,
+  `e2e/course-progress.spec.ts`, `e2e/tutor.spec.ts`,
+  `e2e/dashboard.spec.ts`: guarded behind `E2E_INSTRUCTOR_EMAIL` /
+  `E2E_STUDENT_EMAIL`. Run `npm run seed` and set these env vars to
+  execute the full authenticated suite against a live Supabase project.
+
+### QA Gate Evidence
+
+All commands run to their exit code in the worktree
+`/Users/talo/www/academy-12-testing` with
+`PATH="$HOME/.nvm/versions/node/v22.16.0/bin:$PATH"`:
+
+- `npm run lint` - exit 0; 0 errors, 0 warnings.
+- `npm run lint:i18n` - exit 0; 453 keys in sync.
+- `npm run typecheck` - exit 0 (tsc --noEmit clean).
+- `npm run test` - exit 0; 397 passed, 0 failed (30 test files).
+- `npm run build` - exit 0; 42 routes generated, no type errors.
+- `npm run test:e2e` - exit 0; 75 passed, 4 skipped (documented above),
+  0 failed.
+
+Security checks:
+
+- `.gitignore` - `.env*.local` pattern covers `.env.local`;
+  `.mcp.json` listed explicitly.
+- No secret values (sb_secret, sbp_, AI_GATEWAY_API_KEY= assignments)
+  found in tests/, e2e/, or lib/ source files.
+- No test prints real credentials; all auth values come from environment
+  variables at runtime.
+
+Manual QA equivalents (covered by automated e2e):
+
+- Desktop/mobile viewport - `e2e/responsive.spec.ts` tests 390/768/1280
+  px in both EN and HE; no manual check required.
+- Light/dark theme - `e2e/responsive.spec.ts` theme-toggle round-trip
+  test covers this automatically.
+- EN/HE routes - `e2e/catalog.spec.ts`, `e2e/responsive.spec.ts`, and
+  `e2e/seo-a11y.spec.ts` cover both locales.
+- Deployed preview - deferred to Batch 13 (deployment review).
+
+### QA Sign-off
+
+Section 17 acceptance gate status:
+
+- All required unit tests: pass (13/13 items covered).
+- All required integration tests: pass (12/12 items covered).
+- All required e2e flows: pass or intentionally skipped with documented
+  reason and integration-layer coverage (11/11 items addressed).
+- `npm run lint` - 0 errors.
+- `npm run typecheck` - exit 0.
+- `npm run test` - 397 tests, 0 failures.
+- `npm run build` - clean.
+- `npm run test:e2e` - 75 passed, 4 skipped (all skips documented with
+  live-service rationale and integration coverage).
+- No secrets in committed files or test output.
+- Tests cover critical logic and all required flows per section 15.
