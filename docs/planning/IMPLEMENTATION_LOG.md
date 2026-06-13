@@ -229,3 +229,112 @@ npm run lint          # ESLint incl. jsx-a11y recommended - PASS
 npm run build         # prebuild gates + Next.js production build
 npm run test:e2e      # Playwright suite (dev server on port 3100)
 ```
+
+## Batch 1: Test Harness (2026-06-13)
+
+Adds the unit/integration test harness that Batch 0 found missing
+(Defects and Risks item 1). No product features; no changes under
+`app/`, `lib/`, `messages/`, or `proxy.ts`.
+
+### What Was Added
+
+Dev dependencies (installed with Node 22.16.0, exact versions from the
+lockfile):
+
+- `vitest` 4.1.8 (runner; bundles its own Vite, 8.0.16 transitively)
+- `@vitejs/plugin-react` 6.0.2 (JSX transform for component tests)
+- `jsdom` 29.1.1 (DOM environment)
+- `@testing-library/react` 16.3.2
+- `@testing-library/jest-dom` 6.9.1 (matchers via the `/vitest` entry)
+- `@testing-library/user-event` 14.6.1
+
+Configuration and scripts:
+
+- `vitest.config.ts` - jsdom environment, `globals: true`, setup file
+  `tests/setup.ts`, include `tests/**/*.test.{ts,tsx}`, exclude
+  `e2e/**` plus Vitest defaults (`node_modules`), and an `@` alias to
+  the project root mirroring the tsconfig `@/*` path mapping.
+- `tests/setup.ts` - imports `@testing-library/jest-dom/vitest` so DOM
+  matchers register on Vitest's `expect`.
+- npm scripts: `test` (`vitest run`) and `test:watch` (`vitest`).
+  `test:e2e` is untouched and still runs Playwright.
+
+Test scaffolding:
+
+- `tests/factories/sequence.ts` - shared deterministic counter,
+  `resetFactorySequence()`, fixed `FACTORY_TIMESTAMP`, per-entity
+  uuid codes, and `deterministicUuid()`.
+- `tests/factories/course.ts`, `tests/factories/lesson.ts`,
+  `tests/factories/user.ts` - `buildCourse` / `buildLesson` /
+  `buildUser` with `overrides` support.
+- `tests/unit/factories.test.ts` - smoke test proving the harness
+  runs: distinct ids per build, determinism across resets, overrides
+  winning, shared sequence, example.com emails.
+- `tests/integration/` - placeholder (`.gitkeep`) until a later batch
+  adds integration suites.
+
+### Decisions
+
+- **Playwright specs stay in the root `e2e/` directory.** The prompt's
+  `tests/e2e` layout was not adopted: `playwright.config.ts` already
+  points `testDir` at `./e2e`, the suite passes there, and project
+  docs (`CLAUDE.md`, `docs/RESPONSIVE.md`) reference
+  `e2e/responsive.spec.ts`. Moving specs would churn config and docs
+  for zero behavior gain. Vitest excludes `e2e/**` so the two runners
+  never pick up each other's files.
+- **Factories are deterministic by construction.** No `Math.random`,
+  no `Date.now`. Identity comes from a module-level counter
+  (1-based, shared across entity types so ids never collide) plus a
+  fixed ISO timestamp. `resetFactorySequence()` in `beforeEach` gives
+  per-test isolation and reproducible output.
+- **Factory types are local until Batch 3.** Domain/database types do
+  not exist yet, so each factory file exports a minimal
+  `*FactoryRecord` interface shaped after the planned Supabase schema
+  (`TECHNICAL_REQUIREMENTS.md` section 6.3: `courses`, `lessons`,
+  `profiles`). When Batch 3 lands generated row types, these
+  interfaces must be replaced by (or asserted against) them.
+- **No tsconfig changes.** The root `include` (`**/*.ts`) already
+  covers `tests/**` and `vitest.config.ts`, so `npm run typecheck`
+  type-checks the harness as-is. Test files import Vitest APIs
+  explicitly (`import { describe, it, expect } from "vitest"`)
+  instead of relying on injected globals, which avoids adding a
+  `"types"` array (that would disable automatic `@types/*` inclusion
+  for the app tree). `globals: true` stays in the Vitest config so
+  Testing Library's automatic DOM cleanup works.
+- **No real secrets or external services.** Factory emails use the
+  reserved `example.com` domain; YouTube ids are synthetic
+  11-character strings.
+
+### Known Constraints
+
+- No unit tests existed before this batch; Playwright 1.60 was the
+  only runner. Coverage for the section 15.1 helpers starts at zero
+  and grows as those helpers are implemented in later batches.
+- Vitest must keep excluding `e2e/**`; Playwright specs use
+  `@playwright/test` fixtures and fail under Vitest.
+- `npm test` is not wired into `prebuild` (matching the existing
+  `test:e2e` convention); batches must run it explicitly before merge.
+
+### Open Risks
+
+- Factory shapes are hand-written against the planning doc; if the
+  Batch 3 schema diverges, the factories will compile but mislead.
+  Mitigation: replace local interfaces with generated row types in
+  Batch 3.
+- jsdom does not implement `matchMedia`, `IntersectionObserver`, or
+  `ResizeObserver`; component tests touching them will need stubs in
+  `tests/setup.ts` when first required.
+- Vitest 4 manages its own Vite (8.x). A future Next.js/React major
+  bump may require revisiting `@vitejs/plugin-react` compatibility.
+
+### Verification Results
+
+All commands run on 2026-06-13 with Node 22.16.0:
+
+```bash
+npm run test                # 1 file, 5 tests passed (vitest 4.1.8)
+npx playwright test --list  # 18 tests in 2 files, e2e/ only - PASS
+npm run lint                # ESLint clean - PASS
+npm run typecheck           # guard + tsc --noEmit clean - PASS
+npx prettier --check vitest.config.ts "tests/**/*.ts"  # clean
+```

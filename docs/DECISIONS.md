@@ -92,3 +92,25 @@ falls back to Host header) while the spec calls it `NEXT_PUBLIC_APP_URL` -
 pick one name when a batch first needs it. `TURNSTILE_*` and `YOUTUBE_API_KEY`
 are also absent from `.env.local`; Batch 04 must treat the YouTube key as
 optional at runtime.
+
+### 2026-06-13 - Batch 01 - E2E specs stay in root e2e/; factories carry local types
+
+Unit harness added (Vitest 4 + Testing Library + jsdom; `npm run test`).
+Three structural decisions:
+
+- Playwright specs remain in root `e2e/`, NOT `tests/e2e` as the task list
+  suggests. The repo already had a working convention (`playwright.config.ts`
+  points at `e2e/`); moving it buys nothing and risks breaking the suite.
+  `vitest.config.ts` excludes `e2e/**` so the runners never cross.
+- `tests/factories/*` define their own record interfaces shaped to
+  TECHNICAL_REQUIREMENTS.md section 6. Batch 03 owns the real domain types and
+  should re-point the factories at them (and delete the local interfaces) when
+  they exist.
+- No `"types"` array was added to tsconfig: test files import vitest APIs
+  explicitly. A `types` array would disable automatic `@types/*` inclusion for
+  the whole app, which is a larger change than the harness justifies.
+
+**Why:** "Add missing config only when no equivalent convention exists" (the
+prompt's own rule) beats the literal directory list. Factories are
+deterministic (shared counter + fixed timestamps, `resetFactorySequence()`)
+so snapshot/data tests stay stable across runs.
