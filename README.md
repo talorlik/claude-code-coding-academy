@@ -1,289 +1,294 @@
-<div dir="rtl">
+# AI Game Changer - Vibe Coding Template
 
-# 🎮 AI Game Changer — Vibe Coding Template
+> This template is distributed privately through the AI Game Changer platform.
+> To install, visit [game-changer.brainai.co.il/template](https://game-changer.brainai.co.il/template)
+> and receive a personal installation command. Direct `git clone` from GitHub is
+> not supported.
 
-> 🔒 **תבנית זו מופצת באופן פרטי דרך פלטפורמת AI Game Changer.**
-> כדי להתקין, היכנס ל-[game-changer.brainai.co.il/template](https://game-changer.brainai.co.il/template) וקבל פקודת התקנה אישית.
-> אין צורך — וגם אי אפשר — לעשות `git clone` ישירות מ-GitHub.
-
-טמפלייט production-ready לבניית אפליקציות AI-first עם **Next.js 16 + shadcn/ui + Supabase + Vercel AI Gateway**.
-נבנה במיוחד לתלמידי הקורס **Game Changer** — עם Claude Code מחובר, skills, MCPs, והכל מוכן ל-Vibe Coding.
-
----
-
-## ✨ איך מתחילים? שני שלבים. תמיד.
-
-> 🎯 **הדרך הנכונה להתחיל פרויקט חדש היא תמיד שני השלבים האלה — יחד, בסדר הזה, בלי דילוגים.**
-> כל מה שמעבר (AI, GitHub, Vercel) זה **תוספות** שמוסיפים אחר כך לפי הצורך.
-
----
-
-### 🟢 שלב 1 — העתקת הטמפלייט והתקנה (בטרמינל)
-
-> 💬 הסקריפט **ישאל אתכם** על שם הפרויקט ועל מיקום התיקייה — אין צורך לערוך שום דבר לפני ריצה.
+A production-ready template for building AI-first applications with
+**Next.js + shadcn/ui + Supabase + Vercel AI Gateway**. Built for
+[Game Changer](https://game-changer.brainai.co.il) course students, with
+Claude Code pre-configured, skills installed, MCPs wired, and everything ready
+for Vibe Coding.
 
 
-**🪟 Windows — PowerShell** (פתחו **Windows PowerShell** או **Terminal** כמנהל):
+## Getting Started
+
+> The correct way to start a new project is always these two steps - together,
+> in this order, without skipping. Everything beyond this (AI, GitHub, Vercel)
+> is optional and added afterward as needed.
+
+
+### Step 1 - Copy the Template and Install
+
+> The script will ask you for a project name and folder location. No editing
+> needed before running.
+
+**Windows - PowerShell** (open as Administrator):
 
 ```powershell
 $f="$env:TEMP\gc-install.ps1"; irm "https://raw.githubusercontent.com/RanNahmany/game-changer-app-template/main/scripts/install-windows.ps1" -OutFile $f; & $f; Remove-Item $f -ErrorAction SilentlyContinue
 ```
 
----
-
-**🍎 Mac / Linux** — הדביקו בטרמינל:
+**Mac / Linux:**
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/RanNahmany/game-changer-app-template/main/scripts/install-mac.sh)
 ```
 
-הסקריפט ישאל אתכם לשם הפרויקט, ייצור תיקיית `projects` על ה-Desktop ויתקין הכל שם אוטומטית.
+The script will ask:
 
-הסקריפט ישאל אתכם:
-1. **שם הפרויקט** — אותיות קטנות באנגלית, מקפים, בלי רווחים
-2. **מיקום התיקייה** — בחרו מתוך שלוש אפשרויות:
-   - `Desktop\projects` (ברירת מחדל)
+1. **Project name** - lowercase English, hyphens, no spaces
+2. **Folder location** - choose from three options:
+   - `Desktop/projects` (default)
    - `C:\projects`
-   - נתיב מותאם אישית
+   - Custom path
 
 <details>
-<summary><b>מה הסקריפט עושה בשבילך?</b></summary>
+<summary>What does the script do?</summary>
 
-- 📂 יוצר את תיקיית היעד לפי הבחירה שלכם
-- 📥 משכפל את הטמפלייט לתיקייה עם השם שבחרתם
-- 🧹 מנקה את היסטוריית ה-git של הטמפלייט
-- 🆕 מאתחל git repo חדש על שמך
-- 📦 מתקין dependencies
-- 🔐 יוצר `.env.local` מתוך `.env.example`
-- ▲ מתקין את **Vercel plugin** ל-Claude Code
-- ✅ יוצר commit ראשון
+- Creates the target folder based on your choice
+- Clones the template into a folder with your chosen name
+- Clears the template's git history
+- Initializes a fresh git repo in your name
+- Installs dependencies
+- Creates `.env.local` from `.env.example`
+- Installs the Vercel plugin for Claude Code
+- Creates the first commit
 
 </details>
 
----
 
-### 🟣 שלב 2 — הגדרת הפרויקט ב-Claude Code (חובה!)
+### Step 2 - Configure the Project in Claude Code (Required)
 
-אחרי שהסקריפט הסתיים, פתחו Claude Code בתוך התיקייה והריצו:
+After the script finishes, open Claude Code inside the project folder and run:
 
 ```bash
 /start-from-template
 ```
 
-> ⚠️ **אל תדלגו על השלב הזה.** בלעדיו אין Supabase, אין DB, אין auth — הפרויקט פשוט לא עובד.
+> [!WARNING]
+> Do not skip this step. Without it there is no Supabase, no database, no
+> auth - the project simply will not work.
 
-הפקודה תעביר אתכם תהליך אינטראקטיבי (בעברית) שמחבר:
-1. **Supabase** — עם ה-API keys החדשים (`publishable` + `secret`), לא ה-legacy
-2. **Supabase MCP** — נותן ל-Claude Code גישה ישירה ל-DB שלך
-3. **דף בית ראשוני** — משהו יפה להתחיל איתו
+This command runs an interactive setup that connects:
 
-🎉 **זהו. אתם מוכנים לקוד.** כל מה שמופיע למטה זה תוספות אופציונליות.
+1. **Supabase** - using the new 2026 API keys (`publishable` + `secret`), not
+   the legacy ones
+2. **Supabase MCP** - gives Claude Code direct access to your database
+3. **Initial home page** - something nice to start with
 
----
+Once both steps are done, you are ready to code. Everything below is optional.
 
-## ➕ תוספות אופציונליות
 
-אחרי שני השלבים הראשונים — תוכלו להוסיף מה שצריך, מתי שצריך.
+## Optional Add-ons
 
-### 🤖 הוספת AI לפרויקט
+After the two required steps, add what you need when you need it.
+
+### Add AI to the Project
 
 ```bash
 /setup-vercel-ai
 ```
 
-מחבר **Vercel AI Gateway** — גישה מאוחדת ל-Claude, GPT, Gemini וכל המודלים, עם **5$ קרדיט חינם כל חודש**.
-כולל התקנת `ai` + `@ai-sdk/gateway`, יצירת route צ'אט, ואופציונלית UI צ'אט עם shadcn.
+Connects **Vercel AI Gateway** - unified access to Claude, GPT, Gemini, and all
+models, with **$5 free credit every month**. Includes installing `ai` +
+`@ai-sdk/gateway`, creating a chat route, and optionally a shadcn chat UI.
 
----
+### Deploy to Production (GitHub to Vercel with CI/CD)
 
-### 🚢 דיפלוי לפרודקשן (GitHub → Vercel עם CI/CD)
+Built-in deploy path: **every `git push` to `main` triggers an automatic
+production deploy**.
 
-מסלול deploy מובנה: **כל `git push` ל-`main` = production deploy אוטומטי**.
-
-#### שלב א׳ — GitHub
+**Step A - GitHub:**
 
 ```bash
 /setup-github
 ```
 
-- יוצר repository ב-GitHub (public / private)
-- דוחף את הקוד ומחבר `origin`
-- דורש `gh` CLI (`brew install gh` ו-`gh auth login`)
+- Creates a repository on GitHub (public or private)
+- Pushes the code and connects `origin`
+- Requires the `gh` CLI (`brew install gh` and `gh auth login`)
 
-#### שלב ב׳ — Vercel
+**Step B - Vercel:**
 
 ```bash
 /setup-vercel
 ```
 
-- מחבר את הפרויקט ל-Vercel + GitHub
-- מסנכרן environment variables (כולל ה-Supabase keys)
-- מעדכן Redirect URLs ב-Supabase לפרודקשן
-- מפעיל את הדיפלוי הראשון **דרך `git push`**
+- Connects the project to Vercel and GitHub
+- Syncs environment variables (including Supabase keys)
+- Updates Redirect URLs in Supabase for production
+- Triggers the first deploy via `git push`
 
-> ⚠️ `/setup-github` חייב לרוץ **לפני** `/setup-vercel` — בלי GitHub repo אין CI/CD.
+> [!WARNING]
+> `/setup-github` must run **before** `/setup-vercel` - without a GitHub repo
+> there is no CI/CD.
 
-מעכשיו:
-- **`git push origin main`** → production deploy
-- **`git push origin <branch>`** → preview deploy אוטומטי לכל branch/PR
+After setup:
 
----
+- `git push origin main` - production deploy
+- `git push origin <branch>` - automatic preview deploy for every branch/PR
 
-## 📦 מה יש בטמפלייט?
+
+## What Is in the Template
 
 ### Stack
-- ⚡ **Next.js 16** (App Router + Turbopack)
-- 🎨 **Tailwind CSS 4** + **shadcn/ui** + **Base UI**
-- 🌙 **next-themes** — dark mode מוכן
-- 📊 **Recharts** — גרפים
-- 🔔 **Sonner** — toasts
-- 📅 **date-fns** + **react-day-picker**
-- 🎠 **Embla Carousel**, **Vaul** (drawers), **CMDK** (command palette)
+
+- **Next.js** (App Router + Turbopack)
+- **Tailwind CSS** + **shadcn/ui** + **Base UI**
+- **next-themes** - dark mode ready
+- **Recharts** - charts
+- **Sonner** - toasts
+- **date-fns** + **react-day-picker**
+- **Embla Carousel**, **Vaul** (drawers), **CMDK** (command palette)
 
 ### Claude Code Integration
-- 📚 **Skills** מותקנים: `shadcn`, ועוד (ראה `.agents/skills/`)
-- 🔌 **MCP-ready** — מוכן ל-Supabase MCP ו-Context7
-- ⚙️ **Slash commands** — `/start-from-template` לאתחול, `/setup-vercel-ai` לחיבור AI
 
-### איכות קוד
-- 🔍 **TypeScript** strict mode
-- 🧹 **ESLint** + **Prettier** + **prettier-plugin-tailwindcss**
-- ✨ `npm run format` ו-`npm run typecheck` מוכנים
+- **Skills** installed: `shadcn`, and more (see `.agents/skills/`)
+- **MCP-ready** - pre-configured for Supabase MCP and Context7
+- **Slash commands** - `/start-from-template` for init, `/setup-vercel-ai` for
+  AI integration
 
----
+### Code Quality
 
-## 🛠️ Scripts זמינים
+- **TypeScript** strict mode
+- **ESLint** (flat config, jsx-a11y enforced) + **Prettier** +
+  **prettier-plugin-tailwindcss**
+- i18n catalog sync enforced at build time (`npm run lint:i18n`)
+- Playwright E2E suite for responsive, RTL, and accessibility contracts
 
-| Script | מה זה עושה |
-|--------|------------|
-| `npm run setup` | אתחול ראשוני של הפרויקט (רצים פעם אחת) |
-| `npm run dev` | שרת פיתוח עם Turbopack |
-| `npm run build` | build לפרודקשן |
-| `npm run start` | הרצת הפרודקשן build מקומית |
-| `npm run lint` | בדיקת ESLint (כולל jsx-a11y) |
-| `npm run lint:i18n` | וידוא שקבצי התרגום מסונכרנים |
-| `npm run format` | עיצוב קוד עם Prettier |
-| `npm run typecheck` | בדיקת TypeScript בלי build |
-| `npm run seed` | יצירת משתמשי instructor + student לפיתוח |
-| `npm run test:e2e` | Playwright — responsive, RTL, נגישות |
 
----
+## Available Scripts
 
-## 🔐 Environment Variables
+| Script | What it does |
+|--------|--------------|
+| `npm run setup` | First-time project bootstrap (run once) |
+| `npm run dev` | Dev server with Turbopack |
+| `npm run build` | Production build |
+| `npm run start` | Run the production build locally |
+| `npm run lint` | ESLint (jsx-a11y enforced) |
+| `npm run lint:i18n` | Verify translation catalogs are key-identical |
+| `npm run format` | Format code with Prettier |
+| `npm run typecheck` | TypeScript check without building |
+| `npm run seed` | Create instructor + student users for development |
+| `npm run test:e2e` | Playwright - responsive, RTL, accessibility |
 
-הקובץ `.env.local` נוצר אוטומטית בהרצת `npm run setup`, והערכים נמלאים ב-`/start-from-template`. המשתנים:
+
+## Environment Variables
+
+`.env.local` is created automatically by `npm run setup`; values are filled in
+by `/start-from-template`.
 
 ```env
-# Supabase — מפתחות חדשים (2026), לא ה-legacy anon/service_role!
-# Dashboard → Project Settings → API Keys → "Publishable and secret API keys"
+# Supabase - new 2026 keys, not the legacy anon/service_role keys
+# Dashboard -> Project Settings -> API Keys -> "Publishable and secret API keys"
 NEXT_PUBLIC_SUPABASE_URL=                  # https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=      # sb_publishable_...  (בטוח לדפדפן)
-SUPABASE_SECRET_KEY=                       # sb_secret_...       (שרת בלבד!)
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=      # sb_publishable_...  (safe for browser)
+SUPABASE_SECRET_KEY=                       # sb_secret_...       (server only)
 
-# Vercel AI Gateway — 5$ חינם כל חודש
+# Vercel AI Gateway - $5 free every month
 AI_GATEWAY_API_KEY=
 
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-**⚠️ אל תעלה את `.env.local` ל-git!** (זה כבר ב-`.gitignore`)
+> [!WARNING]
+> Never commit `.env.local` to git. It is already in `.gitignore`.
 
-### 🤖 MCP (Model Context Protocol)
+### MCP (Model Context Protocol)
 
-`/start-from-template` יצור עבורך גם `.mcp.json` שמחבר את **Supabase MCP** — שנותן ל-Claude Code גישה ישירה לטבלאות, migrations ו-schema. הקובץ ב-`.gitignore` כי מכיל Personal Access Token. תבנית בטוחה: [.mcp.example.json](.mcp.example.json).
+`/start-from-template` also creates `.mcp.json`, which connects the
+**Supabase MCP** - giving Claude Code direct access to tables, migrations, and
+schema. The file is in `.gitignore` because it contains a Personal Access
+Token. Safe template: [.mcp.example.json](.mcp.example.json).
 
----
 
-## 📂 מבנה הפרויקט
+## Project Structure
 
-```bash
+```
 .
 ├── app/                    # Next.js App Router
-│   ├── [locale]/           # כל הדפים תחת prefix שפה (en-US / he-IL)
-│   │   ├── layout.tsx      # מגדיר <html lang dir> + NextIntlClientProvider
-│   │   ├── page.tsx        # דף הבית
+│   ├── [locale]/           # All pages under a locale prefix (en-US / he-IL)
+│   │   ├── layout.tsx      # Owns <html lang dir> + NextIntlClientProvider
+│   │   ├── page.tsx        # Home page
 │   │   ├── dashboard/
 │   │   ├── chat/
 │   │   └── ...
-│   ├── api/                # API routes (ללא locale)
+│   ├── api/                # API routes (no locale)
 │   │   └── chat/
-│   ├── auth/               # Supabase callbacks (ללא locale)
+│   ├── auth/               # Supabase callbacks (no locale)
 │   │   ├── confirm/
 │   │   └── signout/
 │   └── globals.css
-├── components/             # components שלך
-│   └── ui/                 # shadcn components (כל ה-components מותקנים מראש)
+├── components/             # Your components
+│   └── ui/                 # shadcn components (all pre-installed)
 ├── hooks/                  # React hooks
-├── i18n/                   # הגדרות next-intl + navigation helpers
-├── lib/                    # utilities, auth guards, Supabase clients
-├── messages/               # קבצי תרגום (en-US.json, he-IL.json)
+├── i18n/                   # next-intl config and navigation helpers
+├── lib/                    # Utilities, auth guards, Supabase clients
+├── messages/               # Translation catalogs (en-US.json, he-IL.json)
 ├── e2e/                    # Playwright tests
-├── public/                 # קבצים סטטיים (כולל sw.js ל-PWA)
+├── public/                 # Static files (including sw.js for PWA)
 ├── scripts/
-│   └── setup.mjs           # סקריפט האתחול
+│   └── setup.mjs           # Bootstrap script
 ├── .claude/
 │   └── commands/
-│       ├── start-from-template.md   # /start-from-template — Supabase + MCP + UI
-│       ├── setup-github.md          # /setup-github — יצירת GitHub repo
-│       ├── setup-vercel.md          # /setup-vercel — CI/CD deploy דרך GitHub
-│       └── setup-vercel-ai.md       # /setup-vercel-ai — Vercel AI Gateway
+│       ├── start-from-template.md   # /start-from-template - Supabase + MCP + UI
+│       ├── setup-github.md          # /setup-github - create GitHub repo
+│       ├── setup-vercel.md          # /setup-vercel - CI/CD deploy via GitHub
+│       └── setup-vercel-ai.md       # /setup-vercel-ai - Vercel AI Gateway
 ├── .agents/skills/         # Claude Code skills
-├── .env.example            # תבנית ל-environment variables
-└── .mcp.example.json       # תבנית ל-MCP (Supabase + Context7)
+├── .env.example            # Environment variable template
+└── .mcp.example.json       # MCP template (Supabase + Context7)
 ```
 
----
 
-## 🆘 בעיות נפוצות
+## Common Issues
 
 <details>
-<summary><b>Node version שגוי</b></summary>
+<summary>Wrong Node version</summary>
 
-הטמפלייט דורש **Node 20+** (מומלץ 24 LTS). בדוק עם:
+The template requires **Node 20+** (Node 22 LTS recommended per `.nvmrc`).
+Check with:
+
 ```bash
 node --version
 ```
-אם צריך, התקן nvm והרץ `nvm install 24`.
+
+If needed, install nvm and run `nvm install 22`.
+
 </details>
 
 <details>
-<summary><b>npm run setup נכשל על git commit</b></summary>
+<summary>npm run setup fails on git commit</summary>
 
-כנראה לא מוגדר לך `user.email` / `user.name` ב-git. הגדר:
+Your git `user.email` / `user.name` is probably not configured. Set them:
+
 ```bash
-git config --global user.name "השם שלך"
+git config --global user.name "Your Name"
 git config --global user.email "email@example.com"
 ```
-ואז הרץ שוב את הסקריפט או סתם הרץ `git commit` ידנית.
+
+Then re-run the script or commit manually with `git commit`.
+
 </details>
 
 <details>
-<summary><b>Claude Code לא מותקן</b></summary>
+<summary>Claude Code not installed</summary>
 
 ```bash
 npm install -g @anthropic-ai/claude-code
 ```
-ואז `claude` בתיקיית הפרויקט.
+
+Then run `claude` inside the project folder.
+
 </details>
 
----
 
-## 📚 מקורות
+## Resources
 
 - [Next.js Docs](https://nextjs.org/docs)
 - [shadcn/ui](https://ui.shadcn.com)
 - [Supabase](https://supabase.com/docs)
 - [Vercel AI SDK](https://ai-sdk.dev)
 - [Claude Code](https://docs.claude.com/en/docs/claude-code)
-
----
-
-<div align="center">
-
-**Built with 💜 for Game Changer students**
-
-`Vibe Coding = Happy Coding 🎮`
-
-</div>
-
-</div>
