@@ -1107,3 +1107,64 @@ Flow:
 Acceptance:
 
 - Flow passes in production.
+
+## Batch 14: YouTube Playlist Import - Live Key Activation
+
+Added after the initial 00-13 build once YOUTUBE_API_KEY was provisioned and
+verified (videos.list HTTP 200). Activates the playlist-import path that batch
+04/07 built to degrade gracefully without a key.
+
+### Task 13.1: Verify Live Playlist Import Path
+
+Objective: Confirm fetchPlaylistItems pagination, videos.list duration
+enrichment, and the import action work against the real YouTube Data API v3.
+
+Files:
+
+- `lib/youtube/metadata.ts`, `lib/youtube/playlist.ts`
+- `components/admin/youtube-playlist-import.tsx`
+
+Acceptance:
+
+- A real playlist imports as ordered lesson drafts with durations.
+- Default tests stay deterministic (real API mocked).
+
+Prompt file: `docs/prompts/14_YOUTUBE_PLAYLIST_IMPORT_LIVE.md`
+
+### Task 13.2: Harden Import UX And Add Opt-In Live Test
+
+Objective: Clear localized success/error states; an opt-in live test guarded by
+YOUTUBE_LIVE_TEST=true, skipped by default.
+
+## Batch 15: Reminder Email Delivery via Gmail SMTP
+
+Added after SMTP was configured and verified (Gmail App Password login OK).
+Replaces the queue-only reminder stub from batch 11 with real two-step email
+delivery.
+
+### Task 14.1: Add Server-Only SMTP Transport
+
+Objective: A nodemailer-based lib/email/transport.ts (server-only) reading
+SMTP_HOST/PORT/USER/PASSWORD, with safe errors that never leak the password.
+
+Files:
+
+- `lib/email/transport.ts`
+
+### Task 14.2: Wire Two-Step Reminder Send
+
+Objective: An admin-guarded sendReminder action that emails a queued reminder
+and flips reminder_events.status queued -> sent (or failed), idempotently. No
+auto-send; queue then send.
+
+Files:
+
+- `lib/reminders/actions.ts`, `app/[locale]/admin/reminders/page.tsx`
+
+### Task 14.3: Tests, i18n, And Docs
+
+Objective: Deterministic tests with nodemailer mocked; EN/HE strings;
+.env.example + IMPLEMENTATION_LOG updates; opt-in live send test behind
+SMTP_LIVE_TEST=true.
+
+Prompt file: `docs/prompts/15_REMINDER_EMAIL_DELIVERY_SMTP.md`
