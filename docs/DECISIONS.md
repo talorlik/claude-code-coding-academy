@@ -439,3 +439,57 @@ Audited the test suite against the required unit/integration/e2e lists
 removes duplicated regex logic. Keeping seeded/live e2e flows guarded (with
 integration substitutes) keeps the default suite deterministic and offline per
 the testing rules, while still covering the behavior.
+
+---
+
+## 2026-06-13: Final Readiness Status (Batch 13)
+
+**Decision:** App declared deployment-ready. No blockers found.
+
+**Summary:**
+
+- Secret/gitignore audit: PASS. No real secret values in tracked files.
+  Gitignore covers `.env*.local`, `.env`, `.mcp.json`. Pattern hits in
+  docs are placeholder text only (`sb_secret_...`, `sbp_...` descriptions).
+- `.env.example` created with placeholder values; committed; not gitignored.
+  Documents all 14 env vars (6 required, 4 optional, 4 E2E-only).
+- All pre-deploy gates green in worktree `academy-13-deploy`:
+  lint exit 0 (0/0), lint:i18n exit 0 (453 keys), typecheck exit 0,
+  test exit 0 (397/397), build exit 0 (42 routes), test:e2e exit 0
+  (72 pass / 4 skip / 0 fail).
+- Deployment config: no `middleware.ts`; `proxy.ts` at root; `next.config.ts`
+  intact; `public/sw.js` and `app/manifest.ts` present.
+- Section 17 acceptance gate: 14/15 items Pass; 1 item (Vercel production
+  deployment) marked Pending - triggered by orchestrator post-merge.
+
+**Why:** All technical gates pass. The only remaining step is the live
+Vercel deploy (git push -> GitHub integration -> Vercel CI) which is
+performed by the orchestrator. Post-deploy spot-check of the reviewer
+flow on the live URL with real Supabase credentials is required.
+
+### 2026-06-13 - Batch 13 - Deployment readiness; no blockers; .env.example added
+
+Final pre-deployment audit passed with NO blockers. Secret/gitignore audit:
+.gitignore covers .env*.local/.env/.mcp.json; no secrets tracked; a value scan
+(sb_secret_, sbp_, sk-, AIzaSy, JWT) over all tracked files found only
+documentation placeholders. No server-only key is referenced in a client
+component or with NEXT_PUBLIC_.
+
+- Added `.env.example` (placeholder-only, committable - not gitignored)
+  documenting all required + optional env vars with scope comments; doubles as
+  the Vercel env-var checklist. Notes that code reads BOTH NEXT_PUBLIC_APP_URL
+  and NEXT_PUBLIC_SITE_URL and that SEO canonical degrades gracefully when unset.
+- All gates exit 0: lint (0/0), lint:i18n (453 keys), typecheck, test (397),
+  build (42 routes), e2e (72 pass / 4 documented skips).
+- Deployment config intact: no middleware.ts (guard enforced), proxy.ts
+  composes locale + Supabase session, manifest/sw.js present. Production deploy
+  is triggered by `git push origin main` -> Vercel GitHub integration.
+- Section 17 acceptance: 14/15 Pass; the only pending item ("Vercel production
+  deployment works") is the orchestrator's push + live spot-check.
+
+**Why:** This batch is verification + documentation, not new code. The code was
+complete and green after batch 12; this confirms it ships safely.
+
+**Orchestrator post-deploy:** verify Vercel env vars set, Supabase prod auth
+redirect URLs include the Vercel URL, seed prod accounts, then spot-check the
+reviewer flow on the live URL.

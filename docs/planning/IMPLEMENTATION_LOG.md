@@ -1820,3 +1820,146 @@ Section 17 acceptance gate status:
   live-service rationale and integration coverage).
 - No secrets in committed files or test output.
 - Tests cover critical logic and all required flows per section 15.
+
+## Batch 13: Deployment Readiness And Final Review (2026-06-13)
+
+Worktree: `/Users/talo/www/academy-13-deploy`
+Branch: `chore/13-deployment-review`
+
+### Secret And Gitignore Audit
+
+**Result: PASS - no blockers.**
+
+Gitignore covers:
+
+- `.env*.local` pattern (matches `.env.local`).
+- `.env` explicitly.
+- `.mcp.json` explicitly.
+
+Tracked-secrets check (`git ls-files | grep -E '\.env|\.mcp\.json'`):
+returned empty - no env or MCP config files committed.
+
+Secret-value scan patterns checked across all tracked source files
+(excluding node_modules, .next):
+
+- `sb_secret_` - found only in documentation placeholders
+  (`.claude/commands/start-from-template.md` line 48: `sb_secret_...`,
+  `README.md` line 188: `sb_secret_...`). No real values.
+- `sbp_` - found only in `docs/DECISIONS.md` describing token format.
+  No real value.
+- `sk-[A-Za-z]{20}` - no matches.
+- `AIzaSy` - no matches.
+- `eyJhbGciOiJIUzI1NiJ9` (JWT prefix) - no matches.
+
+Server key / client leak check:
+
+- `SUPABASE_SECRET_KEY` - not referenced in any `"use client"` file.
+- `AI_GATEWAY_API_KEY` - not referenced in any `"use client"` file.
+- No server-only key is prefixed `NEXT_PUBLIC_`.
+
+### Env-Var Checklist For Vercel
+
+Created `.env.example` (placeholder values only, committed, not
+gitignored). Every variable the app reads:
+
+**Required:**
+
+| Variable | Scope | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | client + server | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client + server | Supabase anon key |
+| `SUPABASE_SECRET_KEY` | server only | Supabase service_role key |
+| `AI_GATEWAY_API_KEY` | server only | Vercel AI Gateway; auto-detected |
+| `NEXT_PUBLIC_APP_URL` | client + server | Canonical base URL |
+| `NEXT_PUBLIC_SITE_URL` | client + server | SEO fallback (same value); graceful when unset |
+
+**Optional:**
+
+| Variable | Scope | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | client | Turnstile widget (not currently wired) |
+| `TURNSTILE_SECRET_KEY` | server only | Turnstile backend verify (not currently wired) |
+| `YOUTUBE_API_KEY` | server only | Playlist import + richer metadata |
+| `EMAIL_PROVIDER_API_KEY` | server only | Email delivery; absent = queue-only mode |
+
+**E2E / Test (local only, do NOT set in Vercel):**
+
+`E2E_BASE_URL`, `E2E_PORT`, `E2E_STUDENT_EMAIL`, `E2E_STUDENT_PASSWORD`,
+`E2E_INSTRUCTOR_EMAIL`, `E2E_INSTRUCTOR_PASSWORD`, `E2E_REAL_AI`.
+
+### Gate Results (Observed Exit Codes)
+
+All commands run in worktree `/Users/talo/www/academy-13-deploy` with
+`PATH="$HOME/.nvm/versions/node/v22.16.0/bin:$PATH"`:
+
+- `npm run lint` - exit 0; 0 errors, 0 warnings.
+- `npm run lint:i18n` - exit 0; 453 keys in sync.
+- `npm run typecheck` - exit 0 (guard + tsc --noEmit clean).
+- `npm run test` - exit 0; 397 passed, 0 failed (30 test files).
+- `npm run build` - exit 0; 42 routes generated, no type errors.
+- `npm run test:e2e` - exit 0; 72 passed, 4 skipped (documented
+  live-service skips), 0 failed.
+
+Build route list confirms all required pages present:
+`/[locale]`, `/[locale]/courses/[courseSlug]`,
+`/[locale]/courses/[courseSlug]/checkout`, `/[locale]/dashboard`,
+`/[locale]/admin/dashboard`, `/[locale]/admin/courses`,
+`/[locale]/admin/courses/[courseId]/edit`,
+`/[locale]/admin/courses/[courseId]/lessons`,
+`/[locale]/admin/courses/new`, `/[locale]/admin/groups`,
+`/[locale]/admin/reminders`, `/[locale]/certificates`,
+`/[locale]/certificates/[courseSlug]`, `/[locale]/chat`,
+`/[locale]/search`, `/[locale]/groups`, `/[locale]/offline`,
+`/api/chat`, `/api/tutor`, `/auth/confirm`, `/auth/signout`,
+`/manifest.webmanifest`, `/robots.txt`, `/sitemap.xml`.
+
+### Deployment Config Confirmation
+
+- `middleware.ts` - ABSENT. `scripts/guard-no-middleware.mjs` runs in
+  `predev`, `prebuild`, `pretypecheck` and hard-fails on any middleware
+  file. Guard confirmed clean.
+- `proxy.ts` - present at repo root; composes next-intl locale routing
+  and Supabase SSR session refresh.
+- `next.config.ts` - intact; uses `createNextIntlPlugin` pointing to
+  `./i18n/request.ts`. No rewrites or custom headers.
+- `public/sw.js` - present; PWA service worker (dormant push stub).
+- `app/manifest.ts` - present; produces `/manifest.webmanifest`.
+
+### Section 17 Acceptance Gate
+
+| Acceptance Item | Status | Evidence |
+| --- | --- | --- |
+| Baseline features still work | Pass | Batch 00 baseline preserved; auth, routing, home page unchanged |
+| Required tables, RLS, seed data | Pass | Batches 02-03: schema migrations, RLS policies, `npm run seed` |
+| Student flow end to end | Pass | Batch 05 enrollment; e2e `tutor.spec.ts` auth flow |
+| Teacher flow end to end | Pass | Batch 04 instructor dashboard; batch 06 course/lesson CRUD |
+| AI tutor uses real context + history | Pass | Batch 07 `/api/tutor` with course/lesson context, history table |
+| Dashboards use Supabase data | Pass | Batches 04-05: server components with Supabase queries |
+| Certificates implemented | Pass | Batch 08; `/[locale]/certificates/[courseSlug]` route in build |
+| Search implemented | Pass | Batch 09; `/[locale]/search` route in build |
+| Class groups implemented | Pass | Batch 10; `/[locale]/groups` + `/[locale]/admin/groups` in build |
+| Reminders implemented | Pass | Batch 11; `/[locale]/admin/reminders`; queue-only without EMAIL key |
+| Payments implemented (simulated) | Pass | Batch 11; checkout route; fake payment flow, no real provider |
+| EN/HE localization complete | Pass | 453 keys synced; lint:i18n exit 0; RTL e2e pass |
+| Mobile and desktop layouts usable | Pass | Responsive e2e: 390/768/1280 px, EN + HE, 0 overflow |
+| Tests cover critical logic + flows | Pass | 397 unit+integration, 72 e2e pass, 4 skipped with substitutes |
+| Vercel production deployment works | Pending | Triggered by orchestrator via `git push origin main` post-merge |
+
+### Manual / Production Reviewer Flow
+
+The section-10 reviewer steps map to automated e2e equivalents:
+
+- View home page - `e2e/catalog.spec.ts`, `e2e/responsive.spec.ts`.
+- Open a course - `e2e/catalog.spec.ts`, `e2e/tutor.spec.ts`.
+- Enroll as student - `e2e/tutor.spec.ts` (authenticated student flow).
+- AI tutor question - `e2e/tutor.spec.ts:145` (live gate with
+  `E2E_REAL_AI=true` skipped in default CI).
+- Student dashboard, teacher dashboard - `e2e/seo-a11y.spec.ts` redirect
+  guards; auth flows in integration tests.
+- Search, certificates, groups, reminders, payments - covered by
+  `e2e/extended-features.spec.ts` (nav links, page renders, flows).
+- Desktop/mobile, EN/HE - `e2e/responsive.spec.ts`, `e2e/catalog.spec.ts`.
+
+All flows are to be **spot-checked on the live Vercel URL** by the
+orchestrator post-deploy using real seeded credentials from `npm run seed`
+(run against the Supabase production project).
