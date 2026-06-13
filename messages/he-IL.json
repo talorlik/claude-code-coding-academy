@@ -184,6 +184,7 @@
   },
   "Admin": {
     "nav": {
+      "dashboard": "לוח בקרה",
       "courses": "קורסים",
       "adminPanel": "פאנל ניהול"
     },
@@ -392,5 +393,75 @@
       "description": "כרגע אין ל-Coding Academy גישה לרשת. בדקו את החיבור ונסו שוב.",
       "retry": "נסו שוב"
     }
+  },
+  "DashboardStudent": {
+    "pageTitle": "לוח הבקרה שלי",
+    "greeting": "לוח הבקרה שלי",
+    "youAreInstructor": "אתם גם מדריך.",
+    "goToAdminDashboard": "עברו ללוח הניהול",
+    "enrolledCourses": "הקורסים שלי",
+    "noEnrollments": "עדיין לא נרשמתם לאף קורס.",
+    "browseCatalog": "עיינו בקורסים",
+    "continueCourse": "המשך",
+    "reviewCourse": "חזרה",
+    "completed": "הושלם",
+    "progressLabel": "התקדמות ב-{title}",
+    "progressLessons": "{completed} מתוך {total} שיעורים",
+    "weeklyProgress": "השבוע",
+    "lessonsThisWeek": "{count, plural, =0 {לא צפיתם בשיעורים השבוע} one {צפיתם בשיעור אחד השבוע} other {צפיתם ב-# שיעורים השבוע}}",
+    "weeklyChartAriaLabel": "שיעורים שנצפו לפי יום השבוע",
+    "lessonsWatched": "שיעורים שנצפו",
+    "recentlyWatched": "נצפו לאחרונה",
+    "noRecentLessons": "לא צפיתם בשיעורים עדיין.",
+    "achievements": "הישגים",
+    "badgeEarned": "תג הושג",
+    "badgeLocked": "תג נעול",
+    "badges": {
+      "first_course_completed": {
+        "name": "בוגר קורס",
+        "description": "סיימו את הקורס הראשון שלכם."
+      },
+      "five_lessons_this_week": {
+        "name": "רצף שבועי",
+        "description": "צפו ב-5 שיעורים בשבוע אחד."
+      },
+      "beginner_course_finished": {
+        "name": "מתחיל מיומן",
+        "description": "סיימו קורס ברמת מתחיל."
+      }
+    }
+  },
+  "DashboardAdmin": {
+    "pageTitle": "לוח בקרה למנהל",
+    "overview": "סקירה כללית",
+    "overviewStats": "סטטיסטיקות כלליות",
+    "totalStudents": "סך כל הסטודנטים",
+    "totalEnrollments": "סך כל ההרשמות",
+    "totalCourses": "קורסים מפורסמים",
+    "completionRate": "שיעור השלמה",
+    "courseCompletionRates": "שיעורי השלמה לפי קורס",
+    "course": "קורס",
+    "enrolled": "נרשמו",
+    "completed": "השלימו",
+    "completionRateFor": "שיעור השלמה עבור {course}",
+    "noCompletionData": "אין נתוני הרשמה עדיין.",
+    "stuckStudents": "סטודנטים תקועים",
+    "stuckStudentsNote": "סטודנטים שלא צפו בשיעור מזה למעלה מ-7 ימים.",
+    "student": "סטודנט",
+    "daysInactive": "ימי חוסר פעילות",
+    "lastActive": "פעיל לאחרונה",
+    "never": "מעולם",
+    "unknownStudent": "סטודנט לא ידוע",
+    "noStuckStudents": "אין סטודנטים תקועים - כולם בתוכנית.",
+    "commonTutorQuestions": "שאלות נפוצות לחונך הבינה המלאכותית",
+    "lastAsked": "נשאל לאחרונה ב-{date}",
+    "askedNTimes": "נשאל {count} פעמים",
+    "noTutorQuestions": "אין שאלות לחונך עדיין.",
+    "recentActivity": "פעילות אחרונה",
+    "enrolledIn": "{student} נרשם ל-{course}",
+    "watchedLesson": "{student} צפה ב-{lesson} בקורס {course}",
+    "aLesson": "שיעור",
+    "noRecentActivity": "אין פעילות אחרונה.",
+    "errorLoading": "לא ניתן לטעון את הסטטיסטיקות."
   }
 }

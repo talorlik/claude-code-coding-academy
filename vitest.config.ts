@@ -22,6 +22,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": import.meta.dirname,
+      // `server-only` is a Next.js built-in that is not available in the
+      // Vitest jsdom environment. The package only enforces an import-time
+      // error in non-server runtimes; mocking it as an empty module lets
+      // tests import server modules freely (they still mock the actual I/O).
+      "server-only": import.meta.dirname + "/tests/__mocks__/server-only.ts",
     },
   },
 })

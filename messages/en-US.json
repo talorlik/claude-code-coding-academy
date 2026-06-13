@@ -184,6 +184,7 @@
   },
   "Admin": {
     "nav": {
+      "dashboard": "Dashboard",
       "courses": "Courses",
       "adminPanel": "Admin Panel"
     },
@@ -392,5 +393,75 @@
       "description": "Coding Academy can't reach the network right now. Check your connection and try again.",
       "retry": "Try again"
     }
+  },
+  "DashboardStudent": {
+    "pageTitle": "My Dashboard",
+    "greeting": "My Dashboard",
+    "youAreInstructor": "You are also an instructor.",
+    "goToAdminDashboard": "Go to admin dashboard",
+    "enrolledCourses": "My Courses",
+    "noEnrollments": "You are not enrolled in any courses yet.",
+    "browseCatalog": "Browse courses",
+    "continueCourse": "Continue",
+    "reviewCourse": "Review",
+    "completed": "Completed",
+    "progressLabel": "Progress in {title}",
+    "progressLessons": "{completed} of {total} lessons",
+    "weeklyProgress": "This Week",
+    "lessonsThisWeek": "{count, plural, =0 {No lessons watched this week} one {# lesson watched this week} other {# lessons watched this week}}",
+    "weeklyChartAriaLabel": "Lessons watched per day this week",
+    "lessonsWatched": "Lessons watched",
+    "recentlyWatched": "Recently Watched",
+    "noRecentLessons": "No lessons watched yet.",
+    "achievements": "Achievements",
+    "badgeEarned": "Badge earned",
+    "badgeLocked": "Badge locked",
+    "badges": {
+      "first_course_completed": {
+        "name": "Course Graduate",
+        "description": "Complete your first course."
+      },
+      "five_lessons_this_week": {
+        "name": "Weekly Streak",
+        "description": "Watch 5 lessons in one week."
+      },
+      "beginner_course_finished": {
+        "name": "Beginner Complete",
+        "description": "Finish a beginner-level course."
+      }
+    }
+  },
+  "DashboardAdmin": {
+    "pageTitle": "Admin Dashboard",
+    "overview": "Overview",
+    "overviewStats": "Overview statistics",
+    "totalStudents": "Total Students",
+    "totalEnrollments": "Total Enrollments",
+    "totalCourses": "Published Courses",
+    "completionRate": "Completion Rate",
+    "courseCompletionRates": "Course Completion Rates",
+    "course": "Course",
+    "enrolled": "Enrolled",
+    "completed": "Completed",
+    "completionRateFor": "Completion rate for {course}",
+    "noCompletionData": "No enrollment data yet.",
+    "stuckStudents": "Stuck Students",
+    "stuckStudentsNote": "Students who have not watched a lesson in over 7 days.",
+    "student": "Student",
+    "daysInactive": "Days Inactive",
+    "lastActive": "Last Active",
+    "never": "Never",
+    "unknownStudent": "Unknown student",
+    "noStuckStudents": "No stuck students - everyone is on track.",
+    "commonTutorQuestions": "Common AI Tutor Questions",
+    "lastAsked": "Last asked {date}",
+    "askedNTimes": "Asked {count} times",
+    "noTutorQuestions": "No tutor questions yet.",
+    "recentActivity": "Recent Activity",
+    "enrolledIn": "{student} enrolled in {course}",
+    "watchedLesson": "{student} watched {lesson} in {course}",
+    "aLesson": "a lesson",
+    "noRecentActivity": "No recent activity.",
+    "errorLoading": "Could not load statistics."
   }
 }

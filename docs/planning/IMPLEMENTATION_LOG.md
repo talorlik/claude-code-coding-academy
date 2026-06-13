@@ -1266,3 +1266,97 @@ Changed:
   layer (`listConversationsForCourse`) is in place.
 - Conversation title auto-generation (currently null) - deferred.
 - Rate limiting on `/api/tutor` - deferred.
+
+## Batch 9: Dashboards (2026-06-13)
+
+### Data Access Strategy
+
+**Student dashboard** uses the `student_course_progress` view (batch 02,
+`security_invoker=true`, RLS-scoped) to get per-course progress metrics.
+Enrollments and courses are joined directly. `lesson_progress` is queried
+directly for weekly summary and recently-watched lists. All queries use the
+request-scoped client; RLS enforces `auth.uid()` scoping, with explicit
+`user_id` filter as defense in depth.
+
+**Admin dashboard** uses the `admin_stuck_students` view (batch 02) for
+inactive-student detection. Common AI tutor questions aggregate
+`ai_tutor_messages` directly (no view - deferred in batch 02); normalization
+is lowercase+trim before counting. No `admin_common_tutor_questions` view
+exists. Enrollment/completion stats aggregate from `enrollments` directly.
+Recent activity merges enrollment and `lesson_progress` feeds server-side.
+
+### Badge Logic
+
+Badge computation lives in `lib/dashboard/badges.ts` as a pure function
+`computeAchievementBadges(enrollments, weeklyCount)`. It takes already-fetched
+data and returns earned/locked state with no I/O. The query module
+(`lib/dashboard/student-queries.ts`) fetches and calls it. This makes unit
+testing trivial (no mocking required).
+
+### Admin Guard
+
+Admin dashboard page calls `requireAdmin()` (from `lib/auth/guards.ts`)
+even though the admin layout already called `requireInstructor()`. This is
+belt-and-suspenders: the layout guard protects the route tree, the page guard
+protects the aggregate analytics. Both delegate to the same underlying
+`requireInstructor` logic.
+
+### Charts
+
+A Recharts bar chart (`WeeklyProgressChart`) is used for weekly lesson
+activity only when 2+ distinct active days exist - otherwise a stat line is
+sufficient and the chart is skipped. The chart uses `hsl(var(--primary))` and
+`hsl(var(--border))` CSS custom properties so it renders correctly in both
+light and dark mode without hard-coded colors. The chart is a client island;
+all data is fetched server-side and passed as props.
+
+Admin completion rates are rendered as a table with inline progress bars, not
+a chart, since a small set of courses is clearer in tabular form.
+
+### i18n
+
+Two new namespaces added to both catalogs (key-identical, real Hebrew):
+
+- `DashboardStudent` - greeting, enrolled courses, badges, weekly progress,
+  recently watched, empty states, badge names+descriptions.
+- `DashboardAdmin` - overview stat labels, completion table, stuck students,
+  common questions, activity feed, error states.
+
+`Admin.nav.dashboard` key added to both catalogs. `npm run lint:i18n` passes.
+
+### Request Client and RLS
+
+All queries use `createClient()` from `lib/supabase/server` (request-scoped,
+RLS-enforced). No service-role access anywhere in this batch.
+
+### Files Created / Changed
+
+Created:
+
+- `lib/dashboard/badges.ts` - pure badge computation, no I/O
+- `lib/dashboard/student-queries.ts` - `getEnrolledCoursesWithProgress`,
+  `getWeeklyProgressSummary`, `getRecentlyWatchedLessons`, `getAchievementBadges`
+- `lib/dashboard/admin-queries.ts` - `getAdminOverviewStats`,
+  `getCourseCompletionRates`, `getStuckStudents`, `getCommonTutorQuestions`,
+  `getRecentCourseActivity`
+- `components/dashboard/enrolled-course-row.tsx`
+- `components/dashboard/achievement-badge.tsx`
+- `components/dashboard/recently-watched-list.tsx`
+- `components/dashboard/weekly-progress-chart.tsx` (client island, Recharts)
+- `components/dashboard/admin-stat-cards.tsx`
+- `components/dashboard/admin-completion-table.tsx`
+- `components/dashboard/admin-stuck-students.tsx`
+- `components/dashboard/admin-common-questions.tsx`
+- `components/dashboard/admin-activity-feed.tsx`
+- `app/[locale]/admin/dashboard/page.tsx` - admin analytics dashboard
+- `tests/unit/badges.test.ts` - 10 unit tests for pure badge function
+- `tests/integration/student-dashboard-queries.test.ts` - 9 integration tests
+- `tests/integration/admin-dashboard-queries.test.ts` - 16 integration tests
+- `e2e/dashboard.spec.ts` - redirect + smoke tests
+
+Changed:
+
+- `app/[locale]/dashboard/page.tsx` - full student dashboard (kept requireUser)
+- `app/[locale]/admin/layout.tsx` - added Dashboard nav link
+- `messages/en-US.json` - `DashboardStudent`, `DashboardAdmin`, `Admin.nav.dashboard`
+- `messages/he-IL.json` - same keys, real Hebrew

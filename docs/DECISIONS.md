@@ -310,3 +310,36 @@ entangling the existing /api/chat.
 batch 00, still not fixed (out of this batch's scope). Decide in tech-debt
 whether to protect or remove it. Also: conversation-resume picker UI and
 /api/tutor rate limiting are follow-ups.
+
+### 2026-06-13 - Batch 09 - Dashboards; pure badge logic; server-only marker introduced
+
+Student dashboard replaces the `/dashboard` stub (keeps requireUser); teacher
+dashboard at `/admin/dashboard` (under the requireInstructor-guarded admin
+layout, page also calls requireAdmin - defense in depth). All dashboard data
+comes from Supabase via the RLS request client (no service-role).
+
+- Student queries use the `student_course_progress` view + direct joins; admin
+  uses `admin_stuck_students`. "Common tutor questions" reads `ai_tutor_messages`
+  (role='user') directly with normalize-lowercase-trim counting - the
+  `admin_common_tutor_questions` view deferred in batch 02 was NOT needed now
+  that batch 08 populates the messages table.
+- Achievement badge logic is a PURE function `lib/dashboard/badges.ts`
+  (first_course_completed, five_lessons_this_week, beginner_course_finished),
+  unit-tested without mocks; query modules fetch and call it.
+- One Recharts bar chart (weekly activity, shown only with 2+ active days),
+  themed via CSS vars so it reads in light + dark; admin completion uses a table
+  with inline progress bars (clearer than a chart for few courses).
+- New i18n: DashboardStudent (37) + DashboardAdmin (28) + Admin.nav.dashboard;
+  335 keys in sync.
+- The dashboard query modules now start with `import "server-only"`. This
+  resolves at build via Next's bundled module, and a Vitest alias
+  (tests/__mocks__/server-only.ts + vitest.config.ts) stubs it for jsdom.
+
+**Why:** Pure badge logic keeps the achievement rules testable in isolation.
+Reusing batch-02 views avoids re-deriving aggregates in app code.
+
+**Tech-debt:** `server-only` is imported by lib/dashboard/* but is NOT a
+declared dependency in package.json (it only resolves because Next ships it).
+Add `server-only` to dependencies and apply the marker consistently to the
+other server-only modules (lib/youtube/metadata, lib/admin/*, lib/tutor/*,
+lib/courses/queries, lib/progress/*) in the tech-debt batch.

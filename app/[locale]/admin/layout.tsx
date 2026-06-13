@@ -38,6 +38,12 @@ export default async function AdminLayout({
             {t("title")}
           </span>
           <Link
+            href="/admin/dashboard"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {t("nav.dashboard")}
+          </Link>
+          <Link
             href="/admin/courses"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
