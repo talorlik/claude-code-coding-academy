@@ -36,9 +36,9 @@
   },
   "Metadata": {
     "home": {
-      "siteName": "Coding Academy",
-      "title": "Coding Academy",
-      "description": "A starter built on Next.js and Supabase. Sign in to start building, or jump straight in."
+      "siteName": "Eyal's Coding Academy",
+      "title": "Eyal's Coding Academy - Learn to Code",
+      "description": "Master programming with Eyal's structured video courses. Browse our catalog and start learning today."
     }
   },
   "Home": {
@@ -47,7 +47,62 @@
     "description": "A starter built on Next.js and Supabase. Sign in to start building, or jump straight in.",
     "body": "Authentication, database, and edge functions are wired through Supabase. Press <kbd>d</kbd> anywhere to toggle dark mode.",
     "getStarted": "Get Started",
-    "signIn": "Sign In"
+    "signIn": "Sign In",
+    "hero": {
+      "headline": "Learn to Code with Expert-Led Video Courses",
+      "subhead": "Structured, beginner-friendly courses taught by Eyal. Go from zero to confident developer at your own pace.",
+      "ctaBrowse": "Browse Courses",
+      "ctaStart": "Get Started Free"
+    },
+    "benefits": {
+      "heading": "Why Learn with Eyal",
+      "structured": {
+        "title": "Structured Curriculum",
+        "body": "Each course follows a clear progression from fundamentals to real-world projects. No guesswork."
+      },
+      "video": {
+        "title": "High-Quality Video",
+        "body": "Professionally produced lessons you can watch at your own pace, rewind, and revisit any time."
+      },
+      "practical": {
+        "title": "Practical Skills",
+        "body": "Every lesson is grounded in code you can actually use. Theory is kept to a minimum."
+      },
+      "community": {
+        "title": "Supportive Community",
+        "body": "Ask questions, share progress, and learn alongside fellow students on the same journey."
+      }
+    },
+    "catalog": {
+      "heading": "Our Courses",
+      "subhead": "Pick a course and start learning today."
+    }
+  },
+  "Courses": {
+    "level": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "lessonCount": "{count, plural, one {# lesson} other {# lessons}}",
+    "enroll": "Enroll Now",
+    "continue": "Continue Learning",
+    "viewCourse": "View Course",
+    "enrolled": "Enrolled",
+    "empty": {
+      "title": "No Courses Yet",
+      "body": "New courses are added regularly. Check back soon!"
+    },
+    "error": {
+      "title": "Could Not Load Courses",
+      "body": "We had trouble fetching the course catalog. Please try refreshing the page."
+    },
+    "loading": "Loading courses...",
+    "enrollError": {
+      "signInRequired": "Please sign in to enroll in a course.",
+      "courseNotFound": "This course is no longer available.",
+      "generic": "Enrollment failed. Please try again."
+    }
   },
   "Chat": {
     "metaTitle": "Chat",

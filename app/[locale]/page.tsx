@@ -1,61 +1,251 @@
+import { Suspense } from "react"
 import { getTranslations, setRequestLocale } from "next-intl/server"
+import type { Metadata } from "next"
+import { BookOpen, Video, Code2, Users } from "lucide-react"
 
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty"
+import { CourseCatalog } from "@/components/courses/course-catalog"
+import { CourseCatalogSkeleton } from "@/components/courses/course-catalog-skeleton"
+import { getPublishedCourses } from "@/lib/courses/queries"
+import { createClient } from "@/lib/supabase/server"
 import type { Locale } from "@/i18n/routing"
+
+// ---------------------------------------------------------------------------
+// Metadata
+// ---------------------------------------------------------------------------
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: "Metadata" })
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    null
+
+  return {
+    title: t("home.title"),
+    description: t("home.description"),
+    openGraph: {
+      title: t("home.title"),
+      description: t("home.description"),
+      siteName: t("home.siteName"),
+      locale,
+    },
+    ...(baseUrl
+      ? {
+          alternates: {
+            canonical: `${baseUrl}/${locale}`,
+            languages: {
+              en: `${baseUrl}/en`,
+              he: `${baseUrl}/he`,
+            },
+          },
+        }
+      : {}),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Async catalog section
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches published courses and enrolled course IDs server-side. Wrapped in
+ * Suspense by the parent so it shows a skeleton while loading.
+ */
+async function CatalogSection({ locale }: { locale: string }) {
+  const t = await getTranslations({ locale, namespace: "Courses" })
+  const tHome = await getTranslations({ locale, namespace: "Home" })
+
+  // Load courses and auth state in parallel.
+  const supabase = await createClient()
+
+  const [courses, { data: authData }] = await Promise.all([
+    getPublishedCourses().catch((err) => {
+      console.error("[home] getPublishedCourses:", err)
+      return null
+    }),
+    supabase.auth.getUser(),
+  ])
+
+  const userId = authData?.user?.id ?? null
+
+  // On error show a localized error state rather than crashing.
+  if (courses === null) {
+    return (
+      <Empty className="border border-dashed">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <BookOpen aria-hidden="true" />
+          </EmptyMedia>
+          <EmptyTitle>{t("error.title")}</EmptyTitle>
+          <EmptyDescription>{t("error.body")}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    )
+  }
+
+  // Fetch enrolled course IDs only when authenticated.
+  let enrolledCourseIds = new Set<string>()
+  if (userId) {
+    const { data: enrollments } = await supabase
+      .from("enrollments")
+      .select("course_id")
+      .eq("user_id", userId)
+
+    enrolledCourseIds = new Set(
+      (enrollments ?? []).map((e) => e.course_id)
+    )
+  }
+
+  return (
+    <section aria-labelledby="catalog-heading">
+      <div className="mb-8 text-center">
+        <h2
+          id="catalog-heading"
+          className="text-2xl font-bold tracking-tight sm:text-3xl"
+        >
+          {tHome("catalog.heading")}
+        </h2>
+        <p className="mt-2 text-muted-foreground">{tHome("catalog.subhead")}</p>
+      </div>
+      <CourseCatalog
+        courses={courses}
+        userId={userId}
+        enrolledCourseIds={enrolledCourseIds}
+      />
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Benefit card data (static, not i18n keys since we pass through t())
+// ---------------------------------------------------------------------------
+
+type BenefitKey = "structured" | "video" | "practical" | "community"
+
+const BENEFIT_ICONS: Record<
+  BenefitKey,
+  React.ComponentType<{ className?: string; "aria-hidden"?: "true" }>
+> = {
+  structured: BookOpen,
+  video: Video,
+  practical: Code2,
+  community: Users,
+}
+
+const BENEFIT_KEYS: BenefitKey[] = [
+  "structured",
+  "video",
+  "practical",
+  "community",
+]
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default async function Page({
   params,
 }: {
   params: Promise<{ locale: string }>
 }) {
-  // Opt into static rendering for this locale before any next-intl hook runs,
-  // matching the localized layout. Without this the page renders dynamically.
   const { locale } = await params
   setRequestLocale(locale as Locale)
 
   const t = await getTranslations("Home")
 
   return (
-    <main
-      id="main-content"
-      className="flex flex-1 items-center justify-center p-6"
-    >
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>
-            <h1 className="text-2xl">{t("title")}</h1>
-          </CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </CardHeader>
-        <CardContent className="text-sm leading-loose text-muted-foreground">
-          <p>
-            {t.rich("body", {
-              kbd: (chunks) => <kbd>{chunks}</kbd>,
-            })}
+    <main id="main-content" className="flex flex-1 flex-col">
+      {/* Hero */}
+      <section className="bg-gradient-to-b from-background to-muted/30 px-4 py-16 text-center sm:py-24">
+        <div className="mx-auto max-w-3xl">
+          <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-5xl">
+            {t("hero.headline")}
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-balance text-lg text-muted-foreground">
+            {t("hero.subhead")}
           </p>
-        </CardContent>
-        <CardFooter className="flex flex-wrap gap-3">
-          <Button render={<Link href="/login" />} nativeButton={false}>
-            {t("getStarted")}
-          </Button>
-          <Button
-            render={<Link href="/login" />}
-            nativeButton={false}
-            variant="outline"
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <Button
+              render={<Link href="#catalog" />}
+              size="lg"
+              className="min-w-0"
+            >
+              {t("hero.ctaBrowse")}
+            </Button>
+            <Button
+              render={<Link href="/register" />}
+              size="lg"
+              variant="outline"
+              className="min-w-0"
+            >
+              {t("hero.ctaStart")}
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits */}
+      <section
+        className="px-4 py-16"
+        aria-labelledby="benefits-heading"
+      >
+        <div className="mx-auto max-w-5xl">
+          <h2
+            id="benefits-heading"
+            className="mb-10 text-center text-2xl font-bold tracking-tight sm:text-3xl"
           >
-            {t("signIn")}
-          </Button>
-        </CardFooter>
-      </Card>
+            {t("benefits.heading")}
+          </h2>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {BENEFIT_KEYS.map((key) => {
+              const Icon = BENEFIT_ICONS[key]
+              return (
+                <div
+                  key={key}
+                  className="flex min-w-0 flex-col items-center gap-3 text-center"
+                >
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon aria-hidden="true" />
+                  </div>
+                  <h3 className="font-semibold">
+                    {t(`benefits.${key}.title`)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t(`benefits.${key}.body`)}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Course catalog */}
+      <section
+        id="catalog"
+        className="bg-muted/20 px-4 py-16"
+        aria-label="Course catalog"
+      >
+        <div className="mx-auto max-w-6xl">
+          <Suspense fallback={<CourseCatalogSkeleton />}>
+            <CatalogSection locale={locale} />
+          </Suspense>
+        </div>
+      </section>
     </main>
   )
 }

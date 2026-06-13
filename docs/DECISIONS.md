@@ -191,3 +191,28 @@ a clear message. Batch 07 (admin import UI) consumes `LessonDraft[]` and
 `VideoMetadata` directly and wires the save-to-Supabase action. Follow-up
 tech-debt: the `server-only` npm package is not installed, so the server
 boundary on `metadata.ts` is convention-only, not compile-enforced.
+
+### 2026-06-13 - Batch 05 - Public catalog; enroll action idempotent; /courses/[slug] forward-ref
+
+The home page now loads real published courses (server component +
+Suspense/skeleton; try/catch -> Empty for error, zero rows -> Empty). Catalog
+components are kebab-case `.tsx` under `components/courses/` (SCREAMING_CASE is
+for `.md` only). New i18n namespace `Courses` + extended `Home`/`Metadata`,
+key-identical EN/HE (119 keys).
+
+- `lib/courses/actions.ts#enrollInCourse` is the server enroll action. It does
+  NOT redirect on anon; it returns `fail("signInRequired")` so the client
+  EnrollmentButton can route to `/login`. Idempotent via upsert
+  `onConflict: "user_id,course_id", ignoreDuplicates: true`; returns
+  `targetLessonId` (first lesson by sort_order) for "continue". RLS-scoped
+  request client, never admin.
+- CourseCard and EnrollmentButton link to `/courses/<slug>` which 404s until
+  Batch 06 builds the course detail route. This is intentional - the link
+  targets are correct now.
+- SEO `generateMetadata` adds `alternates.canonical` only when
+  NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_SITE_URL is set (neither is currently), so
+  it never crashes.
+
+**Why:** Returning a result code instead of redirecting keeps the enroll action
+composable and testable, and lets the button decide UX. Batch 06 owns
+`/courses/[slug]`; the full sign-in+enroll E2E is deferred to Batch 12.

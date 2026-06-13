@@ -778,3 +778,123 @@ npm run typecheck  - PASS (tsc --noEmit clean)
 npm run test       - PASS (187 tests in 7 files, 1.50s)
 npm run build      - PASS (23 static pages, Turbopack)
 ```
+
+## Batch 5: Home Page And Catalog (2026-06-13)
+
+### Component Naming Choice
+
+All new components use kebab-case filenames to match the existing
+`components/ui/` convention (`card.tsx`, `button.tsx`, etc.):
+
+- `components/courses/course-card.tsx`
+- `components/courses/course-catalog.tsx`
+- `components/courses/course-catalog-skeleton.tsx`
+- `components/courses/enrollment-button.tsx`
+
+### Suspense / Loading Approach
+
+The home page extracts an async `CatalogSection` server component that
+fetches `getPublishedCourses()` and the user's enrolled course IDs in
+parallel. The outer `<Suspense fallback={<CourseCatalogSkeleton />}>` shows
+three skeleton cards while the async fetch resolves. This keeps the hero
+section instantly visible on all connections.
+
+### Empty And Error Handling
+
+`CatalogSection` wraps `getPublishedCourses()` in a try/catch. A null
+return triggers a localized error Empty state (`Courses.error.*`). A zero-
+length array triggers a localized empty Empty state (`Courses.empty.*`).
+Both use the existing `Empty`/`EmptyHeader`/`EmptyTitle`/`EmptyDescription`
+component system from `components/ui/empty.tsx`.
+
+### Enroll Action Auth And Idempotency
+
+`lib/courses/actions.ts` (new file, `"use server"` module):
+
+- Auth: calls `createClient().auth.getUser()`. Returns `fail("signInRequired")`
+  rather than server-redirecting, so the client `EnrollmentButton` can route
+  to `/login` without a Next.js redirect response.
+- Idempotency: uses `supabase.from("enrollments").upsert(..., { onConflict:
+  "user_id,course_id", ignoreDuplicates: true })`. The unique constraint
+  makes a duplicate a silent no-op; the action always returns `ok`.
+- RLS: the publishable-key client passes the signed-in user JWT so the DB
+  enforces `user_id = auth.uid()` on insert.
+- After success `revalidatePath("/", "layout")` invalidates the entire
+  layout so enrollment state reflects on next navigation.
+
+### /courses/[slug] Forward Reference To Batch 06
+
+`CourseCard` and `EnrollmentButton` link to `/courses/<slug>` which will 404
+until batch 06 adds the course detail route. This is intentional and
+expected; the link target is correct.
+
+### SEO Metadata Approach And Base URL Fallback
+
+`generateMetadata` in `app/[locale]/page.tsx` uses `getTranslations` for
+title, description, and openGraph. `alternates.canonical` is only added when
+`NEXT_PUBLIC_APP_URL` or `NEXT_PUBLIC_SITE_URL` is defined, so the page
+never crashes in environments where neither variable is set.
+
+### New I18n Namespaces
+
+Added namespace `Courses` with keys:
+
+- `level.{beginner,intermediate,advanced}` - localized level labels
+- `lessonCount` - ICU plural (`{count, plural, one {...} other {...}}`)
+- `enroll`, `continue`, `viewCourse`, `enrolled`
+- `empty.{title,body}`, `error.{title,body}`, `loading`
+- `enrollError.{signInRequired,courseNotFound,generic}`
+
+Extended `Home` namespace with:
+
+- `hero.{headline,subhead,ctaBrowse,ctaStart}`
+- `benefits.heading`, `benefits.{structured,video,practical,community}.{title,body}`
+- `catalog.{heading,subhead}`
+
+Extended `Metadata.home` with updated title and description.
+
+Hebrew translations are real RTL Hebrew (not English placeholders).
+
+### Tests Added
+
+- `tests/unit/course-card.test.tsx` (13 cases): renders title, description,
+  level badge (all three levels), lesson count (plural + singular), cover
+  image, anonymous/enrolled/unenrolled CTA states, and catalog empty state.
+  Wraps components in `NextIntlClientProvider` with en-US.json messages.
+
+- `tests/integration/enroll-action.test.ts` (6 cases): asserts
+  `enrollInCourse` returns `fail("signInRequired")` when unauthenticated,
+  validates bad UUID input, returns `fail("courseNotFound")` when course is
+  missing, returns `ok(EnrollResult)` with `targetLessonId` on success, is
+  idempotent (upsert no-op still returns ok), and returns fail on DB error.
+  All Supabase calls mocked via vi.mock.
+
+- `e2e/catalog.spec.ts` (6 cases): smoke tests that home page renders hero
+  h1 and catalog section in EN and HE, no horizontal overflow at 390/768/
+  1280px in EN, and catalog loads without crashing (shows cards or empty
+  state). Does not require authentication.
+
+### Gate Results
+
+
+All gates run on 2026-06-13 with Node 22.16.0:
+
+```
+npm run lint       - PASS (0 errors, 0 warnings)
+npm run lint:i18n  - PASS (119 keys in sync)
+npm run typecheck  - PASS (tsc --noEmit clean)
+npm run test       - PASS (207 tests in 9 files, 2.05s)
+npm run build      - PASS (dynamic app pages, Turbopack)
+npm run test:e2e   - PASS (25 tests, 17.9s; 6 new catalog specs all pass)
+```
+
+### Deferred To Later Batches
+
+- `/courses/[slug]` course detail route (batch 06) - enrollment CTA links
+  here correctly, will 404 until batch 06.
+- Enrollment E2E full flow (batch 12) - enrollment button UI tested via unit
+  tests; the full sign-in + enroll + route flow deferred to batch 12 where
+  auth seeding is stable.
+- Toast/error notification on enroll failure (batch 12) - the button returns
+  to idle silently on server error; a toast layer will surface this in the
+  final UX.
