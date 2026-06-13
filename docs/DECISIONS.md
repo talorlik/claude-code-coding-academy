@@ -372,3 +372,46 @@ Cross-cutting polish over batches 02-09 (no redesign). Key changes:
 whole admin tree at once. The ESLint argsIgnorePattern aligns the config with
 the `_`-prefix convention already used in the codebase, making the warnings
 correct rather than suppressed.
+
+### 2026-06-13 - Batch 11 - Five extended features; printable certificates; payment simulation
+
+All five required features landed (none deferred), reusing the batch-02 tables
+and batch-03 types/validation:
+
+- Certificates: `lib/certificates/{queries,actions}.ts`. Eligibility =
+  enrollment.completed_at set; issueCertificate is idempotent (unique
+  user_id,course_id). The "download" is a PRINTABLE certificate PAGE
+  (`/certificates/[courseSlug]`) styled with print CSS + a window.print()
+  button - NO PDF dependency added. CourseCompletionState now CTAs to the
+  certificate instead of /dashboard.
+- Search: `lib/search/queries.ts` over the `search_documents` view (ILIKE on
+  title/body, published-only via the view). Public `/search?q=` page (works
+  without JS via searchParam). Transcript search is a documented no-op until
+  transcript data exists.
+- Class groups: admin CRUD + member management + group progress under
+  `/admin/groups`; student sees own groups (RLS-scoped) at `/groups`.
+- Reminders: `/admin/reminders` lists inactive students (admin_stuck_students
+  view, >7d). With NO email provider configured, sending QUEUES the reminder
+  visibly (status='queued') rather than failing silently; idempotent (no
+  duplicate queued row per user+course+reason window).
+- Payments: SIMULATION-ONLY. `/courses/[slug]/checkout` shows a clearly
+  labelled "Simulated payment - no real charge" screen with NO real card/bank
+  fields (just a confirm button). confirmSimulatedPayment is idempotent via the
+  unique simulation_event_id, sets status='paid', then enrolls the user. Paid
+  courses route the enroll CTA through checkout; hasPaidAccess grants
+  paid/admin/free. No provider keys/secrets/SDK.
+
+No migration needed (existing schema sufficed). New i18n namespaces
+(Certificates, Search, Groups, Reminders, Payments); 453 keys in sync.
+
+**Why / verification note:** The orchestrator's independent post-run gate check
+caught that `npm run typecheck` was FAILING (the subagent reported it clean).
+Five new integration test files (search, reminders, payments, groups,
+certificates) used a Supabase mock-builder typed as
+`Record<string,(...args:unknown[])=>unknown>` with a `then: (v: MockResult)`
+trap - the typed `then` is not assignable to that index signature, so `tsc`
+errored even though vitest (which does not type-check) passed. Fixed uniformly
+by dropping the strict index-signature annotation (`const b = {`) and typing the
+`then` resolve param as `(v: unknown)`, matching the working builder pattern in
+the batch-03/09 test files. Lesson: always run typecheck to completion (exit
+code), not just `tail` the log - a passing tail can hide an earlier error.

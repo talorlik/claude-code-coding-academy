@@ -19,6 +19,12 @@ interface EnrollmentButtonProps {
   userId: string | null
   /** Whether the current user is already enrolled. */
   isEnrolled: boolean
+  /**
+   * When set, the course has an active price and requires payment.
+   * The button links to this checkout URL instead of directly enrolling.
+   * Free courses leave this undefined.
+   */
+  checkoutHref?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -39,6 +45,7 @@ export function EnrollmentButton({
   courseSlug,
   userId,
   isEnrolled,
+  checkoutHref,
 }: EnrollmentButtonProps) {
   const t = useTranslations("Courses")
   const router = useRouter()
@@ -74,7 +81,20 @@ export function EnrollmentButton({
     )
   }
 
-  // Authenticated, not enrolled: enroll action.
+  // Authenticated, not enrolled, paid course: route to checkout.
+  if (checkoutHref) {
+    return (
+      <Button
+        render={<Link href={checkoutHref} className="w-full" />}
+        variant="default"
+        className="w-full"
+      >
+        {t("enroll")}
+      </Button>
+    )
+  }
+
+  // Authenticated, not enrolled, free course: enroll action.
   function handleEnroll() {
     startTransition(async () => {
       const result = await enrollInCourse({ courseId })

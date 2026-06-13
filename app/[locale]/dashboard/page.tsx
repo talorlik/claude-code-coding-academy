@@ -11,6 +11,7 @@ import {
   getRecentlyWatchedLessons,
   getAchievementBadges,
 } from "@/lib/dashboard/student-queries"
+import { getMyCertificates } from "@/lib/certificates/queries"
 import { EnrolledCourseRow } from "@/components/dashboard/enrolled-course-row"
 import { AchievementBadge } from "@/components/dashboard/achievement-badge"
 import { RecentlyWatchedList } from "@/components/dashboard/recently-watched-list"
@@ -46,7 +47,7 @@ export default async function DashboardPage({
 
   const userId = await requireUser()
 
-  const [t, courses, weeklyData, recentLessons, badges, isAdmin] =
+  const [t, courses, weeklyData, recentLessons, badges, isAdmin, certificates] =
     await Promise.all([
       getTranslations("DashboardStudent"),
       getEnrolledCoursesWithProgress(userId),
@@ -54,6 +55,7 @@ export default async function DashboardPage({
       getRecentlyWatchedLessons(userId, 5),
       getAchievementBadges(userId),
       getIsAdmin(),
+      getMyCertificates(userId),
     ])
 
   const { days, totalCount } = weeklyData
@@ -147,6 +149,53 @@ export default async function DashboardPage({
           {t("recentlyWatched")}
         </h2>
         <RecentlyWatchedList lessons={recentLessons} />
+      </section>
+
+      {/* My Certificates */}
+      <section
+        aria-labelledby="certificates-heading"
+        className="mb-8 flex flex-col gap-3"
+      >
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <h2
+            id="certificates-heading"
+            className="text-lg font-semibold text-foreground"
+          >
+            {t("myCertificates")}
+          </h2>
+          {certificates.length > 0 && (
+            <Link
+              href="/certificates"
+              className="shrink-0 text-sm text-primary hover:underline"
+            >
+              {t("viewAllCertificates")}
+            </Link>
+          )}
+        </div>
+        {certificates.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {t("noCertificates")}
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {certificates.slice(0, 3).map((cert) => {
+              const meta = (cert as { metadata?: { courseTitle?: string; courseSlug?: string } | null }).metadata
+              const courseSlug = meta?.courseSlug ?? cert.courseId
+              const courseTitle = meta?.courseTitle ?? cert.courseId
+              return (
+                <li key={cert.id}>
+                  <Link
+                    href={`/certificates/${courseSlug}`}
+                    className="inline-flex items-center gap-2 text-sm text-foreground hover:text-primary hover:underline"
+                  >
+                    <span aria-hidden="true">🏅</span>
+                    {courseTitle}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </section>
 
       {/* Achievement badges */}

@@ -21,6 +21,7 @@
   },
   "Nav": {
     "home": "בית",
+    "search": "חיפוש",
     "chat": "צ׳אט",
     "dashboard": "לוח הבקרה",
     "signIn": "התחברות",
@@ -168,7 +169,8 @@
     "progressLabel": "התקדמות בקורס",
     "progressLessons": "{completed} מתוך {total, plural, one {שיעור אחד} other {# שיעורים}}",
     "completionTitle": "הקורס הושלם!",
-    "completionBody": "סיימתם את כל השיעורים. כל הכבוד! תעודות יהיו זמינות בעדכון עתידי.",
+    "completionBody": "סיימתם את כל השיעורים. כל הכבוד!",
+    "getCertificate": "קבלו את התעודה",
     "lockedTitle": "הירשמו לצפייה בשיעור זה",
     "lockedBody": "שיעור זה מיועד לתלמידים רשומים. התחברו והירשמו לגישה לקורס המלא.",
     "videoUnavailable": "הווידאו אינו זמין",
@@ -186,6 +188,8 @@
     "nav": {
       "dashboard": "לוח בקרה",
       "courses": "קורסים",
+      "groups": "קבוצות",
+      "reminders": "תזכורות",
       "adminPanel": "פאנל ניהול"
     },
     "title": "פאנל ניהול",
@@ -416,6 +420,9 @@
     "achievements": "הישגים",
     "badgeEarned": "תג הושג",
     "badgeLocked": "תג נעול",
+    "myCertificates": "התעודות שלי",
+    "viewAllCertificates": "הצגת הכל",
+    "noCertificates": "אין תעודות עדיין. סיימו קורס כדי לקבל תעודה.",
     "badges": {
       "first_course_completed": {
         "name": "בוגר קורס",
@@ -463,5 +470,142 @@
     "aLesson": "שיעור",
     "noRecentActivity": "אין פעילות אחרונה.",
     "errorLoading": "לא ניתן לטעון את הסטטיסטיקות."
+  },
+  "Certificates": {
+    "pageTitle": "התעודות שלי",
+    "empty": {
+      "title": "אין תעודות עדיין",
+      "body": "סיימו קורס כדי לקבל את התעודה שלכם."
+    },
+    "browseCourses": "עיינו בקורסים",
+    "issuedOn": "הונפקה ב-{date}",
+    "view": "צפייה",
+    "unknownCourse": "קורס לא ידוע",
+    "backToCertificates": "חזרה לתעודות",
+    "notEarned": {
+      "title": "התעודה טרם הושגה",
+      "body": "סיימו את כל השיעורים ב-{course} כדי לקבל את התעודה."
+    },
+    "continueLearning": "המשיכו ללמוד",
+    "issueError": "לא הצלחנו להנפיק את התעודה. נסו שוב.",
+    "printDownload": "הדפסה / הורדת PDF",
+    "academyLabel": "תעודת סיום",
+    "thisIsToConfirm": "מאשרים בזאת כי",
+    "hasSuccessfullyCompleted": "סיים/ה בהצלחה את",
+    "issuedOnLabel": "הונפקה ב",
+    "certificateId": "מספר תעודה",
+    "student": "תלמיד/ה",
+    "certificateFor": "תעודה - {course}",
+    "certificateAriaLabel": "תעודת סיום עבור {course}"
+  },
+  "Search": {
+    "pageTitle": "חיפוש",
+    "inputLabel": "חיפוש קורסים ושיעורים",
+    "inputPlaceholder": "חפשו...",
+    "search": "חיפוש",
+    "resultsFor": "תוצאות עבור \"{query}\"",
+    "noResults": "לא נמצאו תוצאות עבור \"{query}\".",
+    "noResultsBody": "נסו מילת חיפוש אחרת.",
+    "emptyQuery": "הזינו מילת חיפוש כדי למצוא קורסים ושיעורים.",
+    "courses": "קורסים",
+    "lessons": "שיעורים",
+    "viewCourse": "צפו בקורס",
+    "lessonIn": "בקורס {course}"
+  },
+  "Groups": {
+    "pageTitle": "הקבוצות שלי",
+    "adminPageTitle": "קבוצות כיתה",
+    "empty": {
+      "title": "אין קבוצות עדיין",
+      "body": "אינכם חברים בקבוצות כיתה כלשהן."
+    },
+    "adminEmpty": {
+      "title": "אין קבוצות עדיין",
+      "body": "צרו את קבוצת הכיתה הראשונה כדי להתחיל."
+    },
+    "create": "יצירת קבוצה",
+    "createTitle": "יצירת קבוצת כיתה",
+    "name": "שם הקבוצה",
+    "namePlaceholder": "לדוגמה: קבוצה א",
+    "slug": "מזהה URL",
+    "slugPlaceholder": "לדוגמה: cohort-a",
+    "slugHint": "אותיות קטנות, ספרות ומקפים בלבד.",
+    "submit": "יצירה",
+    "creating": "יוצר...",
+    "cancel": "ביטול",
+    "members": "חברים",
+    "addMember": "הוספת חבר",
+    "removeMember": "הסרה",
+    "userIdLabel": "מזהה משתמש",
+    "userIdPlaceholder": "UUID של המשתמש",
+    "addMemberSubmit": "הוספה",
+    "noMembers": "אין חברים עדיין.",
+    "memberCount": "{count, plural, one {חבר אחד} other {# חברים}}",
+    "progress": "התקדמות הקבוצה",
+    "avgProgress": "התקדמות ממוצעת",
+    "enrolled": "נרשמו",
+    "completed": "השלימו",
+    "validation": {
+      "nameRequired": "שם הוא שדה חובה.",
+      "slugRequired": "מזהה URL הוא שדה חובה.",
+      "slugInvalid": "המזהה יכול להכיל רק אותיות קטנות, ספרות ומקפים.",
+      "slugTaken": "קבוצה עם מזהה זה כבר קיימת.",
+      "userIdRequired": "מזהה משתמש הוא שדה חובה.",
+      "userIdInvalid": "חייב להיות UUID תקין."
+    },
+    "success": {
+      "created": "הקבוצה נוצרה.",
+      "memberAdded": "החבר נוסף.",
+      "memberRemoved": "החבר הוסר."
+    },
+    "error": {
+      "createFailed": "יצירת הקבוצה נכשלה. נסו שוב.",
+      "memberFailed": "הפעולה נכשלה. נסו שוב."
+    }
+  },
+  "Reminders": {
+    "pageTitle": "תזכורות",
+    "inactiveStudents": "סטודנטים לא פעילים",
+    "inactiveNote": "סטודנטים שלא צפו בשיעור מזה למעלה מ-7 ימים.",
+    "noInactive": "אין סטודנטים לא פעילים - כולם בתוכנית.",
+    "queueReminder": "הוספה לתור",
+    "queuing": "מוסיף לתור...",
+    "queueSuccess": "התזכורת נוספה לתור.",
+    "queueError": "הוספת התזכורת לתור נכשלה. נסו שוב.",
+    "reminderQueue": "תור תזכורות",
+    "noReminders": "אין תזכורות בתור.",
+    "student": "סטודנט",
+    "course": "קורס",
+    "daysInactive": "ימי חוסר פעילות",
+    "status": "סטטוס",
+    "reason": "סיבה",
+    "createdAt": "נוצר",
+    "statusValues": {
+      "queued": "בתור",
+      "sent": "נשלח",
+      "failed": "נכשל",
+      "skipped": "דולג"
+    },
+    "alreadyQueued": "כבר בתור",
+    "providerNote": "לא הוגדר ספק דוא\"ל. התזכורות נוספות לתור ומוצגות. הגדירו EMAIL_PROVIDER_API_KEY כדי לאפשר שליחה."
+  },
+  "Payments": {
+    "checkoutTitle": "השלמת ההרשמה",
+    "simulationBanner": "תשלום מדומה - לא יחויב סכום אמיתי",
+    "simulationNote": "זהו תשלום לצורכי הדגמה בלבד. לא מתבצע תשלום אמיתי.",
+    "courseLabel": "קורס",
+    "priceLabel": "מחיר",
+    "free": "חינם",
+    "payButton": "תשלום (מדומה)",
+    "paying": "מעבד...",
+    "successTitle": "התשלום בוצע בהצלחה",
+    "successBody": "נרשמתם לקורס {course}.",
+    "startLearning": "התחילו ללמוד",
+    "errorTitle": "התשלום נכשל",
+    "errorBody": "משהו השתבש. נסו שוב.",
+    "retry": "נסו שוב",
+    "noPriceFound": "לא נמצא מחיר פעיל לקורס זה.",
+    "alreadyPaid": "כבר יש לכם גישה לקורס זה.",
+    "signInRequired": "התחברו כדי לרכוש."
   }
 }

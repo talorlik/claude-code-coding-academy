@@ -15,6 +15,11 @@ export interface SearchResult {
   /** Display title. */
   title: string
   /**
+   * UUID of the parent course. Used internally to resolve courseSlug.
+   * Present when `kind === "lesson"`, absent when `kind === "course"`.
+   */
+  courseId?: string
+  /**
    * Slug of the parent course. Present when `kind === "lesson"`, absent
    * when `kind === "course"`.
    */
@@ -27,14 +32,14 @@ export interface SearchResult {
 }
 
 /**
- * Wrapper returned by a search query, carrying the results list and the
- * original query string for display purposes.
+ * Grouped search results returned by {@link searchPublished}.
+ *
+ * Results are split into `courses` and `lessons` to support grouped display
+ * in the search UI. Both arrays are title-match-prioritised.
  */
 export interface SearchResults {
-  /** The query that produced these results (trimmed). */
-  query: string
-  /** Ordered result set (relevance-ranked or chronological, per implementation). */
-  results: SearchResult[]
-  /** Total number of results before any pagination limit was applied. */
-  total: number
+  /** Matching published courses. */
+  courses: SearchResult[]
+  /** Matching published lessons with `courseSlug` resolved. */
+  lessons: SearchResult[]
 }

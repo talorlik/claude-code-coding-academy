@@ -21,6 +21,7 @@
   },
   "Nav": {
     "home": "Home",
+    "search": "Search",
     "chat": "Chat",
     "dashboard": "Dashboard",
     "signIn": "Sign in",
@@ -168,7 +169,8 @@
     "progressLabel": "Course progress",
     "progressLessons": "{completed} of {total, plural, one {# lesson} other {# lessons}}",
     "completionTitle": "Course complete!",
-    "completionBody": "You have finished all lessons. Great work! Certificates will be available in a future update.",
+    "completionBody": "You have finished all lessons. Great work!",
+    "getCertificate": "Get Your Certificate",
     "lockedTitle": "Enroll to watch this lesson",
     "lockedBody": "This lesson is for enrolled students. Sign in and enroll to access the full course.",
     "videoUnavailable": "Video unavailable",
@@ -186,6 +188,8 @@
     "nav": {
       "dashboard": "Dashboard",
       "courses": "Courses",
+      "groups": "Groups",
+      "reminders": "Reminders",
       "adminPanel": "Admin Panel"
     },
     "title": "Admin Panel",
@@ -416,6 +420,9 @@
     "achievements": "Achievements",
     "badgeEarned": "Badge earned",
     "badgeLocked": "Badge locked",
+    "myCertificates": "My Certificates",
+    "viewAllCertificates": "View all",
+    "noCertificates": "No certificates yet. Complete a course to earn one.",
     "badges": {
       "first_course_completed": {
         "name": "Course Graduate",
@@ -463,5 +470,142 @@
     "aLesson": "a lesson",
     "noRecentActivity": "No recent activity.",
     "errorLoading": "Could not load statistics."
+  },
+  "Certificates": {
+    "pageTitle": "My Certificates",
+    "empty": {
+      "title": "No Certificates Yet",
+      "body": "Complete a course to earn your certificate."
+    },
+    "browseCourses": "Browse courses",
+    "issuedOn": "Issued on {date}",
+    "view": "View",
+    "unknownCourse": "Unknown Course",
+    "backToCertificates": "Back to certificates",
+    "notEarned": {
+      "title": "Certificate Not Yet Earned",
+      "body": "Complete all lessons in {course} to earn your certificate."
+    },
+    "continueLearning": "Continue learning",
+    "issueError": "Could not issue certificate. Please try again.",
+    "printDownload": "Print / Download PDF",
+    "academyLabel": "Certificate of Completion",
+    "thisIsToConfirm": "This certifies that",
+    "hasSuccessfullyCompleted": "has successfully completed",
+    "issuedOnLabel": "Issued on",
+    "certificateId": "Certificate ID",
+    "student": "Student",
+    "certificateFor": "Certificate - {course}",
+    "certificateAriaLabel": "Certificate of completion for {course}"
+  },
+  "Search": {
+    "pageTitle": "Search",
+    "inputLabel": "Search courses and lessons",
+    "inputPlaceholder": "Search...",
+    "search": "Search",
+    "resultsFor": "Results for \"{query}\"",
+    "noResults": "No results found for \"{query}\".",
+    "noResultsBody": "Try a different keyword.",
+    "emptyQuery": "Enter a search term to find courses and lessons.",
+    "courses": "Courses",
+    "lessons": "Lessons",
+    "viewCourse": "View course",
+    "lessonIn": "in {course}"
+  },
+  "Groups": {
+    "pageTitle": "My Groups",
+    "adminPageTitle": "Class Groups",
+    "empty": {
+      "title": "No Groups Yet",
+      "body": "You are not a member of any class groups."
+    },
+    "adminEmpty": {
+      "title": "No Groups Yet",
+      "body": "Create the first class group to get started."
+    },
+    "create": "Create Group",
+    "createTitle": "Create Class Group",
+    "name": "Group Name",
+    "namePlaceholder": "e.g. Cohort A",
+    "slug": "Slug",
+    "slugPlaceholder": "e.g. cohort-a",
+    "slugHint": "Lowercase letters, digits, hyphens only.",
+    "submit": "Create",
+    "creating": "Creating...",
+    "cancel": "Cancel",
+    "members": "Members",
+    "addMember": "Add Member",
+    "removeMember": "Remove",
+    "userIdLabel": "User ID",
+    "userIdPlaceholder": "User UUID",
+    "addMemberSubmit": "Add",
+    "noMembers": "No members yet.",
+    "memberCount": "{count, plural, one {# member} other {# members}}",
+    "progress": "Group Progress",
+    "avgProgress": "Average progress",
+    "enrolled": "Enrolled",
+    "completed": "Completed",
+    "validation": {
+      "nameRequired": "Name is required.",
+      "slugRequired": "Slug is required.",
+      "slugInvalid": "Slug may only contain lowercase letters, digits, and hyphens.",
+      "slugTaken": "A group with this slug already exists.",
+      "userIdRequired": "User ID is required.",
+      "userIdInvalid": "Must be a valid UUID."
+    },
+    "success": {
+      "created": "Group created.",
+      "memberAdded": "Member added.",
+      "memberRemoved": "Member removed."
+    },
+    "error": {
+      "createFailed": "Failed to create group. Please try again.",
+      "memberFailed": "Operation failed. Please try again."
+    }
+  },
+  "Reminders": {
+    "pageTitle": "Reminders",
+    "inactiveStudents": "Inactive Students",
+    "inactiveNote": "Students who have not watched a lesson in over 7 days.",
+    "noInactive": "No inactive students - everyone is on track.",
+    "queueReminder": "Queue Reminder",
+    "queuing": "Queuing...",
+    "queueSuccess": "Reminder queued.",
+    "queueError": "Failed to queue reminder. Please try again.",
+    "reminderQueue": "Reminder Queue",
+    "noReminders": "No reminders in the queue.",
+    "student": "Student",
+    "course": "Course",
+    "daysInactive": "Days Inactive",
+    "status": "Status",
+    "reason": "Reason",
+    "createdAt": "Created",
+    "statusValues": {
+      "queued": "Queued",
+      "sent": "Sent",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "alreadyQueued": "Already queued",
+    "providerNote": "No email provider configured. Reminders are queued visibly. Configure EMAIL_PROVIDER_API_KEY to enable sending."
+  },
+  "Payments": {
+    "checkoutTitle": "Complete Enrollment",
+    "simulationBanner": "Simulated payment - no real charge will occur",
+    "simulationNote": "This is a demo checkout. No real payment is processed.",
+    "courseLabel": "Course",
+    "priceLabel": "Price",
+    "free": "Free",
+    "payButton": "Pay (Simulated)",
+    "paying": "Processing...",
+    "successTitle": "Payment Successful",
+    "successBody": "You are now enrolled in {course}.",
+    "startLearning": "Start Learning",
+    "errorTitle": "Payment Failed",
+    "errorBody": "Something went wrong. Please try again.",
+    "retry": "Try again",
+    "noPriceFound": "No active price found for this course.",
+    "alreadyPaid": "You already have access to this course.",
+    "signInRequired": "Please sign in to purchase."
   }
 }

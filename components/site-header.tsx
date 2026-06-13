@@ -39,8 +39,9 @@ export async function SiteHeader() {
     ? [
         { href: "/dashboard", label: t("dashboard") },
         { href: "/chat", label: t("chat") },
+        { href: "/search", label: t("search") },
       ]
-    : []
+    : [{ href: "/search", label: t("search") }]
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
@@ -82,49 +83,41 @@ export async function SiteHeader() {
           <LanguageSwitcher />
           <ModeToggle />
 
-          {/* Signed-out users get a visible Sign in even on mobile. */}
-          {!user ? (
-            <Link
-              href="/login"
-              className="text-sm hover:underline md:hidden"
-            >
-              {t("signIn")}
-            </Link>
-          ) : null}
+          {/* Sign in link for mobile is now inside the hamburger drawer. */}
 
-          {/* Hamburger drawer: only below md, only when there are links to
-              collapse (signed-in users). */}
-          {navLinks.length > 0 ? (
-            <Sheet>
-              <SheetTrigger
-                render={
-                  <Button variant="outline" size="icon" className="md:hidden">
-                    <Menu aria-hidden />
-                    <span className="sr-only">{t("openMenu")}</span>
-                  </Button>
-                }
-              />
-              <SheetContent side="right">
-                <SheetHeader>
-                  <SheetTitle>{t("mainNavigation")}</SheetTitle>
-                </SheetHeader>
-                <nav
-                  aria-label={t("mainNavigation")}
-                  className="flex flex-col gap-1 px-4 pb-4 text-sm"
-                >
-                  {navLinks.map((item) => (
-                    <SheetClose
-                      key={item.href}
-                      render={
-                        <Link
-                          href={item.href}
-                          className="rounded-md px-2 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        >
-                          {item.label}
-                        </Link>
-                      }
-                    />
-                  ))}
+          {/* Hamburger drawer: only below md. Always rendered (search is
+              available to all). Sign-out only included when authenticated. */}
+          <Sheet>
+            <SheetTrigger
+              render={
+                <Button variant="outline" size="icon" className="md:hidden">
+                  <Menu aria-hidden />
+                  <span className="sr-only">{t("openMenu")}</span>
+                </Button>
+              }
+            />
+            <SheetContent side="right">
+              <SheetHeader>
+                <SheetTitle>{t("mainNavigation")}</SheetTitle>
+              </SheetHeader>
+              <nav
+                aria-label={t("mainNavigation")}
+                className="flex flex-col gap-1 px-4 pb-4 text-sm"
+              >
+                {navLinks.map((item) => (
+                  <SheetClose
+                    key={item.href}
+                    render={
+                      <Link
+                        href={item.href}
+                        className="rounded-md px-2 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        {item.label}
+                      </Link>
+                    }
+                  />
+                ))}
+                {user ? (
                   <SheetClose
                     render={
                       <form action="/auth/signout" method="post">
@@ -137,10 +130,21 @@ export async function SiteHeader() {
                       </form>
                     }
                   />
-                </nav>
-              </SheetContent>
-            </Sheet>
-          ) : null}
+                ) : (
+                  <SheetClose
+                    render={
+                      <Link
+                        href="/login"
+                        className="rounded-md px-2 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        {t("signIn")}
+                      </Link>
+                    }
+                  />
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

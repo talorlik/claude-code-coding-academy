@@ -1488,3 +1488,174 @@ Changed:
 - `tests/integration/lesson-actions.test.ts` - `table` -> `_table`
 - `eslint.config.mjs` - added `argsIgnorePattern: "^_"` to
   `@typescript-eslint/no-unused-vars` rule
+
+---
+
+## Batch 11 - Required Extended Features
+
+**Date:** 2026-06-13
+**Branch:** `feature/11-extended-features`
+**Worktree:** `/Users/talo/www/academy-11-features`
+
+### Features Delivered
+
+**Feature A - Certificates**
+
+- `lib/certificates/queries.ts` - isEligibleForCertificate (checks
+  enrollments.completed_at IS NOT NULL via maybeSingle), getMyCertificates
+  (RLS-scoped list), getCertificateByCourse, getCertificateById.
+- `lib/certificates/actions.ts` - issueCertificate: requireUser +
+  eligibility check + upsert(onConflict=user_id,course_id,
+  ignoreDuplicates) + read-back; stores metadata={courseTitle, courseSlug,
+  studentName, issuedDate, academyName}; calls revalidatePath.
+- `app/[locale]/certificates/page.tsx` - student certificate list;
+  requireUser; links to /certificates/[courseSlug].
+- `app/[locale]/certificates/[courseSlug]/page.tsx` - printable
+  certificate; getCertificateByCourse then issueCertificate; print CSS
+  (@media print + @page A4 landscape); no PDF library.
+- `components/certificates/print-button.tsx` - "use client" island;
+  window.print() on click; lucide Printer icon.
+- Updated `app/[locale]/courses/[courseSlug]/page.tsx` - CourseCompletionState
+  links to /certificates/[courseSlug] instead of /dashboard; added
+  getCertificate i18n key.
+- Updated `app/[locale]/dashboard/page.tsx` - added "My Certificates"
+  section with getMyCertificates.
+
+**Feature B - Smart Search**
+
+- `lib/search/queries.ts` - searchPublished: blank/whitespace guard
+  returns empty; queries search_documents view with
+  .or("title.ilike.%q%,body.ilike.%q%"); two-pass title-first ranking;
+  resolves lesson courseSlug via courses lookup; returns {courses,
+  lessons}; cap 20 results.
+- `lib/search/types.ts` - changed SearchResults from flat array to
+  {courses, lessons} partitioned shape; added courseId field.
+- `app/[locale]/search/page.tsx` - public GET form (?q=); no auth;
+  searchQuerySchema.safeParse; grouped results; empty/no-results states.
+- Updated `components/site-header.tsx` - search link always in nav
+  (authenticated and anonymous); hamburger always shown with
+  conditional sign-in/sign-out.
+
+**Feature C - Class Groups**
+
+- `lib/groups/queries.ts` - Admin: listGroups, listGroupMembers,
+  getGroupProgress (group_progress_summary view). Student: getMyGroups
+  (queries class_group_members then class_groups by IDs),
+  getMyGroupProgress.
+- `lib/groups/actions.ts` - createGroup: requireAdmin +
+  createGroupSchema + insert; 23505 -> fieldError on slug. addMember:
+  requireAdmin + groupMembershipSchema + verify group exists + upsert
+  (ignoreDuplicates) + read-back. removeMember: requireAdmin + delete.
+- `app/[locale]/admin/groups/page.tsx` - create form + GroupCard server
+  component per group (member list, remove buttons, add-member form,
+  progress summary); inline "use server" actions with redirect.
+- `app/[locale]/groups/page.tsx` - student groups page; requireUser +
+  getMyGroups + getMyGroupProgress; empty state + groups list.
+- Updated `app/[locale]/admin/layout.tsx` - Groups and Reminders nav
+  links added.
+
+**Feature D - Reminders**
+
+- `lib/reminders/queries.ts` - identifyInactiveStudents (admin_stuck_students
+  view); listReminderEvents (admin, ordered by created_at desc).
+- `lib/reminders/actions.ts` - queueReminder: requireAdmin + 24h dedup
+  window (maybeSingle existing queued reminder for same user+course+reason
+  within 24h) + insert with status='queued', metadata={provider:"none"};
+  markReminderStatus: requireAdmin + update; sets sent_at when
+  status='sent'. No email provider - status stays 'queued'.
+- `app/[locale]/admin/reminders/page.tsx` - inactive students table
+  with Queue Reminder form per row + reminder queue table; provider
+  notice banner (role="note", yellow) stating no EMAIL_PROVIDER_API_KEY;
+  notice/error searchParam feedback.
+
+**Feature E - Payments (Simulation Only)**
+
+- `lib/payments/checkout.ts` - getActiveCoursePrice (maybeSingle on
+  course_prices where is_active=true). hasPaidAccess: admin bypass ->
+  free course (no price) -> paid payment check. createCheckoutSession:
+  requireUser + hasPaidAccess guard + getActiveCoursePrice + randomUUID()
+  for both checkoutSessionId and simulationEventId + insert pending
+  payments row; returns CheckoutSessionResult (no card fields).
+  confirmSimulatedPayment: requireUser + find by simulationEventId +
+  idempotency check (already paid -> return) + update to paid +
+  enrollInCourse(); provider='simulation' throughout.
+- `app/[locale]/courses/[courseSlug]/checkout/page.tsx` - requireUser +
+  getCourseDetailBySlug + hasPaidAccess (redirect if access) +
+  getActiveCoursePrice + createCheckoutSession; mandatory ShieldCheck
+  banner "Simulated payment - no real charge will occur"; NO card input
+  fields; single "Pay (Simulated)" confirm button; handleConfirmPayment
+  server action -> confirmSimulatedPayment -> redirect to course.
+- Updated `components/courses/enrollment-button.tsx` - checkoutHref prop:
+  if set, renders Link to checkout instead of calling enrollInCourse
+  (paid course path); original path now serves free courses only.
+- Updated `app/[locale]/courses/[courseSlug]/page.tsx` - loads
+  getActiveCoursePrice; computes checkoutHref after enrollment state
+  determined; passes to GatedLesson -> EnrollmentButton.
+
+**Cross-cutting**
+
+- `messages/en-US.json` + `messages/he-IL.json` - 5 new namespaces:
+  Certificates, Search, Groups, Reminders, Payments; Nav.search;
+  Course.getCertificate; Admin.nav.groups/reminders;
+  DashboardStudent certificate keys. 453 keys in sync (up from 335).
+
+**Tests**
+
+- `tests/integration/certificates.test.ts` - 6 tests: isEligibleForCertificate
+  (false/true), getMyCertificates (empty, DTO mapping), issueCertificate
+  (courseNotComplete fail, idempotent success).
+- `tests/integration/search.test.ts` - 5 tests: empty/whitespace guard,
+  search_documents view target, ILIKE filter captured, partition into
+  courses/lessons, empty results.
+- `tests/integration/groups.test.ts` - 8 tests: createGroup (name fail,
+  slug fail, 23505 slug error, success), addMember (UUID validation,
+  success), getMyGroups (empty, array type).
+- `tests/integration/reminders.test.ts` - 4 tests: identifyInactiveStudents,
+  queueReminder creates queued status, queueReminder idempotent (returns
+  existing within dedup window), fails on empty userId.
+- `tests/integration/payments.test.ts` - 9 tests: hasPaidAccess (admin
+  bypass, free course, paid payment, no payment), createCheckoutSession
+  (creates pending SIMULATION-ONLY row with UUID keys, no card fields;
+  alreadyPaid guard; free course path), confirmSimulatedPayment (sets
+  paid+enrolls, idempotent on simulationEventId, empty id fails, not
+  found fails).
+- `e2e/extended-features.spec.ts` - 14 tests (3 skipped needing seeded
+  DB): search page form + GET ?q= + empty results + HE RTL; checkout
+  unauthenticated redirect + no card fields assertion; certificates/groups
+  unauthenticated gating; admin reminders/groups unauthenticated redirect;
+  nav search link present EN+HE.
+
+### Bug Fixes During Implementation
+
+- Test UUID format: Zod v4 enforces RFC 4122 UUID spec (version nibble
+  1-8, variant 8-b). Test UUIDs using `0000` 3rd segment rejected. Fixed
+  by using proper v4 UUIDs (`*-*-4xxx-8xxx-*`).
+- `next/cache` mock missing: `revalidatePath` in `"use server"` modules
+  throws "static generation store missing" in vitest. Fixed by adding
+  `vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))` to each
+  affected test file (certificates, groups, reminders).
+- `getMyCertificates` returned `[]` in tests: makeBuilder in
+  `certificates.test.ts` lacked a `then` trap for direct-await of the
+  builder (list queries ending in `.order()`). Added `then` trap
+  resolving from `mockResults[table]`.
+- SearchResults type mismatch: existing `lib/search/types.ts` defined
+  flat `{query, results[], total}`. Implementation needed `{courses,
+  lessons}` partition. Fixed type file to match.
+- ESLint: unused `locale` prop in GroupCard. Removed from interface and
+  call site.
+- `checkoutHref` computed before `isEnrolled` set: moved computation
+  after the enrollment state block in the course page.
+- Hamburger drawer: search nav link added for all users (anonymous too),
+  so drawer always visible; added conditional sign-in/sign-out inside
+  drawer.
+
+### Gate Results
+
+- `npm run lint` - 0 errors, 0 warnings.
+- `npm run lint:i18n` - 453 keys in sync.
+- `npm run typecheck` - clean.
+- `npm run test` - 372 passed (0 failed).
+- `npm run build` - clean; 42 routes generated including all 5 new
+  feature routes.
+- `npm run test:e2e` - 72 passed, 4 skipped (3 need seeded DB,
+  1 E2E_REAL_AI gate), 0 failed.

@@ -58,6 +58,18 @@ export default async function AdminLayout({
           >
             {t("nav.courses")}
           </Link>
+          <Link
+            href="/admin/groups"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {t("nav.groups")}
+          </Link>
+          <Link
+            href="/admin/reminders"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {t("nav.reminders")}
+          </Link>
         </div>
       </nav>
       <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 overflow-x-hidden px-4 py-8">

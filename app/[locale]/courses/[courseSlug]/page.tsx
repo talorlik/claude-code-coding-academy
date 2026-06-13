@@ -22,6 +22,7 @@ import { EnrollmentButton } from "@/components/courses/enrollment-button"
 import { getCourseDetailBySlug } from "@/lib/courses/queries"
 import { getEnrollment, getCourseProgress } from "@/lib/progress/queries"
 import { getConversationMessages } from "@/lib/tutor/queries"
+import { getActiveCoursePrice } from "@/lib/payments/checkout"
 import { createClient } from "@/lib/supabase/server"
 import type { Locale } from "@/i18n/routing"
 import {
@@ -98,9 +99,11 @@ export async function generateMetadata({
 /** Returns the completion panel when all lessons are done. */
 function CourseCompletionState({
   courseTitle,
+  courseSlug,
   t,
 }: {
   courseTitle: string
+  courseSlug: string
   t: (key: string) => string
 }) {
   return (
@@ -113,9 +116,13 @@ function CourseCompletionState({
         {t("completionBody")}
       </p>
       <p className="text-xs text-muted-foreground">{courseTitle}</p>
-      {/* Certificate: batch 11 forward-ref */}
-      <Button render={<Link href="/dashboard" />} variant="default" size="sm">
-        {t("backToDashboard")}
+      {/* Certificate CTA - issues and links to the printable certificate page */}
+      <Button
+        render={<Link href={`/certificates/${courseSlug}`} />}
+        variant="default"
+        size="sm"
+      >
+        {t("getCertificate")}
       </Button>
     </div>
   )
@@ -126,11 +133,13 @@ function GatedLesson({
   userId,
   courseId,
   courseSlug,
+  checkoutHref,
   t,
 }: {
   userId: string | null
   courseId: string
   courseSlug: string
+  checkoutHref?: string
   t: (key: string) => string
 }) {
   return (
@@ -145,6 +154,7 @@ function GatedLesson({
         courseSlug={courseSlug}
         userId={userId}
         isEnrolled={false}
+        checkoutHref={checkoutHref}
       />
     </div>
   )
@@ -187,7 +197,7 @@ export default async function CourseDetailPage({
   } = await supabase.auth.getUser()
   const userId = user?.id ?? null
 
-  // 3. Load enrollment + progress for authed users.
+  // 3. Load enrollment + progress for authed users + active price.
   let isEnrolled = false
   let completedLessonIds = new Set<string>()
   let progress: import("@/lib/progress/types").CourseProgress = {
@@ -198,6 +208,9 @@ export default async function CourseDetailPage({
     isComplete: false,
     nextLessonId: course.lessons[0]?.id ?? null,
   }
+
+  // Fetch the active price in parallel with enrollment.
+  const [activePrice] = await Promise.all([getActiveCoursePrice(course.id)])
 
   if (userId) {
     const [enrollment, progressData] = await Promise.all([
@@ -213,6 +226,12 @@ export default async function CourseDetailPage({
     completedLessonIds = progressData.completedLessonIds
     progress = progressData.progress
   }
+
+  // Route to checkout for paid courses that are not yet enrolled.
+  const checkoutHref =
+    activePrice && !isEnrolled
+      ? (`/courses/${courseSlug}/checkout` as const)
+      : undefined
 
   // 4. Determine selected lesson.
   //    Priority: explicit ?lesson= param > last_accessed for enrolled >
@@ -383,6 +402,7 @@ export default async function CourseDetailPage({
           {progress.isComplete && !selectedLesson && (
             <CourseCompletionState
               courseTitle={course.title}
+              courseSlug={courseSlug}
               t={(k) => t(k as Parameters<typeof t>[0])}
             />
           )}
@@ -402,6 +422,7 @@ export default async function CourseDetailPage({
                   userId={userId}
                   courseId={course.id}
                   courseSlug={courseSlug}
+                  checkoutHref={checkoutHref}
                   t={(k) => t(k as Parameters<typeof t>[0])}
                 />
               )}
@@ -447,6 +468,7 @@ export default async function CourseDetailPage({
                 <div className="mt-6">
                   <CourseCompletionState
                     courseTitle={course.title}
+                    courseSlug={courseSlug}
                     t={(k) => t(k as Parameters<typeof t>[0])}
                   />
                 </div>
