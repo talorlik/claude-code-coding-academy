@@ -67,3 +67,28 @@ icons.
   wrapping (`basis-full`) header.
 - The manifest theme/background colors track the current light/dark
   `--background` (`#ffffff` / `#0a0a0a`), not the reference's fitness palette.
+
+### 2026-06-13 - Batch 00 - Baseline verified; PRD claims diverge from reality
+
+Baseline verification recorded in `docs/planning/IMPLEMENTATION_LOG.md`. Four
+PRD/TASK_BREAKDOWN claims are false or drifted and later batches must not
+assume them:
+
+- Vitest/Testing Library/jsdom are NOT installed (Playwright is the only
+  runner). Batch 01 must add the unit test harness from scratch.
+- Cloudflare Turnstile is entirely absent (no dep, no code, no env vars),
+  despite PRD section 2 listing it as existing baseline.
+- `/api/chat` and `/chat` are unauthenticated; `PROTECTED_SEGMENTS` in
+  `proxy.ts` covers only `dashboard`/`profile`. Deferred to Batch 08 (AI
+  tutor), which reworks the chat route anyway. Tech-debt until then.
+- `PROTECTED_SEGMENTS` and `/auth/confirm` `ALLOWED_NEXT` reference a
+  `/profile` page that does not exist (404 if hit). Harmless; clean up when a
+  profile page or dashboards land.
+
+**Why:** Batch 00 is read-only by design (no fixes without a blocking defect),
+so these are recorded for the batches whose scope owns them instead of being
+patched ad hoc. Env naming note: code reads `NEXT_PUBLIC_SITE_URL` (absent,
+falls back to Host header) while the spec calls it `NEXT_PUBLIC_APP_URL` -
+pick one name when a batch first needs it. `TURNSTILE_*` and `YOUTUBE_API_KEY`
+are also absent from `.env.local`; Batch 04 must treat the YouTube key as
+optional at runtime.
