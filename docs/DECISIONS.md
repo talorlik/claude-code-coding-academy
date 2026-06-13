@@ -275,3 +275,38 @@ reorder is the simplest collision-free strategy that needs no schema change.
 
 **Tech-debt:** 16 lint WARNINGS remain (unused `_table`/`_cols` mock params in
 admin test files) - cosmetic, gate is 0 errors. Clean in the tech-debt batch.
+
+### 2026-06-13 - Batch 08 - Dedicated /api/tutor; persist-before-stream; gateway server-only
+
+The contextual AI tutor uses a NEW `app/api/tutor/route.ts` (non-localized, like
+all app/api/*), leaving the generic demo `app/api/chat/route.ts` untouched. The
+tutor needs auth + enrollment/preview gating + course/lesson context + Supabase
+persistence + own-conversation RLS isolation - none of which belong in the demo
+endpoint.
+
+- Persistence order: validate body (tutorMessageSchema) -> auth (401) -> gate
+  (403 unless enrolled OR lesson.is_preview) -> getOrCreateConversation ->
+  saveUserMessage BEFORE streaming -> streamText (model "openai/gpt-4o-mini" via
+  the gateway) -> saveAssistantMessage in onFinish after the stream. All writes
+  use the RLS request client (auth.uid() ownership); the app also re-checks
+  conversation.course_id === courseId on resume.
+- AI_GATEWAY_API_KEY stays server-only (the route is the trust boundary); never
+  NEXT_PUBLIC, never in the client island. course/lesson/conversation ids reach
+  the route via the useChat transport body; the server returns the conversation
+  id in an `x-conversation-id` header for resume.
+- System prompt (lib/tutor/prompt.ts, pure) grounds answers in the provided
+  course/lesson metadata, answers in the active locale, asks one clarifying
+  question when ambiguous, and is EXPLICITLY forbidden from claiming to have
+  watched the video or to know transcript/timestamps.
+- `components/tutor/tutor-chat.tsx` (the only new client island) mounts on the
+  course page when authenticated AND (enrolled OR preview); otherwise a
+  localized enroll/sign-in CTA. New `Tutor` i18n namespace; 276 keys.
+
+**Why:** Separating the tutor from the demo chat keeps each route's trust model
+clean and addresses the tutor's gating/persistence needs without weakening or
+entangling the existing /api/chat. 
+
+**Tech-debt:** /api/chat remains an UNAUTHENTICATED demo route - flagged in
+batch 00, still not fixed (out of this batch's scope). Decide in tech-debt
+whether to protect or remove it. Also: conversation-resume picker UI and
+/api/tutor rate limiting are follow-ups.

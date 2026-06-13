@@ -21,8 +21,14 @@ import { MarkWatchedButton } from "@/components/courses/mark-watched-button"
 import { EnrollmentButton } from "@/components/courses/enrollment-button"
 import { getCourseDetailBySlug } from "@/lib/courses/queries"
 import { getEnrollment, getCourseProgress } from "@/lib/progress/queries"
+import { getOrCreateConversation, getConversationMessages } from "@/lib/tutor/queries"
 import { createClient } from "@/lib/supabase/server"
 import type { Locale } from "@/i18n/routing"
+import {
+  TutorChat,
+  TutorSignInCta,
+  TutorEnrollCta,
+} from "@/components/tutor/tutor-chat"
 
 // ---------------------------------------------------------------------------
 // Route decision (documented here per batch 06 spec)
@@ -248,7 +254,46 @@ export default async function CourseDetailPage({
   const isWatched =
     selectedLesson !== null && completedLessonIds.has(selectedLesson.id)
 
-  // 7. Zero-lesson state.
+  // 7. Prefetch the latest tutor conversation + messages for the selected lesson.
+  //    Only when the user is authenticated AND (enrolled OR lesson is preview).
+  //    The initial data is passed as props so the chat panel shows history on
+  //    mount without a client-side round-trip.
+  let tutorConversationId: string | undefined
+  let tutorInitialMessages: import("ai").UIMessage[] = []
+
+  if (userId && selectedLesson) {
+    const tutorAllowed =
+      selectedLesson.isPreview || (userId !== null && isEnrolled)
+    if (tutorAllowed) {
+      try {
+        // Look up the most recent conversation for this user + course + lesson.
+        const { data: convRows } = await supabase
+          .from("ai_tutor_conversations")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("course_id", course.id)
+          .eq("lesson_id", selectedLesson.id)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+
+        const latestConvId = convRows?.[0]?.id
+        if (latestConvId) {
+          tutorConversationId = latestConvId
+          const msgs = await getConversationMessages(latestConvId, 20)
+          tutorInitialMessages = msgs.map((m, idx) => ({
+            id: m.id ?? String(idx),
+            role: m.role as "user" | "assistant",
+            parts: [{ type: "text" as const, text: m.content }],
+            content: m.content,
+          }))
+        }
+      } catch {
+        // Non-fatal: the panel will simply start empty.
+      }
+    }
+  }
+
+  // 8. Zero-lesson state.
   if (lessons.length === 0) {
     return (
       <main id="main-content" className="mx-auto max-w-4xl px-4 py-8">
@@ -406,6 +451,23 @@ export default async function CourseDetailPage({
                   />
                 </div>
               )}
+
+              {/* AI Tutor panel */}
+              <div className="mt-6">
+                {userId === null ? (
+                  <TutorSignInCta />
+                ) : canWatch ? (
+                  <TutorChat
+                    courseId={course.id}
+                    lessonId={selectedLesson.id}
+                    initialConversationId={tutorConversationId}
+                    initialMessages={tutorInitialMessages}
+                    locale={locale}
+                  />
+                ) : (
+                  <TutorEnrollCta />
+                )}
+              </div>
             </>
           )}
         </div>

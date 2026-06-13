@@ -1112,3 +1112,157 @@ npm run test:e2e   - PASS (36 tests; 2 new admin guard specs + 2 new responsive 
 - Drag-and-drop reorder UI (current implementation uses up/down buttons).
 - Playlist import preview UI beyond the basic form (thumbnails, duration).
 - Bulk lesson operations (select-all delete, bulk status change).
+
+## Batch 8: AI Tutor (2026-06-13)
+
+Implements the AI tutor chat panel for the course page. Students can ask
+questions about the current lesson and receive streamed AI responses that
+are persisted in Supabase with RLS isolation.
+
+### Route Decision: Dedicated /api/tutor
+
+A dedicated `app/api/tutor/route.ts` was created instead of extending the
+existing `/api/chat`. Rationale:
+
+- `/api/chat` is an unauthenticated demo route (tech-debt noted in batch 00;
+  not fixed here - left for a separate chore).
+- The tutor route requires auth (401), enrollment gating (403), course+lesson
+  context injection, Supabase persistence, and own-conversation isolation -
+  none of which belong in the generic demo endpoint.
+- Keeping them separate preserves the demo for testing and avoids coupling the
+  tutor's auth/gating logic to a route that intentionally has none.
+
+### Persistence Flow
+
+1. Parse and validate body (`tutorMessageSchema`): `courseId`, `lessonId?`,
+   `conversationId?`, and the latest user message text (extracted from the
+   `UIMessage[]` array).
+2. Authenticate via `supabase.auth.getUser()` - 401 if not authenticated.
+3. Load course row by UUID (direct query, not by slug).
+4. Load lesson row if `lessonId` provided; check `is_preview`.
+5. Enrollment gate: if lesson is not a preview, call `getEnrollment()` - 403
+   if not enrolled.
+6. `getOrCreateConversation()`: load the conversation (verifying `course_id`
+   match on top of RLS) or insert a new one.
+7. Load recent message history via `getConversationMessages(cap=20)`.
+8. **`saveUserMessage()` is called BEFORE the stream starts** so the user's
+   message is persisted even if the stream fails mid-way.
+9. Build system prompt via `buildTutorSystemPrompt()`.
+10. Convert history + new user turn to model messages via
+    `convertToModelMessages()`.
+11. `streamText()` with `onFinish` callback that calls
+    `saveAssistantMessage()` with the full response text after streaming
+    completes.
+12. Return `toUIMessageStreamResponse()` wrapped with an
+    `x-conversation-id` response header so the client can resume.
+
+### Enrollment / Preview Gating
+
+- A lesson with `is_preview = true` is accessible without enrollment (free
+  preview). The tutor panel renders for preview lessons even when the user
+  is not enrolled.
+- Non-preview lessons require an active enrollment row (`getEnrollment()`).
+- When neither condition is met the route returns 403 with a safe JSON
+  message (no stack, no secret).
+- The course page applies the same `canWatch` logic to decide which tutor
+  panel variant to render: `TutorChat` (authed + access), `TutorSignInCta`
+  (no user), or `TutorEnrollCta` (authed, not enrolled, not preview).
+
+### RLS Own-Conversation Isolation
+
+- All Supabase calls use the request-scoped client (`createClient()`) so
+  `auth.uid()` governs every read/write - no service-role bypass.
+- `getOrCreateConversation()` performs a belt-and-suspenders check: after
+  RLS filters by user ownership, the application layer additionally asserts
+  `conversation.course_id === courseId` to prevent cross-course context
+  leakage if a client supplies a mismatched `conversationId`.
+- Message inserts reference the conversation ID; RLS on `ai_tutor_messages`
+  grants access via the owning conversation's `user_id`.
+- `NEVER trust a client-supplied user_id` - the user ID comes exclusively
+  from `auth.getUser()`.
+
+### How Course/Lesson IDs Reach the Route
+
+The `useChat` hook in `TutorChat` uses `DefaultChatTransport` with a
+`prepareSendMessagesRequest` callback that merges `courseId`, `lessonId`,
+`conversationId`, and `locale` into the JSON body alongside the standard
+`messages` array. The server reads all fields from `req.json()`.
+
+The `conversationId` is initialized from a server-prefetched value
+(`initialConversationId` prop) and updated on each response from the
+`x-conversation-id` header (captured in the `fetch` wrapper on the
+transport) so that subsequent turns in the same session resume the correct
+DB conversation row.
+
+### System Prompt Guardrails
+
+`buildTutorSystemPrompt()` (pure, no side effects) includes:
+
+- Language instruction: answer in the active locale (`en` or `he`) unless
+  the student explicitly switches.
+- Course and lesson context block (name, description, lesson title,
+  description, YouTube URL for reference only).
+- A "Critical Limitations" section that explicitly instructs the model:
+  - It has NOT watched the video - only metadata is available.
+  - Do NOT claim to have seen timestamps, segments, or spoken words.
+  - Do NOT fabricate transcript content.
+  - If asked about a specific video moment, acknowledge the limitation and
+    offer to help based on the described concept.
+- One clarifying question when the question is ambiguous.
+- Suggest a small exercise when helpful.
+
+### Tutor i18n Namespace
+
+A new `"Tutor"` namespace was added to both `messages/en-US.json` and
+`messages/he-IL.json` (key-identical, real Hebrew). Keys: `heading`,
+`inputPlaceholder`, `inputLabel`, `send`, `thinking`, `empty`, `error`,
+`retry`, `enrollToAsk`, `signInToAsk`, `you`, `assistant`. `npm run
+lint:i18n` confirmed 276 keys in sync.
+
+### /api/chat Tech-Debt Note
+
+`/api/chat` remains an unauthenticated demo route. This is tracked as a
+separate tech-debt item and was NOT fixed in this batch - the prompt
+explicitly called it out as out of scope.
+
+### Files Created / Changed
+
+Created:
+
+- `lib/tutor/prompt.ts` - pure prompt builder + `capHistory` helper
+- `lib/tutor/queries.ts` - `getOrCreateConversation`, `getConversationMessages`,
+  `listConversationsForCourse`
+- `lib/tutor/persistence.ts` - `saveUserMessage`, `saveAssistantMessage`
+- `app/api/tutor/route.ts` - authenticated, gated, persisting streaming route
+- `components/tutor/tutor-chat.tsx` - `TutorChat`, `TutorSignInCta`,
+  `TutorEnrollCta` client components
+- `tests/unit/tutor-prompt.test.ts` - 17 unit tests for prompt builder
+- `tests/integration/tutor-route.test.ts` - 9 integration tests for the route
+- `e2e/tutor.spec.ts` - 9 e2e smoke tests (8 run, 1 skipped: live AI)
+
+Changed:
+
+- `app/[locale]/courses/[courseSlug]/page.tsx` - prefetches tutor history,
+  mounts `TutorChat` / `TutorSignInCta` / `TutorEnrollCta` below lesson
+- `messages/en-US.json` - added `"Tutor"` namespace (13 keys)
+- `messages/he-IL.json` - added `"Tutor"` namespace (13 keys, real Hebrew)
+
+### Gates
+
+- `npm run lint` - 0 errors, warnings are pre-existing patterns from other
+  test files (unused `_`-prefixed params in mock builders).
+- `npm run lint:i18n` - passed: 276 keys in sync.
+- `npm run typecheck` - passed clean.
+- `npm run test` - 298 tests, 20 test files, all passed.
+- `npm run build` - passed; `/api/tutor` route appears in the build manifest.
+- `npm run test:e2e` - 45 passed, 1 skipped (live AI gateway test guarded
+  behind `E2E_REAL_AI=true`; skipped in CI because the real gateway is not
+  called). All tutor-specific specs pass.
+
+### Follow-Ups
+
+- `/api/chat` unauthenticated demo route - tech-debt, separate chore.
+- Conversation resume UI (conversation list / picker) - deferred; the DB
+  layer (`listConversationsForCourse`) is in place.
+- Conversation title auto-generation (currently null) - deferred.
+- Rate limiting on `/api/tutor` - deferred.
