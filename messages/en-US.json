@@ -578,7 +578,25 @@
       "skipped": "Skipped"
     },
     "alreadyQueued": "Already queued",
-    "providerNote": "No email provider configured. Reminders are queued visibly. Configure EMAIL_PROVIDER_API_KEY to enable sending."
+    "providerNote": "No email provider configured. Reminders are queued visibly. Configure EMAIL_PROVIDER_API_KEY to enable sending.",
+    "sendReminder": "Send",
+    "sending": "Sending...",
+    "sendSuccess": "Reminder sent successfully.",
+    "sendError": "Failed to send reminder. Please try again.",
+    "sendConfirmTitle": "Send Reminder Email?",
+    "sendConfirmDescription": "This will send a reminder email to the student. Are you sure?",
+    "sendConfirmCancel": "Cancel",
+    "sendConfirmConfirm": "Send Email",
+    "actions": "Actions",
+    "email": {
+      "subject": "We miss you at Coding Academy!",
+      "subjectWithCourse": "Continue your journey in {course}",
+      "greeting": "Hello,",
+      "greetingName": "Hello {name},",
+      "body": "We noticed you haven't visited us in a while. Come back and keep learning! {link}",
+      "bodyWithCourse": "We noticed you haven't continued {course} in a while. Jump back in and keep making progress! {link}",
+      "closing": "Keep coding!\nThe Coding Academy Team"
+    }
   },
   "Payments": {
     "checkoutTitle": "Complete Enrollment",

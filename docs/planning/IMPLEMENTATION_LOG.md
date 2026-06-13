@@ -2083,3 +2083,159 @@ that file enforces the server boundary at build time. The key carries no
 `NEXT_PUBLIC_` prefix. No client component or client bundle path imports
 from `metadata.ts`; the component imports from `playlist.ts` (sentinels
 only, not the fetch function).
+
+
+## Batch 15: Reminder Email Delivery (Gmail SMTP) (2026-06-14)
+
+### Transport Design
+
+`lib/email/transport.ts` is a server-only nodemailer wrapper (`import
+"server-only"` first line). Two exported symbols:
+
+- `getTransport()` - builds a nodemailer SMTP transport from env vars read
+  at call time (not module load), so tests can `vi.stubEnv` before import.
+  Port 465 -> `secure: true` (implicit TLS / SMTPS). Any other port ->
+  `secure: false` (STARTTLS). Strips spaces from `SMTP_PASSWORD` (Gmail App
+  Passwords are sometimes formatted with spaces). Returns `null` when any of
+  `SMTP_HOST`, `SMTP_USER`, or `SMTP_PASSWORD` is missing - callers degrade
+  gracefully without throwing.
+- `sendEmail({ to, subject, text, html })` - calls `getTransport()`, returns
+  `ActionResult<{ messageId }>`. From address is `EMAIL_FROM || SMTP_USER`.
+  On catch, returns `fail("Failed to send email.")` - the raw error is never
+  propagated to avoid leaking credentials serialized by nodemailer into error
+  messages.
+
+### Two-Step Queue-Then-Send
+
+Batch 11 established the queue step: reminders are inserted with
+`status='queued'`. This batch adds an explicit second step: the admin sees a
+"Send" button per queued row in the admin UI and clicks it to trigger
+`sendReminder`. There is no auto-send on queue. This design gives the admin
+visibility before dispatch.
+
+### Status State Machine
+
+```
+queued -> sent    (sendReminder succeeds)
+queued -> failed  (sendEmail returns fail)
+failed -> sent    (admin retries via Send button)
+sent   -> sent    (idempotent: no re-send)
+```
+
+The `markReminderStatus` helper (batch 11) sets `sent_at = now()` on
+transition to `sent`. On failure the row is updated inline to `failed`
+without touching `sent_at`.
+
+### Email / Locale Resolution
+
+1. Load `profiles` row for `reminder.user_id`: `email`, `full_name`,
+   `locale`.
+2. If `profiles.email` is null, call `createAdminClient().auth.admin
+   .getUserById()` to read the canonical `auth.users.email`. This is the
+   documented pattern for reading auth emails server-side from service-role
+   context.
+3. If neither yields an email, return `fail` (status stays `queued`).
+4. `profiles.locale` (`'en'` | `'he'`, default `'en'`) determines which
+   catalog `getTranslations` uses for the email subject and body.
+
+Email content is composed from `Reminders.email.*` keys in both catalogs,
+supporting greeting-with-name, body-with-course, and body-without-course
+variants. The course slug is fetched from `courses` to build a localized
+deep link via `getSiteUrl()`.
+
+### Password-Never-Leaks Rule
+
+- `SMTP_PASSWORD` has no `NEXT_PUBLIC_` prefix.
+- `getTransport()` reads it at call time into a local variable that is passed
+  only to `nodemailer.createTransport` `auth.pass`; it is never logged.
+- The `catch` block in `sendEmail` discards the raw error entirely and
+  returns a hardcoded safe string.
+- Tests assert the returned `fail.message` does not contain the stubbed
+  password value.
+- `ActionResult` error messages are localized-safe strings; SMTP credentials
+  never appear in them.
+
+### Admin Send UI
+
+`components/admin/reminder-send-button.tsx` is a `"use client"` island that:
+
+- Shows an `AlertDialog` confirm before calling `sendReminder` via
+  `useTransition`.
+- `aria-busy` on the trigger button while pending; label swaps to "Sending..."
+- On success/failure, shows a `sonner` toast.
+- Rendered per row in `app/[locale]/admin/reminders/page.tsx` for any row
+  with `status === 'queued' || status === 'failed'`. Already-sent rows show
+  no button.
+- The provider notice banner is now conditional on `!process.env.SMTP_HOST`
+  so it disappears when SMTP is configured.
+
+### nodemailer Mocking Approach
+
+`vi.mock('nodemailer', () => ({ default: { createTransport: vi.fn()... }}))`.
+The mock returns a fake transport with a `sendMail: vi.fn()` controlled per
+test via `mockResolvedValueOnce` / `mockRejectedValueOnce`. `vi.stubEnv` sets
+`SMTP_*` vars per test; `vi.resetModules()` + `vi.unstubAllEnvs()` in
+`afterEach` prevent cross-test contamination (the module caches the
+`vi.mock` but not the env reads, since `getTransport` reads env at call time).
+
+### Opt-In Live Test Flag
+
+`tests/integration/email-live.test.ts` is guarded by
+`describe.skipIf(process.env.SMTP_LIVE_TEST !== 'true')`. Running
+`SMTP_LIVE_TEST=true npm run test -- tests/integration/email-live.test.ts`
+sends a real self-email to `SMTP_USER` and asserts a non-empty `messageId`.
+This test is excluded from `npm run test` and CI by default. Document it as
+a pre-deploy smoke-test to verify Vercel can reach smtp.gmail.com.
+
+### New i18n Keys
+
+Sixteen keys added under `Reminders.*` in both catalogs:
+
+- `sendReminder`, `sending`, `sendSuccess`, `sendError` - Send button states.
+- `sendConfirmTitle`, `sendConfirmDescription`, `sendConfirmCancel`,
+  `sendConfirmConfirm` - AlertDialog confirm dialog.
+- `actions` - table column header.
+- `email.subject`, `email.subjectWithCourse`, `email.greeting`,
+  `email.greetingName`, `email.body`, `email.bodyWithCourse`,
+  `email.closing` - email content templates.
+
+Catalogs remain key-identical: `lint:i18n` exits 0 with 462 keys in sync.
+
+### Dependencies Added
+
+- `nodemailer` (runtime).
+- `@types/nodemailer` (devDependency).
+
+### New Files
+
+- `lib/email/transport.ts` - server-only SMTP transport + sendEmail.
+- `components/admin/reminder-send-button.tsx` - client island for Send.
+- `tests/integration/email-transport.test.ts` - 10 unit tests for transport.
+- `tests/integration/send-reminder.test.ts` - 9 integration tests for
+  sendReminder action.
+- `tests/integration/email-live.test.ts` - 1 opt-in live test (skipped
+  by default).
+
+### Gate Results
+
+- `npm run lint` - exit 0; 0 errors, 0 warnings.
+- `npm run lint:i18n` - exit 0; 462 keys in sync.
+- `npm run typecheck` - exit 0 (guard + tsc --noEmit clean).
+- `npm run test` - exit 0; 424 passed, 3 skipped (live test), 0 failed
+  (35 test files total, 2 skipped files).
+- `npm run build` - exit 0; 27 routes, no type errors.
+- `npm run test:e2e` - exit 0; 72 passed, 4 skipped (pre-existing live
+  service skips + SMTP_HOST-conditional provider banner skip), 0 failed.
+
+### Known Risk: Vercel + Gmail SMTP Deliverability
+
+Gmail SMTP (port 465) from Vercel serverless IPs may be blocked or
+throttled because Vercel's outbound IPs are known datacenter ranges, and
+Gmail's anti-spam heuristics flag them. Symptoms: "Connection refused" or
+auth failure in Vercel logs despite credentials being correct locally.
+
+Fallback: if production sends fail, replace `lib/email/transport.ts` with an
+HTTP transactional provider (Resend at `resend.com` is the simplest drop-in:
+`npm install resend`, one API call, no SMTP). The `sendEmail` signature and
+`ActionResult` contract stay identical; only the implementation changes.
+Flag this as a post-deploy verification item before batch 15 is closed.

@@ -7,6 +7,7 @@ import {
   listReminderEvents,
 } from "@/lib/reminders/queries"
 import { queueReminder } from "@/lib/reminders/actions"
+import { ReminderSendButton } from "@/components/admin/reminder-send-button"
 import type { Locale } from "@/i18n/routing"
 
 export async function generateMetadata({
@@ -77,13 +78,16 @@ export default async function AdminRemindersPage({
         {t("pageTitle")}
       </h1>
 
-      {/* Provider notice */}
-      <div
-        role="note"
-        className="rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200"
-      >
-        {t("providerNote")}
-      </div>
+      {/* Provider notice - shown only when SMTP is not configured in this env.
+          The banner is informational only; the Send button degrades gracefully. */}
+      {process.env.SMTP_HOST ? null : (
+        <div
+          role="note"
+          className="rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200"
+        >
+          {t("providerNote")}
+        </div>
+      )}
 
       {notice === "queued" && (
         <div
@@ -194,7 +198,7 @@ export default async function AdminRemindersPage({
           <p className="text-sm text-muted-foreground">{t("noReminders")}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] border-collapse text-sm">
+            <table className="w-full min-w-[700px] border-collapse text-sm">
               <thead>
                 <tr className="border-b">
                   <th className="py-2 pe-4 text-start font-medium text-muted-foreground">
@@ -206,8 +210,11 @@ export default async function AdminRemindersPage({
                   <th className="py-2 pe-4 text-start font-medium text-muted-foreground">
                     {t("status")}
                   </th>
-                  <th className="py-2 text-start font-medium text-muted-foreground">
+                  <th className="py-2 pe-4 text-start font-medium text-muted-foreground">
                     {t("createdAt")}
+                  </th>
+                  <th className="py-2 text-start font-medium text-muted-foreground">
+                    {t("actions")}
                   </th>
                 </tr>
               </thead>
@@ -235,8 +242,13 @@ export default async function AdminRemindersPage({
                         {event.status}
                       </span>
                     </td>
-                    <td className="py-2 text-xs text-muted-foreground">
+                    <td className="py-2 pe-4 text-xs text-muted-foreground">
                       {event.createdAt.slice(0, 10)}
+                    </td>
+                    <td className="py-2">
+                      {event.status === "queued" || event.status === "failed" ? (
+                        <ReminderSendButton reminderId={event.id} />
+                      ) : null}
                     </td>
                   </tr>
                 ))}

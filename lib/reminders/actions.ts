@@ -2,13 +2,16 @@
 import "server-only"
 
 import { revalidatePath } from "next/cache"
+import { getTranslations } from "next-intl/server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth/guards"
 import { fail, ok } from "@/lib/types/action-result"
 import type { ActionResult } from "@/lib/types/action-result"
 import { toReminderEventDTO } from "@/lib/reminders/types"
 import type { ReminderEventDTO } from "@/lib/reminders/types"
+import { sendEmail } from "@/lib/email/transport"
+import { getSiteUrl } from "@/lib/utils/site-url"
 
 // Idempotency window in hours: do not create a duplicate queued reminder
 // for the same user+course+reason within this window.
@@ -156,4 +159,149 @@ export async function markReminderStatus(
   revalidatePath("/", "layout")
 
   return ok<ReminderEventDTO>(toReminderEventDTO(data))
+}
+
+/**
+ * Sends a queued reminder email to the target student and updates the
+ * reminder_events row status to 'sent' or 'failed'.
+ *
+ * Guards: requireAdmin() - instructor role required (re-checked server-side).
+ *
+ * Email / locale resolution order:
+ * 1. profiles.email   - stored at registration time.
+ * 2. auth.users.email - canonical source via admin client when profiles.email is null.
+ *
+ * The student's locale from profiles.locale drives the email language.
+ *
+ * Idempotency: if the reminder is already 'sent', returns ok immediately
+ * without re-sending.
+ *
+ * Security:
+ * - SMTP credentials are never returned to the caller or included in error messages.
+ * - The admin client is used only to read auth.users.email as a fallback.
+ *
+ * @param reminderId - UUID of the reminder_events row to send.
+ * @returns `ok(ReminderEventDTO)` on success, `fail(safeMessage)` on error.
+ */
+export async function sendReminder(
+  reminderId: string
+): Promise<ActionResult<ReminderEventDTO>> {
+  await requireAdmin()
+
+  if (!reminderId) {
+    return fail<ReminderEventDTO>("Reminder ID is required.")
+  }
+
+  const supabase = await createClient()
+
+  // Load the reminder row (admin RLS allows instructor to read all reminder_events).
+  const { data: reminder, error: reminderError } = await supabase
+    .from("reminder_events")
+    .select(
+      "id, user_id, course_id, reason, status, sent_at, created_at, updated_at, metadata"
+    )
+    .eq("id", reminderId)
+    .single()
+
+  if (reminderError || !reminder) {
+    console.error("[reminders/actions] sendReminder load:", reminderError)
+    return fail<ReminderEventDTO>("Reminder not found.")
+  }
+
+  // Idempotency: already sent -> return ok without re-sending.
+  if (reminder.status === "sent") {
+    return ok<ReminderEventDTO>(toReminderEventDTO(reminder))
+  }
+
+  // Resolve the student's email and locale from profiles.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email, full_name, locale")
+    .eq("user_id", reminder.user_id)
+    .single()
+
+  let toEmail = profile?.email ?? null
+  const fullName = profile?.full_name ?? ""
+  const locale = (profile?.locale ?? "en") as "en" | "he"
+
+  // Fall back to auth.users email when profiles.email is null.
+  if (!toEmail) {
+    const adminClient = createAdminClient()
+    const { data: authData } = await adminClient.auth.admin.getUserById(
+      reminder.user_id
+    )
+    toEmail = authData?.user?.email ?? null
+  }
+
+  if (!toEmail) {
+    // Status stays 'queued' - we cannot send without an email address.
+    return fail<ReminderEventDTO>(
+      "Could not resolve student email address. Reminder not sent."
+    )
+  }
+
+  // Resolve course title and slug if this reminder is course-specific.
+  let courseTitle: string | null = null
+  let courseSlug: string | null = null
+  if (reminder.course_id) {
+    const { data: course } = await supabase
+      .from("courses")
+      .select("title, slug")
+      .eq("id", reminder.course_id)
+      .single()
+    courseTitle = course?.title ?? null
+    courseSlug = course?.slug ?? null
+  }
+
+  // Build the localized course link.
+  const siteUrl = getSiteUrl()
+  const courseLink =
+    courseSlug ? `${siteUrl}/${locale}/courses/${courseSlug}` : siteUrl
+
+  // Compose localized email content.
+  const t = await getTranslations({ locale, namespace: "Reminders" })
+
+  const subject = courseTitle
+    ? t("email.subjectWithCourse", { course: courseTitle })
+    : t("email.subject")
+
+  const greeting = fullName
+    ? t("email.greetingName", { name: fullName })
+    : t("email.greeting")
+  const body = courseTitle
+    ? t("email.bodyWithCourse", { course: courseTitle, link: courseLink })
+    : t("email.body", { link: courseLink })
+  const closing = t("email.closing")
+
+  const text = `${greeting}\n\n${body}\n\n${closing}`
+  const html = `<p>${greeting}</p><p>${body}</p><p>${closing}</p>`
+
+  const sendResult = await sendEmail({
+    to: toEmail,
+    subject,
+    text,
+    html,
+  })
+
+  if (!sendResult.ok) {
+    // Mark failed so the admin knows the attempt was made.
+    await supabase
+      .from("reminder_events")
+      .update({ status: "failed" })
+      .eq("id", reminderId)
+
+    revalidatePath("/admin/reminders", "page")
+
+    return fail<ReminderEventDTO>(sendResult.message)
+  }
+
+  // Mark sent with timestamp.
+  const updateResult = await markReminderStatus(reminderId, "sent")
+  if (!updateResult.ok) {
+    return fail<ReminderEventDTO>("Reminder sent but failed to update status.")
+  }
+
+  revalidatePath("/admin/reminders", "page")
+
+  return ok<ReminderEventDTO>(updateResult.data)
 }

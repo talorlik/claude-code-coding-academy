@@ -567,3 +567,37 @@ stale. Repointed the live test at a stable public educational playlist
 2026-06-14: 65 items, durations present); live test now 2/2 green. Lesson:
 live-data test fixtures rot - a live test must be run, and its playlist
 re-verified, not assumed.
+
+### 2026-06-14 - Batch 15 - Reminder email delivery via Gmail SMTP (two-step, server-only)
+
+Real reminder email now sends via nodemailer over Gmail SMTP, replacing the
+batch-11 queue-only stub. `lib/email/transport.ts` is server-only
+(`import "server-only"`): getTransport() reads SMTP_HOST/PORT/USER/PASSWORD at
+CALL time (port 465 => secure:true SMTPS, else STARTTLS; strips App-Password
+spaces); sendEmail() returns ActionResult and on any failure returns a GENERIC
+safe message ("Failed to send email.") - the raw nodemailer error (which could
+contain credentials) is discarded, so SMTP_PASSWORD can never reach a client or
+a log. Missing SMTP_* => degrades to a clear fail, never crashes.
+
+- `sendReminder(reminderId)` in lib/reminders/actions.ts: requireAdmin
+  (re-checked), idempotent (a 'sent' reminder is not re-sent), resolves the
+  student email from profiles.email then falls back to the admin client's
+  auth.admin.getUserById, composes a LOCALIZED email (profiles.locale, course
+  title + getSiteUrl deep link), sends, and flips reminder_events.status
+  queued->sent (sent_at) or ->failed. TWO-STEP: queue stays separate; admin
+  clicks Send (AlertDialog confirm). No auto-send on queue.
+- Tests mock nodemailer fully (vi.mock + vi.stubEnv + resetModules); default
+  suite never sends. Opt-in live test tests/integration/email-live.test.ts
+  (SMTP_LIVE_TEST=true) self-sends to SMTP_USER. New Reminders.email.* i18n
+  (462 keys). nodemailer 8 + @types added.
+
+**Why / verification:** the orchestrator RAN the opt-in live test - a REAL email
+sent through Gmail SMTP and returned a messageId (1/1 pass), proving the full
+path, not just "verified by reading" (the batch-14 lesson). Unlike batch 14's
+playlist fixture, the self-send target (SMTP_USER) can't rot.
+
+**KNOWN RISK (post-deploy):** Gmail SMTP from Vercel serverless IPs may be
+blocked/throttled in production even though it works locally. If production
+sends fail, swap the transport impl for an HTTP email API (Resend) -
+sendEmail's signature is unchanged, only lib/email/transport.ts internals
+change. Verify a production send after the Vercel deploy picks up SMTP_*.

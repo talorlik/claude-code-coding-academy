@@ -578,7 +578,25 @@
       "skipped": "דולג"
     },
     "alreadyQueued": "כבר בתור",
-    "providerNote": "לא הוגדר ספק דוא\"ל. התזכורות נוספות לתור ומוצגות. הגדירו EMAIL_PROVIDER_API_KEY כדי לאפשר שליחה."
+    "providerNote": "לא הוגדר ספק דוא\"ל. התזכורות נוספות לתור ומוצגות. הגדירו EMAIL_PROVIDER_API_KEY כדי לאפשר שליחה.",
+    "sendReminder": "שלח",
+    "sending": "שולח...",
+    "sendSuccess": "התזכורת נשלחה בהצלחה.",
+    "sendError": "שליחת התזכורת נכשלה. נסו שוב.",
+    "sendConfirmTitle": "לשלוח תזכורת במייל?",
+    "sendConfirmDescription": "פעולה זו תשלח מייל תזכורת לסטודנט. האם אתם בטוחים?",
+    "sendConfirmCancel": "ביטול",
+    "sendConfirmConfirm": "שלח מייל",
+    "actions": "פעולות",
+    "email": {
+      "subject": "אנחנו מתגעגעים אליך באקדמיה!",
+      "subjectWithCourse": "המשך את מסעך ב{course}",
+      "greeting": "שלום,",
+      "greetingName": "שלום {name},",
+      "body": "שמנו לב שלא ביקרת אצלנו זמן מה. חזור והמשך ללמוד! {link}",
+      "bodyWithCourse": "שמנו לב שלא המשכת את {course} זמן מה. חזור והמשך להתקדם! {link}",
+      "closing": "בהצלחה!\nצוות האקדמיה לתכנות"
+    }
   },
   "Payments": {
     "checkoutTitle": "השלמת ההרשמה",
