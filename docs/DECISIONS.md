@@ -145,3 +145,31 @@ seed depend on) to match the spec's profiles/role shape would be a rewrite for
 no functional gain. The reconciliation preserves auth and satisfies every
 product requirement. Later batches: roles are read from `user_roles`, NOT a
 `profiles.role` column; "admin" in any prompt means the `instructor` role.
+
+### 2026-06-13 - Batch 03 - Zod adopted for validation; domain DTO conventions
+
+The domain layer landed with these conventions that later batches consume:
+
+- Zod 4.4.3 is now the validation library (none existed; section 8.2 permits
+  adding it). All `lib/validation/*.ts` schemas use Zod and export their
+  `z.infer` types. The existing hand-rolled auth regex validator
+  (`lib/auth/validation.ts`) was left alone - do NOT migrate it here.
+- `lib/validation/parse.ts` exposes `parseWithSchema(schema, input)` returning
+  the existing `ActionResult<T>` (maps the first ZodError per field to
+  `fieldErrors`). Server actions in later batches should validate through it.
+- DTOs are camelCase, mapped from snake_case rows by `toX` mappers in each
+  `lib/<domain>/types.ts`. Public DTOs omit `created_by`. Enum unions are
+  aliased from `Database['public']['Enums']`, never re-declared.
+- Progress (`lib/progress/calculate.ts`) is pure (no Supabase): zero lessons =>
+  percent 0, isComplete false (avoids premature certificate award); percent is
+  an integer `Math.round`; `nextLessonId` = first by sort_order not yet
+  completed, or null.
+- `lib/courses/queries.ts` is server-only (depends on the cookie-bound server
+  client) and filters `status='published'` explicitly in addition to RLS.
+
+**Why:** Establishing the type + validation foundation now means the UI, admin,
+tutor, and dashboard batches consume ready DTOs/schemas instead of retrofitting.
+Deferred (by scope, not oversight): all `lib/<domain>/actions.ts` server
+actions, `lib/auth/guards.ts`, `lib/progress/queries.ts`, and the YouTube
+parser (batch 04). Factories were left on their local interfaces (they match
+the generated rows exactly); re-pointing is cosmetic tech-debt.

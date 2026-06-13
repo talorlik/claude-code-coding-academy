@@ -522,3 +522,134 @@ Full repeatable checks saved to `supabase/tests/RLS_CHECKS.sql`.
 - `profiles.email` population: the column exists but is not auto-populated
   on signup. Batch 3 or the auth trigger should backfill it from
   `auth.users.email`.
+
+## Batch 3: Domain Layer (2026-06-13)
+
+Implements the full shared TypeScript domain layer: DTO types with mappers,
+Zod validation schemas, server-only course query functions, and pure progress
+calculation utilities. Tasks 3.1, 3.2, 3.4, 3.5 from `TASK_BREAKDOWN.md`.
+
+### Zod Adoption
+
+Zod v4.4.3 installed as a production dependency (`npm install zod`). The
+`lib/auth/validation.ts` hand-rolled regex validator is unchanged (the prompt
+prohibits rewriting it). All new input validation uses Zod schemas. Section
+8.2 of `TECHNICAL_REQUIREMENTS.md` explicitly permits adding Zod when no
+convention exists.
+
+Zod v4 API notes: `z.string().url()` and `z.string().uuid()` work as in v3.
+`error.flatten().fieldErrors` returns `Record<string, string[]>` (arrays, not
+strings). `lib/validation/parse.ts` maps the first message per field to match
+`ActionResult`'s `Record<string, string>` shape.
+
+### DTO And Mapper Convention
+
+All domain DTOs use camelCase field names mapped from snake_case DB columns.
+Mapper functions (`toCourseSummary`, `toLessonSummary`, `toCourseDetail`,
+etc.) accept raw Supabase row types from `database.types.ts` and return typed
+DTOs. The `created_by` field on `courses` is excluded from all public DTOs
+because instructor identity is not exposed in catalog reads.
+
+Enum types are re-exported from the generated `Database` type rather than
+redeclared as string literal unions:
+
+```ts
+export type CourseLevel = Database["public"]["Enums"]["course_level"]
+```
+
+This ensures the DTO types and the DB schema cannot diverge silently.
+
+### Progress Calculation Decisions
+
+**Zero lessons:** A course with no lessons returns `{ percent: 0, isComplete:
+false, nextLessonId: null }`. Treating an empty course as complete would
+incorrectly award certificates before any content exists.
+
+**Integer percent:** `percent = Math.round(completed / total * 100)`, clamped
+to `[0, 100]`. Integer rounding avoids floating-point display noise (e.g.
+"66.666...%"). This matches the view's `progress_percent` column convention.
+
+**`nextLessonId`:** First lesson by ascending `sortOrder` not in
+`completedLessonIds`. Null when all lessons are complete, the course is empty,
+or no lesson stubs are supplied.
+
+**`lastWatchedAt`:** Caller-supplied parameter (from `student_course_progress`
+view or a `MAX(watched_at)` aggregate). The pure function has no DB access.
+
+### Validation Coverage
+
+All schemas listed in section 8.2 are implemented:
+
+- `lib/validation/course.ts` - `createCourseSchema`, `updateCourseSchema`,
+  `enrollmentSchema`, `markWatchedSchema`
+- `lib/validation/lesson.ts` - `createLessonSchema`, `updateLessonSchema`,
+  `reorderLessonsSchema`
+- `lib/validation/tutor.ts` - `tutorMessageSchema`, `createConversationSchema`
+- `lib/validation/group.ts` - `createGroupSchema`, `groupMembershipSchema`
+- `lib/validation/reminder.ts` - `reminderActionSchema`
+- `lib/validation/payment.ts` - `checkoutSchema`, `confirmPaymentSchema`
+- `lib/validation/search.ts` - `searchQuerySchema`
+- `lib/validation/certificate.ts` - `certificateSchema`
+- `lib/validation/parse.ts` - `parseWithSchema` helper bridging Zod ->
+  `ActionResult`
+
+Each schema exports an inferred `z.infer<>` type alongside the schema object.
+
+### Server-Only Queries Note
+
+`lib/courses/queries.ts` uses `createClient()` from `lib/supabase/server.ts`
+(the request-scoped RLS client). The `server-only` package is not installed;
+the module is implicitly server-only because `createClient()` calls
+`cookies()` from `next/headers`, which throws in the client bundle. All
+queries filter `status = 'published'` explicitly as a defense-in-depth measure
+on top of RLS. The `course_lesson_counts` view is used for efficient
+lesson-count joins without loading all lesson rows.
+
+### Factory Re-Pointing Outcome
+
+The factories in `tests/factories/course.ts` and `tests/factories/lesson.ts`
+declare local `CourseFactoryRecord` and `LessonFactoryRecord` interfaces that
+predate the generated DB types. These are **left unchanged**. The local
+interfaces match the generated `courses.Row` and `lessons.Row` shapes exactly,
+so `tests/unit/factories.test.ts` continues to pass without modification.
+Replacing them with `Database[...][...]["Row"]` aliases is a cosmetic change
+that could be done as tech debt but carries churn risk for a working test.
+
+### Tests Added
+
+- `tests/unit/progress.test.ts` - 34 tests covering zero/partial/full
+  completion, `nextLessonId` selection, percent rounding, and `lastWatchedAt`
+  forwarding
+- `tests/unit/validation.test.ts` - 47 tests covering `parseWithSchema`
+  helper and all schemas (course, lesson, tutor, payment, search, group,
+  reminder, certificate) with valid + invalid cases and `fieldErrors` shape
+  assertions
+- `tests/integration/courses-queries.test.ts` - 11 tests mocking the
+  Supabase client to assert `getPublishedCourses` filters by `status =
+  'published'`, `getCourseDetailBySlug` orders lessons by `sort_order ASC`,
+  and both return null/empty on errors or missing rows
+
+Total test count after batch: 107 tests in 5 files (all pass).
+
+### Deferred To Later Batches
+
+- `lib/auth/guards.ts` - section 8.1 aspirational module; `requireUser` and
+  `requireInstructor` in `lib/auth/require-user.ts` are the live guards; no
+  alias file is needed until a caller requires it.
+- Server actions (`lib/courses/actions.ts`, `lib/progress/actions.ts`, etc.) -
+  batch 04+ implements mutation actions on top of the schemas defined here.
+- YouTube URL parser (`lib/youtube/parser.ts`) - batch 04 per the prompt map.
+- `lib/progress/queries.ts` - DB-reading progress queries; the pure
+  `calculateCourseProgress` function is ready for batch 06 to wire against
+  real `lesson_progress` rows.
+
+### Gate Results
+
+All commands run on 2026-06-13 with Node 22.16.0:
+
+```
+npm run lint       - PASS (0 errors, 0 warnings)
+npm run typecheck  - PASS (tsc --noEmit clean)
+npm run test       - PASS (107 tests in 5 files, 1.05s)
+npm run build      - PASS (23 static pages, Turbopack)
+```
