@@ -27,6 +27,15 @@ Recommended order:
 | 12 | `11_REQUIRED_EXTENDED_FEATURES.md` | Tasks 10.1-10.5 | Sections 6.2.1, 6.3, 6.4, 7, 8, 9.1, 10, 11, 14, 15 |
 | 13 | `12_TESTING_AND_QA.md` | Tasks 11.1-11.3 | Sections 15, 17 |
 | 14 | `13_DEPLOYMENT_AND_FINAL_REVIEW.md` | Tasks 12.1-12.3 | Sections 5, 16, 17 |
+| 15 | `14_YOUTUBE_PLAYLIST_IMPORT_LIVE.md` | Post-build add-on | Sections 5, 9.4 |
+| 16 | `15_REMINDER_EMAIL_DELIVERY_SMTP.md` | Post-build add-on | Sections 10, 14 |
+| 17 | `16_ABOUT_AND_CONTACT_PAGES.md` | Content pages | Sections 4, 10, 11, 12, 15 |
+| 18 | `17_CATALOG_SCHEMA_CATEGORIES_AND_REVIEWS.md` | Catalog data | Sections 5, 6, 7, 15, 16 |
+| 19 | `18_COURSES_CATALOG_PAGE.md` | Catalog UI | Sections 4, 8, 10, 11, 12, 15 |
+| 20 | `19_COURSE_REVIEWS_AND_LESSON_SEARCH.md` | Reviews + search | Sections 6.3, 8, 10, 11, 15 |
+
+The catalog/content batches (16-20 above) are backed by the design spec at
+`docs/superpowers/specs/2026-06-14-courses-catalog-and-content-pages-design.md`.
 
 Rule: after every prompt, run the verification commands and commit a stable
 checkpoint before moving to the next prompt.
