@@ -28,12 +28,18 @@
     "signOut": "Sign out",
     "skipToContent": "Skip to content",
     "mainNavigation": "Main navigation",
-    "openMenu": "Open navigation menu"
+    "openMenu": "Open navigation menu",
+    "courses": "Courses",
+    "about": "About",
+    "contact": "Contact"
   },
   "Footer": {
     "tagline": "Coding Academy",
     "home": "Home",
-    "rights": "© {year} Coding Academy. All rights reserved."
+    "rights": "© {year} Coding Academy. All rights reserved.",
+    "courses": "Courses",
+    "about": "About",
+    "contact": "Contact"
   },
   "Metadata": {
     "home": {
@@ -617,5 +623,49 @@
     "noPriceFound": "No active price found for this course.",
     "alreadyPaid": "You already have access to this course.",
     "signInRequired": "Please sign in to purchase."
+  },
+  "About": {
+    "metaTitle": "About - Eyal's Coding Academy",
+    "metaDescription": "Learn about Eyal's Coding Academy: our mission to make coding approachable through structured, expert-led video courses.",
+    "heroTitle": "About Eyal's Coding Academy",
+    "heroSubtitle": "We make learning to code approachable, structured, and genuinely enjoyable. (Placeholder copy - the full story is on its way.)",
+    "heroImageAlt": "Placeholder for the About page hero image",
+    "heroImagePlaceholder": "Hero image coming soon",
+    "missionTitle": "Our Mission",
+    "missionBody": "Eyal's Coding Academy exists to take you from your first line of code to building real projects with confidence. Every course is video-led, paced for beginners, and backed by an AI tutor that answers questions in context. (Placeholder copy.)",
+    "ctaTitle": "Ready to start learning?",
+    "ctaSubtitle": "Browse the full catalog and find a course that fits where you are today.",
+    "ctaButton": "Browse courses"
+  },
+  "Contact": {
+    "metaTitle": "Contact - Eyal's Coding Academy",
+    "metaDescription": "Get in touch with Eyal's Coding Academy. Send us a message or find our (demo) Tel-Aviv contact details.",
+    "title": "Get in Touch",
+    "subtitle": "Have a question about a course or your account? Send us a message and we'll get back to you.",
+    "detailsTitle": "Contact Details",
+    "addressValue": "12 Rothschild Blvd, Tel Aviv-Yafo, 6688101, Israel",
+    "phoneValue": "+972 3-123-4567",
+    "emailValue": "hello@example.com",
+    "hoursValue": "Sunday-Thursday, 9:00-17:00 (Israel time)",
+    "mapAlt": "Placeholder map showing the Tel Aviv office location",
+    "mapPlaceholder": "Map preview coming soon",
+    "formTitle": "Send a Message",
+    "form": {
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "messageLabel": "Message",
+      "messagePlaceholder": "How can we help?",
+      "submit": "Send message"
+    },
+    "messages": {
+      "messageSent": "Thanks - your message has been received. We'll be in touch.",
+      "nameRequired": "Please enter your name.",
+      "invalidEmail": "Please enter a valid email address.",
+      "messageTooShort": "Your message is too short. Please add a little more detail.",
+      "messageTooLong": "Your message is too long. Please shorten it.",
+      "submissionFailed": "We couldn't send your message. Please try again."
+    }
   }
 }

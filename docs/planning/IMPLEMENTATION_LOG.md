@@ -2239,3 +2239,55 @@ HTTP transactional provider (Resend at `resend.com` is the simplest drop-in:
 `npm install resend`, one API call, no SMTP). The `sendEmail` signature and
 `ActionResult` contract stay identical; only the implementation changes.
 Flag this as a post-deploy verification item before batch 15 is closed.
+
+## Batch 16: About And Contact Content Pages (2026-06-14)
+
+Two public server-component routes, nav links, and a demo-grade contact form.
+No database changes (catalog schema is batch 17).
+
+### What Was Added
+
+| Area | Implementation | Key files |
+| ---- | -------------- | --------- |
+| About page | Structured shell: hero with a commented single-edit-point image slot, mission block, CTA to `/courses`. One `<h1>`, semantic `<section>`s. Provisional copy. | `app/[locale]/about/page.tsx` |
+| Contact page | Fake Tel-Aviv details (`<address>`), static map placeholder, Tier-2 no-JS form, `?notice=`/`?error=` banner. | `app/[locale]/contact/page.tsx` |
+| Contact form | Server-rendered `<form>` posting to a server action; native `<label for>` fields + submit. | `components/contact/contact-form.tsx` |
+| Contact action | `submitContactMessage` (server-only): validates via Zod, logs server-side, redirects with an allowlisted code. No email send, no persistence. | `lib/contact/actions.ts` |
+| Validation | `contactMessageSchema` (name 1-100, email, message 10-2000). | `lib/validation/contact.ts` |
+| Feedback channel | Allowlisted code -> localized message resolver (anti-injection), mirrors `resolve-auth-message`. | `lib/contact/resolve-contact-message.ts` |
+| Nav | Courses/About/Contact added to header `textLinks` + `drawerLinks` and footer. | `components/site-header.tsx`, `components/site-footer.tsx` |
+| i18n | New `About` + `Contact` namespaces, EN + HE key-identical. | `messages/en-US.json`, `messages/he-IL.json` |
+| e2e | `/about` + `/contact` no-overflow (390/768/1280, EN+HE), landmarks/one-h1, form fields + submit + round-trip. | `e2e/content-pages.spec.ts` |
+| Unit | Action code-mapping + resolver allowlist. | `tests/unit/contact-action.test.ts` |
+
+### Decisions
+
+- **Placeholder content.** About hero image and body copy are deferred. The
+  page leaves a labelled `HERO IMAGE SLOT` div and provisional `About.*` keys
+  (marked "(Placeholder copy.)" in both catalogs). `next/image` is not
+  configured in this project, so the slot expects a plain `<img>` or a local
+  `/public` asset.
+- **Fake contact details.** Rothschild Blvd 12, Tel Aviv; `+972 3-123-4567`;
+  `hello@example.com`; Sun-Thu 9:00-17:00. Static map is a labelled
+  placeholder - no embed, no key. None of this is real.
+- **Form queues/logs, does not send.** Consistent with how reminders queued
+  before SMTP existed. `console.info` records only message length + locale;
+  the email and body are never logged or reflected. Forwarding via
+  `lib/email/transport.ts` was left out of scope (no new secrets).
+- **Anti-injection feedback.** Only allowlisted codes resolve to text; a
+  forged `?error=<script>` renders nothing (mirrors `resolve-auth-message`).
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - 505 keys in sync (was 463).
+- `npm run typecheck` - guard + `tsc --noEmit` clean.
+- `npm run build` - routes include `/[locale]/about` and `/[locale]/contact`.
+- `npm run test` - 432 passed, 3 skipped (8 new contact tests).
+- `npm run test:e2e` - 91 passed, 4 skipped (19 new content-page tests).
+
+### Known Follow-Up
+
+The Courses nav/CTA links point at `/courses`, which does not exist until
+batch 18. Those links 404 by design until then (batch 16 adds navigation;
+batch 18 adds the page).

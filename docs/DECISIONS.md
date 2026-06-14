@@ -601,3 +601,51 @@ blocked/throttled in production even though it works locally. If production
 sends fail, swap the transport impl for an HTTP email API (Resend) -
 sendEmail's signature is unchanged, only lib/email/transport.ts internals
 change. Verify a production send after the Vercel deploy picks up SMTP_*.
+
+### 2026-06-14 - Batch 16 - About + Contact content pages (no DB, demo-grade form)
+
+Added two public server-component routes - `app/[locale]/about/page.tsx` and
+`app/[locale]/contact/page.tsx` - plus nav links (header `textLinks` +
+`drawerLinks`, footer) for Courses, About, and Contact. New `About` and
+`Contact` i18n namespaces in both catalogs (505 keys, was 463).
+
+- **About is a structured shell, not finished content.** The real hero image
+  and marketing copy are supplied later, so the page leaves two clearly
+  commented single edit points: a labelled `HERO IMAGE SLOT` placeholder
+  region and the `About.*` body keys, which carry provisional copy explicitly
+  marked "(Placeholder copy.)" in both EN and HE. Swapping in real content
+  should not require touching layout.
+- **Contact details are FAKE/DEMO data.** Rothschild Blvd 12 Tel Aviv,
+  `+972 3-123-4567`, `hello@example.com`, Sun-Thu 9:00-17:00. The map is a
+  labelled static placeholder div - no live Google Maps embed, no API key, no
+  network call. Do not treat any of these as real.
+- **Contact form is Tier-2 no-JS and does NOT send email.** A real `<form>`
+  posts `FormData` to `submitContactMessage` (`lib/contact/actions.ts`,
+  server-only), validated by a new Zod schema (`lib/validation/contact.ts`)
+  via `parseWithSchema`. On success it logs server-side only (the
+  queue-before-a-provider pattern reminders used pre-SMTP) and acknowledges
+  through the `?notice=`/`?error=` query-param channel. No personal data is
+  persisted; the submitted email/body is never echoed back into the URL.
+  Forwarding via `lib/email/transport.ts` was deliberately left out of scope
+  so the batch needs no new secrets.
+- **Anti-injection feedback channel.** `lib/contact/resolve-contact-message.ts`
+  mirrors `lib/auth/resolve-auth-message.ts`: only allowlisted codes
+  (`messageSent`, `nameRequired`, `invalidEmail`, `messageTooShort`,
+  `messageTooLong`, `submissionFailed`) resolve to localized text; a forged
+  `?error=<script>` resolves to null and renders nothing. The action maps Zod
+  field errors to those codes, never reflecting a raw Zod string.
+
+**Why:** the design spec (Batch 16) isolates content pages from the catalog DB
+work (batches 17-19). Keeping the form demo-grade and secret-free keeps the
+blast radius minimal and matches the "do not request/transmit/store real
+personal data" rule in the prompt.
+
+**Forward reference (not a defect):** the new Courses nav/CTA links point at
+`/courses`, which does not exist until batch 18. Until then those links 404 by
+design - batch 16 adds the navigation; batch 18 adds the page. The About CTA
+and header/footer Courses links will resolve once batch 18 lands.
+
+**e2e strict-mode gotcha (recurring):** `getByRole("alert")` also matches
+Next's `__next-route-announcer__` live region (a sibling of `<main>`), so a
+bare role query is ambiguous. Scope banner assertions to
+`page.getByRole("main").getByRole("alert"|"status")`.

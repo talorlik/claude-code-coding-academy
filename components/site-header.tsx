@@ -43,9 +43,16 @@ export async function SiteHeader() {
 
   const searchLabel = t("searchLabel")
 
-  // Text links shown inline (md+) and in the drawer. Search is handled
-  // separately as an icon inline; the drawer keeps it as a labelled list item.
-  const textLinks = user ? [{ href: "/dashboard", label: t("dashboard") }] : []
+  // Text links shown inline (md+) and in the drawer. The public content links
+  // (Courses, About, Contact) show for everyone; Dashboard is signed-in only.
+  // Search is handled separately as an icon inline; the drawer keeps it as a
+  // labelled list item.
+  const textLinks = [
+    { href: "/courses", label: t("courses") },
+    { href: "/about", label: t("about") },
+    { href: "/contact", label: t("contact") },
+    ...(user ? [{ href: "/dashboard", label: t("dashboard") }] : []),
+  ]
   const drawerLinks = [...textLinks, { href: "/search", label: t("search") }]
 
   return (
