@@ -20,8 +20,8 @@ this command.
 ## Step 0 - Load context
 
 1. Read the runbook for git workflow, gates, and conventions:
-   `~/.claude/plans/claude-code-coding-academy/runbook.md` (the project-nested
-   plans hierarchy; expand `~` to the home directory).
+   `docs/planning/RUNBOOK.md` (in-repo, relative to the project working
+   directory).
 2. Read the backlog: `docs/planning/TECH_DEBT.md`. The unchecked items under
    **Open Items** are your work-list. This file is the canonical handoff - treat
    each Open Item's scope and acceptance check verbatim.
