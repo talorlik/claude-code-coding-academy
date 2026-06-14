@@ -14,10 +14,13 @@ import {
 } from "@/components/ui/empty"
 import { CourseCatalog } from "@/components/courses/course-catalog"
 import { CourseCatalogSkeleton } from "@/components/courses/course-catalog-skeleton"
-import { getPublishedCourses } from "@/lib/courses/queries"
+import { getCatalog } from "@/lib/catalog/queries"
 import { createClient } from "@/lib/supabase/server"
 import { getSiteUrl } from "@/lib/utils/site-url"
 import type { Locale } from "@/i18n/routing"
+
+/** How many of the newest courses the home page features. */
+const HOME_COURSE_LIMIT = 3
 
 // ---------------------------------------------------------------------------
 // Metadata
@@ -61,25 +64,30 @@ export async function generateMetadata({
 // ---------------------------------------------------------------------------
 
 /**
- * Fetches published courses and enrolled course IDs server-side. Wrapped in
- * Suspense by the parent so it shows a skeleton while loading.
+ * Fetches the newest published courses and auth state server-side, then renders
+ * the shared {@link CourseCatalog} grid limited to the {@link HOME_COURSE_LIMIT}
+ * most-recently-added courses. Wrapped in Suspense by the parent so it shows a
+ * skeleton while loading.
+ *
+ * Uses the same `getCatalog` loader and the same {@link CourseCard} as the
+ * `/courses` catalog, so a course looks identical on the home page and the
+ * catalog (ratings, category, and per-viewer progress included). Sorted
+ * `newest` and sliced; on error it renders a localized error state.
  */
 async function CatalogSection({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: "Courses" })
   const tHome = await getTranslations({ locale, namespace: "Home" })
 
-  // Load courses and auth state in parallel.
   const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const userId = user?.id ?? null
 
-  const [courses, { data: authData }] = await Promise.all([
-    getPublishedCourses().catch((err) => {
-      console.error("[home] getPublishedCourses:", err)
-      return null
-    }),
-    supabase.auth.getUser(),
-  ])
-
-  const userId = authData?.user?.id ?? null
+  const courses = await getCatalog({ sort: "newest", userId }).catch((err) => {
+    console.error("[home] getCatalog:", err)
+    return null
+  })
 
   // On error show a localized error state rather than crashing.
   if (courses === null) {
@@ -96,18 +104,8 @@ async function CatalogSection({ locale }: { locale: string }) {
     )
   }
 
-  // Fetch enrolled course IDs only when authenticated.
-  let enrolledCourseIds = new Set<string>()
-  if (userId) {
-    const { data: enrollments } = await supabase
-      .from("enrollments")
-      .select("course_id")
-      .eq("user_id", userId)
-
-    enrolledCourseIds = new Set(
-      (enrollments ?? []).map((e) => e.course_id)
-    )
-  }
+  // Feature only the newest few; the full catalog lives at /courses.
+  const featured = courses.slice(0, HOME_COURSE_LIMIT)
 
   return (
     <section aria-labelledby="catalog-heading">
@@ -121,10 +119,15 @@ async function CatalogSection({ locale }: { locale: string }) {
         <p className="mt-2 text-muted-foreground">{tHome("catalog.subhead")}</p>
       </div>
       <CourseCatalog
-        courses={courses}
+        courses={featured}
         userId={userId}
-        enrolledCourseIds={enrolledCourseIds}
+        ariaLabel={tHome("catalog.heading")}
       />
+      <div className="mt-8 flex justify-center">
+        <Button render={<Link href="/courses" />} variant="outline" className="min-w-0">
+          {tHome("catalog.viewAll")}
+        </Button>
+      </div>
     </section>
   )
 }

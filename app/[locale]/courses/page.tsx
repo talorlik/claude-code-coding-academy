@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getCatalog, getCategories } from "@/lib/catalog/queries"
 import { catalogQuerySchema } from "@/lib/validation/catalog"
 import { CatalogFilters } from "@/components/catalog/catalog-filters"
-import { CatalogCourseCard } from "@/components/courses/catalog-course-card"
+import { CourseCatalog } from "@/components/courses/course-catalog"
 import { CourseCatalogSkeleton } from "@/components/courses/course-catalog-skeleton"
 import {
   Empty,
@@ -142,22 +142,18 @@ async function CatalogSection({
             <EmptyMedia variant="icon">
               <BookOpen />
             </EmptyMedia>
+            {/* Filter-specific empty copy (the catalog's own empty state is the
+                generic "no courses yet" used on the home page). */}
             <EmptyTitle>{t("empty.title")}</EmptyTitle>
             <EmptyDescription>{t("empty.body")}</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
-        <div
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          role="list"
-          aria-label={t("title")}
-        >
-          {courses.map((course) => (
-            <div key={course.id} className="min-w-0" role="listitem">
-              <CatalogCourseCard course={course} userId={userId} />
-            </div>
-          ))}
-        </div>
+        <CourseCatalog
+          courses={courses}
+          userId={userId}
+          ariaLabel={t("title")}
+        />
       )}
     </div>
   )

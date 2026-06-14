@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl"
+import { getTranslations } from "next-intl/server"
 import { BookOpen } from "lucide-react"
 
 import {
@@ -8,37 +8,34 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "@/components/ui/empty"
-import type { CourseSummary } from "@/lib/courses/types"
+import type { CatalogCourse } from "@/lib/catalog/types"
 import { CourseCard } from "./course-card"
 
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
-
-interface CourseCatalogProps {
-  courses: CourseSummary[]
-  /** Authenticated user id, or null for anonymous visitors. */
-  userId: string | null
-  /** Set of course IDs the user is enrolled in. */
-  enrolledCourseIds: Set<string>
-}
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
 /**
- * Renders the course grid or an empty-state when no courses are published.
+ * The shared course grid, rendered by both the home page ("newest courses")
+ * and the `/courses` catalog so a course list looks identical wherever it
+ * appears. Renders the unified {@link CourseCard} per course, or a localized
+ * empty state when the list is empty.
  *
- * The grid is responsive: 1 column on mobile, 2 on sm, 3 on lg.
- * Each grid child has min-w-0 so flex content can shrink without overflow.
+ * Server component (the cards are async server components). Responsive grid:
+ * 1 column on mobile, 2 on sm, 3 on lg; each child is `min-w-0` so content can
+ * shrink without forcing horizontal overflow.
+ *
+ * @param props.courses - The courses to render, already filtered/sorted/sliced
+ *   by the caller.
+ * @param props.userId - The viewer's id, or null for an anonymous visitor.
+ * @param props.ariaLabel - Accessible name for the grid's `list` role.
  */
-export function CourseCatalog({
+export async function CourseCatalog({
   courses,
   userId,
-  enrolledCourseIds,
-}: CourseCatalogProps) {
-  const t = useTranslations("Courses")
+  ariaLabel,
+}: {
+  courses: CatalogCourse[]
+  userId: string | null
+  ariaLabel: string
+}) {
+  const t = await getTranslations("Courses")
 
   if (courses.length === 0) {
     return (
@@ -58,15 +55,11 @@ export function CourseCatalog({
     <div
       className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
       role="list"
-      aria-label="Course catalog"
+      aria-label={ariaLabel}
     >
       {courses.map((course) => (
         <div key={course.id} className="min-w-0" role="listitem">
-          <CourseCard
-            course={course}
-            userId={userId}
-            isEnrolled={enrolledCourseIds.has(course.id)}
-          />
+          <CourseCard course={course} userId={userId} />
         </div>
       ))}
     </div>

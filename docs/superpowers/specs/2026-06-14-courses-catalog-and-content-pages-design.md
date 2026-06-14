@@ -171,10 +171,14 @@ The core batch.
   All state in URL query params (`?q=&category=&sort=&mine=1`) so it is no-JS
   navigable and shareable. Anonymous users: "My Courses" hidden or disabled
   (no enrollment context).
-- `components/courses/course-card.tsx` (and/or a `catalog-course-card`): add a
+- `components/courses/course-card.tsx`: a SINGLE unified card with a
   star-rating display (average + count) and, when enrolled, an inline
-  `<Progress>` bar showing `progressPercent`. Must keep the home-page usage
-  working (home renders the simpler card).
+  `<Progress>` bar showing `progressPercent`. (Refined 2026-06-14: batch 18
+  first shipped a separate `catalog-course-card`, but the two were then unified
+  into one `CourseCard` taking a `CatalogCourse`, rendered by both the home page
+  and `/courses` via the shared `course-catalog.tsx` grid. The home page shows
+  the 3 newest courses via `getCatalog({ sort: "newest" })` + a "View all" CTA,
+  so it uses the same card and loader as the catalog - no "simpler card".)
 - `components/catalog/` filter components (category filter, sort control,
   my-courses toggle, search box) - kebab-case, server-rendered where possible;
   client islands only where interaction requires it, with no-JS fallback via
@@ -228,11 +232,15 @@ Batch 18:
 
 - Create `lib/catalog/queries.ts`, `lib/catalog/types.ts`,
   `lib/validation/catalog.ts`, `app/[locale]/courses/page.tsx`,
-  `components/catalog/*` (filters), possibly
-  `components/courses/catalog-course-card.tsx`.
-- Modify `components/courses/course-card.tsx`,
-  `app/[locale]/search/page.tsx` (-> redirect), `lib/proxy.ts` or route as
-  needed for the redirect, `messages/*`, `e2e/catalog.spec.ts`.
+  `components/catalog/*` (filters).
+- The unified `components/courses/course-card.tsx` (`CourseCard`, taking a
+  `CatalogCourse`) and the shared `components/courses/course-catalog.tsx` grid
+  are rendered by both the home page and `/courses`. (The interim
+  `catalog-course-card.tsx` and the old simple `course-card.tsx` were removed in
+  the 2026-06-14 refinement.)
+- Modify `app/[locale]/page.tsx` (home -> `getCatalog` newest 3 + view-all),
+  `app/[locale]/search/page.tsx` (-> redirect), `messages/*`,
+  `e2e/catalog.spec.ts`.
 
 Batch 19:
 

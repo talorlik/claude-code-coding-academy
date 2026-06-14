@@ -761,3 +761,37 @@ Turbopack DEV server in the worktree (stale copied `.next`/SW state), while
 `/courses` e2e tests pass against the built app. Trust the built app + e2e, not
 a manual dev-server probe in a freshly-copied worktree (same lesson as the
 batch-16 PWA offline-page dev artifact).
+
+### 2026-06-14 - Post-18 refinement - One course card everywhere; home shows 3 newest
+
+SUPERSEDES the batch-18 decision "CatalogCourseCard is separate from
+CourseCard". There is now ONE card. The two-card split was needless divergence;
+a course must look identical wherever it appears.
+
+- `components/courses/catalog-course-card.tsx` (CatalogCourseCard) and the old
+  simple `components/courses/course-card.tsx` (CourseCard) were both removed.
+  The unified card lives at `components/courses/course-card.tsx` exporting
+  `CourseCard` - the former CatalogCourseCard (rating stars + enrolled progress
+  bar), renamed and now taking a `CatalogCourse`.
+- `components/courses/course-catalog.tsx` is now a SHARED server-component grid
+  (`courses: CatalogCourse[]`, `userId`, `ariaLabel`) rendering the unified
+  card; both the home page and `/courses` use it. Its built-in empty state is
+  the generic "no courses yet" (home); `/courses` keeps its own filter-specific
+  empty copy and only delegates the populated grid to CourseCatalog.
+- **Home now uses `getCatalog`, not `getPublishedCourses`.**
+  `app/[locale]/page.tsx` calls `getCatalog({ sort: "newest", userId })` and
+  slices to the 3 newest (`HOME_COURSE_LIMIT = 3`), so home cards carry the same
+  ratings/category/progress the catalog shows. Added a "View all courses" CTA
+  (`Home.catalog.viewAll`, EN+HE) linking to `/courses`. `getPublishedCourses`
+  is retained - still used by `app/sitemap.ts` and its own tests.
+- **Test strategy:** the jsdom render test `tests/unit/course-card.test.tsx` was
+  removed. The unified card is an async server component (`getTranslations`),
+  which the project does not render under jsdom; its logic (rating display,
+  progress gating) is covered by the `getCatalog` DTO unit/integration tests and
+  by e2e that renders both home and `/courses`. A new e2e asserts home shows
+  <= 3 cards and the view-all link.
+
+**Why:** a single card contract (`CatalogCourse`) means home and catalog can
+never drift; routing home through `getCatalog` is the same query the catalog
+already uses, so there is one data path. Server-component cards are verified by
+build + e2e, the project's established pattern (jsdom can't render them).

@@ -1,5 +1,5 @@
-import { useTranslations } from "next-intl"
-import { BookOpen } from "lucide-react"
+import { getTranslations } from "next-intl/server"
+import { BookOpen, Star } from "lucide-react"
 
 import {
   Card,
@@ -10,48 +10,89 @@ import {
   CardDescription,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { Link } from "@/i18n/navigation"
-import type { CourseSummary, CourseLevel } from "@/lib/courses/types"
+import type { CourseLevel } from "@/lib/courses/types"
+import type { CatalogCourse } from "@/lib/catalog/types"
 import { EnrollmentButton } from "./enrollment-button"
 
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
-
-export interface CourseCardProps {
-  course: CourseSummary
-  /** Authenticated user id, or null for anonymous visitors. */
-  userId: string | null
-  /** Whether the current user is already enrolled in this course. */
-  isEnrolled: boolean
-}
-
-// ---------------------------------------------------------------------------
-// Level badge variant map
-// ---------------------------------------------------------------------------
-
-const LEVEL_VARIANT: Record<
-  CourseLevel,
-  "default" | "secondary" | "outline"
-> = {
+const LEVEL_VARIANT: Record<CourseLevel, "default" | "secondary" | "outline"> = {
   beginner: "secondary",
   intermediate: "default",
   advanced: "outline",
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+/**
+ * A 0-5 star rating display. Renders five star glyphs with the filled portion
+ * reflecting `average`, the numeric average, and the review count. When
+ * `average` is null (no reviews) it renders a muted "no ratings yet" label
+ * instead - never zero stars, which would read as a 1-star course.
+ */
+async function RatingStars({
+  average,
+  count,
+}: {
+  average: number | null
+  count: number
+}) {
+  const t = await getTranslations("Catalog")
+
+  if (average === null || count === 0) {
+    return (
+      <span className="text-xs text-muted-foreground">{t("noRatings")}</span>
+    )
+  }
+
+  const rounded = Math.round(average)
+  return (
+    <span
+      className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground"
+      aria-label={t("ratingLabel", { average: average.toFixed(1), count })}
+    >
+      <span className="flex shrink-0" aria-hidden>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star
+            key={i}
+            className={
+              i <= rounded
+                ? "size-3.5 fill-amber-400 text-amber-400"
+                : "size-3.5 text-muted-foreground/40"
+            }
+          />
+        ))}
+      </span>
+      <span className="tabular-nums">{average.toFixed(1)}</span>
+      <span>({count})</span>
+    </span>
+  )
+}
 
 /**
- * Displays a single course summary card with level badge, lesson count,
- * description, and an enrollment / continue CTA.
+ * The course card used everywhere a course is presented in a grid - the home
+ * page's "newest courses" section and the `/courses` catalog both render it, so
+ * a course looks identical wherever it appears. It shows the cover image (or a
+ * fallback), level + category badges, lesson count, a star-rating display, and
+ * an enrollment / continue CTA; for a signed-in viewer enrolled in the course
+ * it also shows an inline progress bar.
  *
- * The card is a server component; EnrollmentButton is client-only and
- * handles the interactive enrollment flow.
+ * Server component (the interactive bits live in {@link EnrollmentButton} and
+ * the client Progress primitive). Takes a {@link CatalogCourse}, the DTO both
+ * `getCatalog` and the home loader produce, so there is a single card contract.
+ * `ratingAverage`/`progressPercent` are null-safe: no reviews renders "no
+ * ratings yet", and the progress bar only renders when enrolled.
+ *
+ * Mobile-first and RTL-safe: a shrinkable flex column, wrapping badge/rating
+ * rows, and clamped title/description.
  */
-export function CourseCard({ course, userId, isEnrolled }: CourseCardProps) {
-  const t = useTranslations("Courses")
+export async function CourseCard({
+  course,
+  userId,
+}: {
+  course: CatalogCourse
+  userId: string | null
+}) {
+  const t = await getTranslations("Courses")
+  const tCatalog = await getTranslations("Catalog")
 
   const levelLabel = t(`level.${course.level}`)
   const lessonLabel = t("lessonCount", { count: course.lessonCount })
@@ -59,7 +100,6 @@ export function CourseCard({ course, userId, isEnrolled }: CourseCardProps) {
 
   return (
     <Card className="flex min-w-0 flex-col">
-      {/* Cover image or gradient fallback */}
       <div className="relative aspect-video w-full overflow-hidden rounded-t-xl bg-gradient-to-br from-primary/20 to-primary/5">
         {course.coverImageUrl ? (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -81,6 +121,9 @@ export function CourseCard({ course, userId, isEnrolled }: CourseCardProps) {
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={LEVEL_VARIANT[course.level]}>{levelLabel}</Badge>
+          {course.categoryName ? (
+            <Badge variant="outline">{course.categoryName}</Badge>
+          ) : null}
           <span className="text-xs text-muted-foreground">{lessonLabel}</span>
         </div>
         <CardTitle className="line-clamp-2">
@@ -91,19 +134,34 @@ export function CourseCard({ course, userId, isEnrolled }: CourseCardProps) {
             {course.title}
           </Link>
         </CardTitle>
+        <RatingStars average={course.ratingAverage} count={course.ratingCount} />
         <CardDescription className="line-clamp-3">
           {course.description}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="mt-auto" />
+      <CardContent className="mt-auto">
+        {course.isEnrolled && course.progressPercent !== null ? (
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">
+              {tCatalog("progressLabel", { percent: course.progressPercent })}
+            </span>
+            <Progress
+              value={course.progressPercent}
+              aria-label={tCatalog("progressLabel", {
+                percent: course.progressPercent,
+              })}
+            />
+          </div>
+        ) : null}
+      </CardContent>
 
       <CardFooter>
         <EnrollmentButton
           courseId={course.id}
           courseSlug={course.slug}
           userId={userId}
-          isEnrolled={isEnrolled}
+          isEnrolled={course.isEnrolled}
         />
       </CardFooter>
     </Card>

@@ -2380,7 +2380,8 @@ ratings, and an in-card progress bar. `/search` now redirects to `/courses`.
   `search.test.ts` + `validation.test.ts`); only the page was replaced. Global
   lesson search is gone (lesson search becomes in-course in batch 19).
 - **Separate `catalog-course-card.tsx`** so the home `course-card.tsx` is
-  untouched.
+  untouched. (SUPERSEDED 2026-06-14 - see "Post-18 refinement" below: the two
+  cards were unified into one.)
 
 ### Verification (gates, exit 0)
 
@@ -2402,3 +2403,40 @@ ratings, and an in-card progress bar. `/search` now redirects to `/courses`.
   be layered later without changing the no-JS contract.
 - `lib/search/*` is now only reachable via tests + the redirected route; a
   future cleanup batch could remove it if those tests are retired.
+
+## Post-18 Refinement: One Course Card; Home Shows 3 Newest (2026-06-14)
+
+Unifies the two course cards into one and reworks the home page to feature the
+3 most-recently-added courses using the same card and loader as `/courses`.
+
+### What Changed
+
+| Area | Change |
+| ---- | ------ |
+| Card | Removed the simple `course-card.tsx` (CourseCard) and `catalog-course-card.tsx` (CatalogCourseCard). The unified card is `components/courses/course-card.tsx` exporting `CourseCard` (the former CatalogCourseCard - rating stars + enrolled progress bar), taking a `CatalogCourse`. |
+| Grid | `components/courses/course-catalog.tsx` is now a shared server-component grid (`courses: CatalogCourse[]`, `userId`, `ariaLabel`) rendering the unified card; used by both home and `/courses`. |
+| Home | `app/[locale]/page.tsx` now loads via `getCatalog({ sort: "newest", userId })`, slices to `HOME_COURSE_LIMIT = 3`, and renders `CourseCatalog` + a "View all courses" CTA to `/courses`. |
+| /courses | `app/[locale]/courses/page.tsx` renders the shared `CourseCatalog` for the populated grid (keeps its own filter-specific empty state). |
+| i18n | Added `Home.catalog.viewAll` (EN+HE), 526 keys. |
+| Tests | Removed the jsdom `tests/unit/course-card.test.tsx` (the unified card is an async server component, not jsdom-renderable). Added an e2e asserting home shows <= 3 cards + the view-all link. |
+
+### Decisions
+
+- One card contract (`CatalogCourse`) so home and catalog cannot drift.
+- Home routes through `getCatalog` (the catalog's own loader) - a single data
+  path; `getPublishedCourses` is retained for `app/sitemap.ts` + its tests.
+- Server-component card verified by build + e2e (project pattern); the jsdom
+  render test was retired rather than forcing a client/server split for it.
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - 526 keys in sync.
+- `npm run typecheck` - exit 0.
+- `npm run build` - succeeds.
+- `npm run test` - 437 passed, 3 skipped (the 14-test jsdom card file removed).
+- `npm run test:e2e` - 102 passed, 4 skipped (added the home <=3 + view-all
+  assertion).
+- Manual (`next start`): `/en` renders the unified card (2 cards, <= 3) + the
+  view-all link; `/en/courses` renders the same card with 20 filled rating
+  stars from the seeded reviews.

@@ -73,6 +73,37 @@ test.describe("home page catalog - public access", () => {
     await expectNoHorizontalOverflow(page)
   })
 
+  test("home features at most 3 courses with a view-all link to the catalog", async ({
+    page,
+  }) => {
+    await page.goto("/en")
+    const catalog = page.locator("#catalog")
+    await expect(catalog).toBeVisible({ timeout: 15_000 })
+
+    // Wait for the Suspense skeleton to settle into cards or the empty state.
+    await page.waitForFunction(
+      () => {
+        const el = document.getElementById("catalog")
+        if (!el) return false
+        if (el.querySelector("[aria-busy='true']")) return false
+        return (
+          el.querySelectorAll("[data-slot='card']").length > 0 ||
+          !!el.querySelector("[data-slot='empty-title']")
+        )
+      },
+      { timeout: 15_000 }
+    )
+
+    // The home page features the newest few - never more than 3 cards.
+    const cardCount = await catalog.locator("[data-slot='card']").count()
+    expect(cardCount).toBeLessThanOrEqual(3)
+
+    // A view-all link points at the full catalog.
+    await expect(
+      catalog.getByRole("link", { name: /view all courses/i })
+    ).toBeVisible()
+  })
+
   test("catalog renders course cards or empty state when loaded", async ({
     page,
   }) => {

@@ -82,7 +82,8 @@
     },
     "catalog": {
       "heading": "Our Courses",
-      "subhead": "Pick a course and start learning today."
+      "subhead": "Pick a course and start learning today.",
+      "viewAll": "View all courses"
     }
   },
   "Courses": {
