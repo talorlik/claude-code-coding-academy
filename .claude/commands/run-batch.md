@@ -22,7 +22,8 @@ to stop - this runs unattended (often from a phone).
    report - list the prompt files that DO exist (`ls docs/prompts/`) so the user
    sees the available batches. Do not assume an upper bound; new batches are
    appended over time.
-2. Read the runbook: `/Users/talo/.claude/plans/claude-code-coding-academy-runbook.md`.
+2. Read the runbook: `~/.claude/plans/claude-code-coding-academy/runbook.md`
+   (the project-nested plans hierarchy; expand `~` to the home directory).
    It is the authority on git workflow, gates, and batch order.
 3. Read the batch's prompt file: `docs/prompts/NN_*.md`. This is the canonical
    handoff for the feature work - follow its Tasks verbatim.
