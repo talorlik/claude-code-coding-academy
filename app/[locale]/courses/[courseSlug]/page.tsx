@@ -19,7 +19,15 @@ import { CourseProgressBar } from "@/components/courses/course-progress-bar"
 import { YouTubePlayer } from "@/components/youtube/youtube-player"
 import { MarkWatchedButton } from "@/components/courses/mark-watched-button"
 import { EnrollmentButton } from "@/components/courses/enrollment-button"
-import { getCourseDetailBySlug } from "@/lib/courses/queries"
+import { LessonSearch } from "@/components/courses/lesson-search"
+import { ReviewList } from "@/components/courses/review-list"
+import { ReviewForm } from "@/components/courses/review-form"
+import {
+  getCourseDetailBySlug,
+  getCourseReviews,
+  getUserReview,
+} from "@/lib/courses/queries"
+import { resolveReviewMessage } from "@/lib/courses/resolve-review-message"
 import { getEnrollment, getCourseProgress } from "@/lib/progress/queries"
 import { getConversationMessages } from "@/lib/tutor/queries"
 import { getActiveCoursePrice } from "@/lib/payments/checkout"
@@ -167,14 +175,19 @@ export default async function CourseDetailPage({
   searchParams,
 }: {
   params: Promise<{ locale: string; courseSlug: string }>
-  searchParams: Promise<{ lesson?: string }>
+  searchParams: Promise<{ lesson?: string; notice?: string; error?: string }>
 }) {
   const { locale, courseSlug } = await params
-  const { lesson: lessonSlugParam } = await searchParams
+  const {
+    lesson: lessonSlugParam,
+    notice: reviewNotice,
+    error: reviewError,
+  } = await searchParams
 
   setRequestLocale(locale as Locale)
 
   const t = await getTranslations({ locale, namespace: "Course" })
+  const tReviewMessages = await getTranslations("Course.reviews.messages")
 
   // 1. Load course (published only) - 404 if not found.
   let course
@@ -224,6 +237,14 @@ export default async function CourseDetailPage({
     completedLessonIds = progressData.completedLessonIds
     progress = progressData.progress
   }
+
+  // Reviews: the public list (everyone) and, for an enrolled viewer, their own
+  // review for edit-mode prefill. Resolve any review-action feedback code.
+  const reviewsData = await getCourseReviews(course.id)
+  const existingReview =
+    userId && isEnrolled ? await getUserReview(userId, course.id) : null
+  const reviewErrorMessage = resolveReviewMessage(tReviewMessages, reviewError)
+  const reviewNoticeMessage = resolveReviewMessage(tReviewMessages, reviewNotice)
 
   // Route to checkout for paid courses that are not yet enrolled.
   const checkoutHref =
@@ -490,6 +511,33 @@ export default async function CourseDetailPage({
               </div>
             </>
           )}
+
+          {/* ---------------------------------------------------------------- */}
+          {/* In-course lesson search + reviews (course-level, below the        */}
+          {/* selected lesson). Lesson search is scoped to this course.         */}
+          {/* ---------------------------------------------------------------- */}
+          <Separator className="my-8" />
+
+          <div className="flex flex-col gap-8">
+            <LessonSearch lessons={lessons} courseSlug={courseSlug} />
+
+            <ReviewList
+              reviews={reviewsData.reviews}
+              averageRating={reviewsData.averageRating}
+              count={reviewsData.count}
+            />
+
+            {/* Write path: only for signed-in, enrolled students. */}
+            {userId && isEnrolled ? (
+              <ReviewForm
+                courseId={course.id}
+                courseSlug={courseSlug}
+                existing={existingReview}
+                errorMessage={reviewErrorMessage}
+                noticeMessage={reviewNoticeMessage}
+              />
+            ) : null}
+          </div>
         </div>
       </div>
     </main>

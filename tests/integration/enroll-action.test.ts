@@ -54,6 +54,15 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }))
 
+// lib/courses/actions.ts now imports the locale-aware redirect from
+// @/i18n/navigation (added for submitReview in batch 19). Mock it so importing
+// the actions module does not pull in next-intl -> next/navigation, which does
+// not resolve under the Vitest jsdom environment. enrollInCourse never calls
+// redirect, so a no-op stub is sufficient here.
+vi.mock("@/i18n/navigation", () => ({
+  redirect: vi.fn(),
+}))
+
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn().mockResolvedValue({
     auth: {

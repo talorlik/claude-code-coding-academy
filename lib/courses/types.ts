@@ -6,6 +6,7 @@ import type { Database } from "@/lib/supabase/database.types"
 
 type CourseRow = Database["public"]["Tables"]["courses"]["Row"]
 type LessonRow = Database["public"]["Tables"]["lessons"]["Row"]
+type CourseReviewRow = Database["public"]["Tables"]["course_reviews"]["Row"]
 
 // ---------------------------------------------------------------------------
 // Enum aliases (re-exported from the generated Database types so callers
@@ -194,5 +195,52 @@ export function toCourseDetail(
     lessons: lessons.map(toLessonSummary),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Review DTO
+// ---------------------------------------------------------------------------
+
+/**
+ * A public course review. `body` is an optional free-text comment; `rating` is
+ * an integer 1-5. `reviewerName` is the reviewer's display name when available
+ * (the public reviews query joins `profiles.full_name`), or null - reviewer
+ * email is never exposed.
+ */
+export interface CourseReview {
+  /** UUID primary key. */
+  id: string
+  /** Course this review belongs to. */
+  courseId: string
+  /** Reviewer's user id. */
+  userId: string
+  /** Reviewer display name, or null when not set. */
+  reviewerName: string | null
+  /** Integer rating, 1-5. */
+  rating: number
+  /** Optional comment body. */
+  body: string | null
+  /** ISO timestamp of creation. */
+  createdAt: string
+}
+
+/**
+ * Maps a raw `course_reviews` row to a {@link CourseReview} DTO. The reviewer
+ * display name is supplied separately (the row has no name column); pass null
+ * when it is unavailable.
+ */
+export function toCourseReview(
+  row: CourseReviewRow,
+  reviewerName: string | null
+): CourseReview {
+  return {
+    id: row.id,
+    courseId: row.course_id,
+    userId: row.user_id,
+    reviewerName,
+    rating: row.rating,
+    body: row.body,
+    createdAt: row.created_at,
   }
 }

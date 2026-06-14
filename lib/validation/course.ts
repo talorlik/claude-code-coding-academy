@@ -72,6 +72,33 @@ export const enrollmentSchema = z.object({
 })
 
 // ---------------------------------------------------------------------------
+// Review schema
+// ---------------------------------------------------------------------------
+
+/**
+ * Schema for submitting (or editing) a course review.
+ *
+ * `rating` is a required integer 1-5 (coerced from the string a radio/`FormData`
+ * submits); `body` is an optional free-text comment capped at 1000 chars (blank
+ * coerces to undefined so an empty textarea is "no comment", not an error).
+ * `courseId` comes from the form's hidden field and is validated as a UUID.
+ */
+export const reviewSchema = z.object({
+  courseId: z.string().uuid("Course ID must be a valid UUID"),
+  rating: z.coerce
+    .number()
+    .int("Rating must be a whole number")
+    .min(1, "Rating must be between 1 and 5")
+    .max(5, "Rating must be between 1 and 5"),
+  body: z
+    .string()
+    .trim()
+    .max(1000, "Review is too long")
+    .transform((v) => (v.length === 0 ? undefined : v))
+    .optional(),
+})
+
+// ---------------------------------------------------------------------------
 // Progress schema
 // ---------------------------------------------------------------------------
 
@@ -96,6 +123,9 @@ export type UpdateCourseInput = z.infer<typeof updateCourseSchema>
 
 /** Input type inferred from {@link enrollmentSchema}. */
 export type EnrollmentInput = z.infer<typeof enrollmentSchema>
+
+/** Input type inferred from {@link reviewSchema}. */
+export type ReviewInput = z.infer<typeof reviewSchema>
 
 /** Input type inferred from {@link markWatchedSchema}. */
 export type MarkWatchedInput = z.infer<typeof markWatchedSchema>

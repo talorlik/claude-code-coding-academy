@@ -5,6 +5,7 @@ import {
   createCourseSchema,
   enrollmentSchema,
   markWatchedSchema,
+  reviewSchema,
   updateCourseSchema,
 } from "@/lib/validation/course"
 import {
@@ -568,6 +569,61 @@ describe("certificateSchema", () => {
         courseId: "550e8400-e29b-41d4-a716-446655440001",
       }),
       "userId"
+    )
+  })
+})
+
+// ---------------------------------------------------------------------------
+// reviewSchema (Batch 19)
+// ---------------------------------------------------------------------------
+
+describe("reviewSchema", () => {
+  const COURSE = "550e8400-e29b-41d4-a716-446655440000"
+
+  it("accepts a valid rating with an optional body", () => {
+    const result = parseWithSchema(reviewSchema, {
+      courseId: COURSE,
+      rating: "5",
+      body: "Loved it",
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.rating).toBe(5)
+      expect(result.data.body).toBe("Loved it")
+    }
+  })
+
+  it("coerces a blank body to undefined", () => {
+    const result = parseWithSchema(reviewSchema, {
+      courseId: COURSE,
+      rating: "3",
+      body: "   ",
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.data.body).toBeUndefined()
+  })
+
+  it("rejects a rating below 1 or above 5", () => {
+    expectFail(parseWithSchema(reviewSchema, { courseId: COURSE, rating: "0" }), "rating")
+    expectFail(parseWithSchema(reviewSchema, { courseId: COURSE, rating: "6" }), "rating")
+  })
+
+  it("rejects a non-integer rating", () => {
+    expectFail(parseWithSchema(reviewSchema, { courseId: COURSE, rating: "2.5" }), "rating")
+  })
+
+  it("rejects a bad course id", () => {
+    expectFail(parseWithSchema(reviewSchema, { courseId: "nope", rating: "4" }), "courseId")
+  })
+
+  it("rejects an over-length body", () => {
+    expectFail(
+      parseWithSchema(reviewSchema, {
+        courseId: COURSE,
+        rating: "4",
+        body: "x".repeat(1001),
+      }),
+      "body"
     )
   })
 })

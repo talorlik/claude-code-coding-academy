@@ -13,8 +13,13 @@ import "server-only"
  */
 
 import { createClient } from "@/lib/supabase/server"
-import type { CourseDetail, CourseSummary } from "./types"
-import { toCourseDetail, toCourseSummary, toLessonSummary } from "./types"
+import type { CourseDetail, CourseReview, CourseSummary } from "./types"
+import {
+  toCourseDetail,
+  toCourseReview,
+  toCourseSummary,
+  toLessonSummary,
+} from "./types"
 
 /**
  * Returns all published courses with lesson counts and total durations.
@@ -202,4 +207,94 @@ export async function getLessonBySlug(
   if (lessonError || !lesson) return null
 
   return toLessonSummary(lesson)
+}
+
+// ---------------------------------------------------------------------------
+// Reviews
+// ---------------------------------------------------------------------------
+
+/** A course's public reviews plus their aggregate (average + count). */
+export interface CourseReviewsResult {
+  /** Reviews newest-first. */
+  reviews: CourseReview[]
+  /** Average rating (1-5) rounded to 1 decimal, or null when there are none. */
+  averageRating: number | null
+  /** Total number of reviews. */
+  count: number
+}
+
+/**
+ * Returns the public reviews for a course, newest first, with the aggregate
+ * average and count. Reviews are public (RLS allows anon/authenticated SELECT),
+ * so this is safe to call on the public course page. Reviewer display names are
+ * resolved from `profiles.full_name` in a second query and joined in memory;
+ * reviewer email is never read or exposed. The average is computed in memory
+ * from the returned rows (the `course_ratings` view is the source of truth for
+ * catalog cards, but the detail page needs the rows anyway).
+ *
+ * Returns an empty result on error - the page renders "no reviews yet" rather
+ * than throwing.
+ *
+ * @param courseId - The course UUID.
+ */
+export async function getCourseReviews(
+  courseId: string
+): Promise<CourseReviewsResult> {
+  const supabase = await createClient()
+
+  const { data: rows, error } = await supabase
+    .from("course_reviews")
+    .select("*")
+    .eq("course_id", courseId)
+    .order("created_at", { ascending: false })
+
+  if (error || !rows || rows.length === 0) {
+    if (error) console.error("[courses/queries] getCourseReviews:", error)
+    return { reviews: [], averageRating: null, count: 0 }
+  }
+
+  // Resolve reviewer display names in one query; missing names stay null.
+  const userIds = Array.from(new Set(rows.map((r) => r.user_id)))
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id, full_name")
+    .in("user_id", userIds)
+
+  const nameMap = new Map(
+    (profiles ?? []).map((p) => [p.user_id, p.full_name])
+  )
+
+  const reviews = rows.map((r) =>
+    toCourseReview(r, nameMap.get(r.user_id) ?? null)
+  )
+  const sum = reviews.reduce((acc, r) => acc + r.rating, 0)
+  const averageRating = Math.round((sum / reviews.length) * 10) / 10
+
+  return { reviews, averageRating, count: reviews.length }
+}
+
+/**
+ * Returns the authenticated user's existing review for a course, or null. Used
+ * to pre-fill the review form in edit mode. RLS scopes the read to the caller's
+ * own row plus the public-read policy; the explicit `user_id` filter keeps it
+ * to exactly the caller's review.
+ *
+ * @param userId - The reviewer's user id.
+ * @param courseId - The course UUID.
+ */
+export async function getUserReview(
+  userId: string,
+  courseId: string
+): Promise<CourseReview | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("course_reviews")
+    .select("*")
+    .eq("course_id", courseId)
+    .eq("user_id", userId)
+    .maybeSingle()
+
+  if (error || !data) return null
+  return toCourseReview(data, null)
 }

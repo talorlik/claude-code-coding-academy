@@ -173,7 +173,35 @@
     "videoUnavailable": "Video unavailable",
     "metaDescriptionFallback": "Watch this course on Eyal's Coding Academy.",
     "errorTitle": "Could not load course",
-    "errorBody": "We had trouble fetching this course. Please try refreshing the page."
+    "errorBody": "We had trouble fetching this course. Please try refreshing the page.",
+    "reviews": {
+      "heading": "Reviews",
+      "summaryCount": "({count, plural, one {# review} other {# reviews}})",
+      "empty": "No reviews yet. Enrolled students can be the first to review this course.",
+      "anonymous": "Student",
+      "formTitle": "Write a review",
+      "editTitle": "Edit your review",
+      "ratingLabel": "Your rating",
+      "stars": "{count, plural, one {# star} other {# stars}}",
+      "bodyLabel": "Comment (optional)",
+      "bodyPlaceholder": "What did you think of this course?",
+      "submit": "Submit review",
+      "update": "Update review",
+      "messages": {
+        "reviewSaved": "Thanks - your review has been saved.",
+        "signInRequired": "Please sign in to leave a review.",
+        "enrollmentRequired": "Only enrolled students can review this course.",
+        "invalidRating": "Please choose a rating between 1 and 5.",
+        "reviewTooLong": "Your review is too long. Please shorten it.",
+        "submissionFailed": "We couldn't save your review. Please try again."
+      }
+    },
+    "lessonSearch": {
+      "heading": "Find a lesson",
+      "placeholder": "Search lessons in this course...",
+      "inputLabel": "Search lessons in this course",
+      "noResults": "No lessons match “{query}”."
+    }
   },
   "Dashboard": {
     "title": "Dashboard",

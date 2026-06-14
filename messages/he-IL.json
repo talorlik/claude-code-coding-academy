@@ -173,7 +173,35 @@
     "videoUnavailable": "הווידאו אינו זמין",
     "metaDescriptionFallback": "צפו בקורס זה באקדמיית הקוד של אייל.",
     "errorTitle": "לא הצלחנו לטעון את הקורס",
-    "errorBody": "אירעה שגיאה בעת טעינת הקורס. נסו לרענן את הדף."
+    "errorBody": "אירעה שגיאה בעת טעינת הקורס. נסו לרענן את הדף.",
+    "reviews": {
+      "heading": "ביקורות",
+      "summaryCount": "({count, plural, one {ביקורת אחת} other {# ביקורות}})",
+      "empty": "אין ביקורות עדיין. תלמידים רשומים יכולים להיות הראשונים לכתוב ביקורת על הקורס.",
+      "anonymous": "תלמיד/ה",
+      "formTitle": "כתיבת ביקורת",
+      "editTitle": "עריכת הביקורת שלך",
+      "ratingLabel": "הדירוג שלך",
+      "stars": "{count, plural, one {כוכב אחד} other {# כוכבים}}",
+      "bodyLabel": "תגובה (לא חובה)",
+      "bodyPlaceholder": "מה דעתך על הקורס?",
+      "submit": "שליחת ביקורת",
+      "update": "עדכון הביקורת",
+      "messages": {
+        "reviewSaved": "תודה - הביקורת שלך נשמרה.",
+        "signInRequired": "יש להתחבר כדי להשאיר ביקורת.",
+        "enrollmentRequired": "רק תלמידים רשומים יכולים לכתוב ביקורת על הקורס.",
+        "invalidRating": "נא לבחור דירוג בין 1 ל-5.",
+        "reviewTooLong": "הביקורת ארוכה מדי. נא לקצר אותה.",
+        "submissionFailed": "לא הצלחנו לשמור את הביקורת. נא לנסות שוב."
+      }
+    },
+    "lessonSearch": {
+      "heading": "חיפוש שיעור",
+      "placeholder": "חיפוש שיעורים בקורס...",
+      "inputLabel": "חיפוש שיעורים בקורס זה",
+      "noResults": "אין שיעורים שתואמים ל“{query}”."
+    }
   },
   "Dashboard": {
     "title": "לוח הבקרה",

@@ -2440,3 +2440,56 @@ Unifies the two course cards into one and reworks the home page to feature the
 - Manual (`next start`): `/en` renders the unified card (2 cards, <= 3) + the
   view-all link; `/en/courses` renders the same card with 20 filled rating
   stars from the seeded reviews.
+
+## Batch 19: Course Reviews + In-Course Lesson Search (2026-06-14)
+
+The final catalog-group batch. On the course detail page: a review write path
+(enrollment-gated, Tier-2 no-JS) and an in-course lesson search.
+
+### What Was Added
+
+| Area | Implementation | Key files |
+| ---- | -------------- | --------- |
+| Validation | `reviewSchema` (courseId uuid, rating coerced int 1-5, optional body <=1000) | `lib/validation/course.ts` |
+| Action | `submitReview` FormData action: auth + enrollment re-check, idempotent upsert on unique (course_id,user_id), redirects with `?notice=`/`?error=` code | `lib/courses/actions.ts` |
+| Feedback | allowlisted review code -> localized message resolver (anti-injection) | `lib/courses/resolve-review-message.ts` |
+| Queries | `getCourseReviews` (public list + average/count + reviewer names), `getUserReview` (edit prefill); `CourseReview` DTO + mapper | `lib/courses/queries.ts`, `lib/courses/types.ts` |
+| Review UI | Tier-2 no-JS form (radio 1-5 + textarea, edit prefill, banner), public list | `components/courses/review-form.tsx`, `review-list.tsx` |
+| Lesson search | client filter over loaded lessons + pure `filterLessons` helper; no-JS shows full list | `components/courses/lesson-search.tsx`, `lib/courses/filter-lessons.ts` |
+| Page | course detail reads `?notice=`/`?error=`, loads reviews + own review, renders search + list + gated form | `app/[locale]/courses/[courseSlug]/page.tsx` |
+| i18n | `Course.reviews.*` + `Course.lessonSearch.*`, EN+HE | `messages/en-US.json`, `messages/he-IL.json` |
+| Tests | submitReview gating, reviewSchema, filterLessons units; e2e for reviews/search + gating + no-overflow | `tests/integration/submit-review.test.ts`, `tests/unit/validation.test.ts`, `tests/unit/filter-lessons.test.ts`, `e2e/reviews-lesson-search.spec.ts`, `tests/integration/enroll-action.test.ts` (i18n mock added) |
+
+### Decisions
+
+- **submitReview is FormData + redirect** (no-JS), distinct from enroll's
+  ActionResult; slug is a hidden field validated as a same-site path (open-
+  redirect guard).
+- **Review gate enforced twice**: action re-checks enrollment AND the batch-17
+  RLS policy requires own-row + enrolled. Upsert => idempotent edit; form
+  pre-fills via `getUserReview`. Form is enrolled-only; list is public.
+- **Lesson search**: pure `filterLessons` (testable) used by a client island;
+  full list renders with no JS. No global cross-course search.
+- **null-body normalization**: `FormData.get("body")` is null when absent; the
+  action coerces null->undefined before parse so a ratings-only submit is valid.
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - 548 keys in sync (was 526).
+- `npm run typecheck` - exit 0.
+- `npm run build` - succeeds.
+- `npm run test` - 456 passed, 3 skipped (19 new: 7 submitReview, 6 filterLessons,
+  6 reviewSchema). First run had 2 failures (null-body mis-validation +
+  enroll-action import) - both fixed; see DECISIONS.
+- `npm run test:e2e` - 111 passed, 4 skipped (9 new reviews/lesson-search tests).
+- Manual (`next start`): the course detail page renders the public reviews list
+  (seeded review bodies + 28 filled stars) and the lesson search; an anonymous
+  viewer sees 0 rating inputs and 0 submit buttons (form correctly gated out).
+
+### Known Follow-Up
+
+- Review moderation UI / admin review management is out of scope (design spec
+  "Out of Scope"). Reviewer name falls back to a generic "Student" label when
+  `profiles.full_name` is unset.
+- The catalog group (batches 16-19) is complete.

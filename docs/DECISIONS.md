@@ -795,3 +795,54 @@ a course must look identical wherever it appears.
 never drift; routing home through `getCatalog` is the same query the catalog
 already uses, so there is one data path. Server-component cards are verified by
 build + e2e, the project's established pattern (jsdom can't render them).
+
+### 2026-06-14 - Batch 19 - Course reviews write path + in-course lesson search
+
+The final catalog-group batch. On the course detail page: a review write path
+(`lib/courses/actions.ts#submitReview`, `lib/validation/course.ts#reviewSchema`,
+`components/courses/review-form.tsx` + `review-list.tsx`,
+`lib/courses/queries.ts#getCourseReviews`/`getUserReview`,
+`lib/courses/resolve-review-message.ts`) and an in-course lesson search
+(`components/courses/lesson-search.tsx` + the pure
+`lib/courses/filter-lessons.ts`). New `Course.reviews.*` + `Course.lessonSearch.*`
+i18n (548 keys).
+
+- **submitReview is a Tier-2 FormData redirect action, NOT the enroll
+  ActionResult pattern.** Because the review form is no-JS, `submitReview` takes
+  `FormData` and `redirect()`s back to `/courses/<slug>?notice=|?error=<code>`
+  (mirrors the batch-16 contact action), where `<slug>` is a hidden form field
+  validated as a same-site path segment (open-redirect guard). The page resolves
+  the code via `resolve-review-message.ts` (allowlist, anti-injection). This is
+  deliberately different from `enrollInCourse`, which returns an ActionResult to
+  a client button.
+- **Review gate is enforced twice.** The action re-checks auth + an
+  `enrollments` row for (user, course) AND the batch-17 `course_reviews` RLS
+  policy independently requires own-row + enrolled. The write is an idempotent
+  upsert on the unique `(course_id, user_id)`, so a resubmit edits (the form
+  pre-fills from `getUserReview` in edit mode). The form renders only for
+  signed-in enrolled students; the review list is public.
+- **Lesson search is a client filter over already-loaded lessons, with a
+  pure helper.** `filter-lessons.ts#filterLessons` (case-insensitive over
+  title+description; blank query => all) is extracted so it is unit-testable;
+  `lesson-search.tsx` calls it in a `useMemo`. The full lesson list renders on
+  first paint, so with no JS the student still sees every lesson (the input is
+  just inert). No global cross-course search (that was retired in batch 18).
+- **null-body normalization.** `FormData.get("body")` is `null` when absent, and
+  the optional `z.string()` body rejects null, so the action normalizes
+  `null -> undefined` before `parseWithSchema`. Without this, a ratings-only
+  submit failed validation and mis-reported `reviewTooLong`. (Caught by the
+  submit-review tests.)
+
+**Why:** keeping reviews no-JS + DB-gated matches the build's Tier-2 + RLS
+contracts; the pure filter helper keeps the only non-trivial search logic
+testable without rendering a client component.
+
+**Cross-test trap (reusable):** adding `import { redirect } from
+"@/i18n/navigation"` to `lib/courses/actions.ts` broke `enroll-action.test.ts`
+with "Cannot find module 'next/navigation'" - importing the real actions module
+now transitively loads next-intl's navigation, which does not resolve under the
+Vitest jsdom env. Fix: any test that imports a module which (now) pulls in
+`@/i18n/navigation` must `vi.mock("@/i18n/navigation", () => ({ redirect: vi.fn() }))`.
+`payments.test.ts` was unaffected because it mocks `@/lib/courses/actions`
+wholesale. When you add an `@/i18n/navigation` import to a shared lib module,
+grep for the module's importers in tests/ and add the mock.
