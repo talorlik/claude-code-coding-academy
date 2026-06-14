@@ -38,6 +38,19 @@ inline.
 - Tasks 10.1-10.5: `docs/prompts/11_REQUIRED_EXTENDED_FEATURES.md`
 - Tasks 11.1-11.3: `docs/prompts/12_TESTING_AND_QA.md`
 - Tasks 12.1-12.3: `docs/prompts/13_DEPLOYMENT_AND_FINAL_REVIEW.md`
+- Tasks 14.1-14.2 (Batch 14): `docs/prompts/14_YOUTUBE_PLAYLIST_IMPORT_LIVE.md`
+- Tasks 15.1-15.3 (Batch 15): `docs/prompts/15_REMINDER_EMAIL_DELIVERY_SMTP.md`
+- Tasks 16.1-16.4 (Batch 16): `docs/prompts/16_ABOUT_AND_CONTACT_PAGES.md`
+- Tasks 17.1-17.3 (Batch 17):
+  `docs/prompts/17_CATALOG_SCHEMA_CATEGORIES_AND_REVIEWS.md`
+- Tasks 18.1-18.4 (Batch 18): `docs/prompts/18_COURSES_CATALOG_PAGE.md`
+- Tasks 19.1-19.2 (Batch 19):
+  `docs/prompts/19_COURSE_REVIEWS_AND_LESSON_SEARCH.md`
+
+The batches above 13 were appended after the initial 00-13 build (14-15 are
+post-build add-ons; 16-19 implement the courses-catalog and content-pages
+design spec). Their detailed task sections live at the end of this document,
+under the matching `## Batch NN` headings.
 
 ## Requirement Cross-Reference Map
 
@@ -61,6 +74,16 @@ source of truth for implementation details that the prompt may summarize.
 | 10 | 10.1-10.5 | `docs/prompts/11_REQUIRED_EXTENDED_FEATURES.md` | Sections 6.2.1, 6.3, 6.4, 7, 8, 9.1, 10, 11, 14, 15 |
 | 11 | 11.1-11.3 | `docs/prompts/12_TESTING_AND_QA.md` | Sections 15, 17 |
 | 12 | 12.1-12.3 | `docs/prompts/13_DEPLOYMENT_AND_FINAL_REVIEW.md` | Sections 5, 16, 17 |
+| 14 | 14.1-14.2 | `docs/prompts/14_YOUTUBE_PLAYLIST_IMPORT_LIVE.md` | Sections 5, 9.4 |
+| 15 | 15.1-15.3 | `docs/prompts/15_REMINDER_EMAIL_DELIVERY_SMTP.md` | Sections 10, 14 |
+| 16 | 16.1-16.4 | `docs/prompts/16_ABOUT_AND_CONTACT_PAGES.md` | Sections 4, 10, 11, 12, 15 |
+| 17 | 17.1-17.3 | `docs/prompts/17_CATALOG_SCHEMA_CATEGORIES_AND_REVIEWS.md` | Sections 5, 6, 7, 15, 16 |
+| 18 | 18.1-18.4 | `docs/prompts/18_COURSES_CATALOG_PAGE.md` | Sections 4, 8, 10, 11, 12, 15 |
+| 19 | 19.1-19.2 | `docs/prompts/19_COURSE_REVIEWS_AND_LESSON_SEARCH.md` | Sections 6.3, 8, 10, 11, 15 |
+
+Batches 16-19 are anchored by the design spec
+`docs/superpowers/specs/2026-06-14-courses-catalog-and-content-pages-design.md`
+(batch number noted in each prompt's planning anchors).
 
 ## Batch 0: Verify Existing Implementation And Establish Baseline
 
@@ -1168,3 +1191,206 @@ Objective: Deterministic tests with nodemailer mocked; EN/HE strings;
 SMTP_LIVE_TEST=true.
 
 Prompt file: `docs/prompts/15_REMINDER_EMAIL_DELIVERY_SMTP.md`
+
+## Catalog And Content Pages (Batches 16-19)
+
+Batches 16-19 implement the Udemy-style courses catalog and the supporting
+content pages. They are decomposed smallest-blast-radius first (content pages,
+then schema, then catalog UI, then reviews/search) per the design spec
+`docs/superpowers/specs/2026-06-14-courses-catalog-and-content-pages-design.md`.
+Each batch is independently releasable. Worktrees are siblings
+`../academy-NN-<slug>`, branch `feature/NN-<slug>`, squash-merged into local
+`main` when all gates exit 0. Cross-cutting per-batch rules (EN+HE
+key-identical, RLS/guards/secrets preserved, server-only boundaries, full gate
+run, IMPLEMENTATION_LOG + academy-build-state updates) apply to every batch.
+
+## Batch 16: About And Contact Content Pages (DONE 2026-06-14)
+
+Two public server-component routes, nav links, and a demo-grade contact form.
+No database changes. Status: COMPLETED and merged to `main`.
+
+### Task 16.1: About Page Shell
+
+Objective: A structured About page at `app/[locale]/about/page.tsx` - hero
+region with a clearly-commented single-edit-point image slot, a mission block,
+and a CTA to `/courses`. One `<h1>`, semantic landmarks, new `About` i18n
+namespace. Real marketing copy and hero image are deferred (provisional copy).
+
+Files:
+
+- `app/[locale]/about/page.tsx`
+
+### Task 16.2: Contact Page With Fake Details And Map Placeholder
+
+Objective: `app/[locale]/contact/page.tsx` with a FAKE Tel-Aviv contact block
+(Rothschild Blvd address, Israeli-format phone, email, hours), a static map
+image placeholder (no live embed, no API key), and the contact form. New
+`Contact` i18n namespace. The fake-details decision is recorded in the log.
+
+Files:
+
+- `app/[locale]/contact/page.tsx`, `components/contact/contact-form.tsx`
+
+### Task 16.3: Tier-2 No-JS Contact Form And Action
+
+Objective: A real `<form>` posting to `submitContactMessage` in
+`lib/contact/actions.ts`, validated through a new Zod schema in
+`lib/validation/contact.ts` (parseWithSchema + ActionResult). No email send:
+validate, log/queue server-side, acknowledge via the `?notice=`/`?error=`
+channel resolved by an allowlist (anti-injection, mirrors
+`resolve-auth-message`).
+
+Files:
+
+- `lib/contact/actions.ts`, `lib/validation/contact.ts`,
+  `lib/contact/resolve-contact-message.ts`
+
+### Task 16.4: Navigation, i18n, Tests
+
+Objective: Add Courses/About/Contact links to the header (`textLinks` +
+`drawerLinks`) and footer; EN/HE key-identical strings; e2e for /about and
+/contact (no-overflow 390/768/1280 in EN+HE, landmarks/one-h1, form present),
+plus unit coverage for the action code mapping.
+
+Files:
+
+- `components/site-header.tsx`, `components/site-footer.tsx`,
+  `messages/en-US.json`, `messages/he-IL.json`,
+  `e2e/content-pages.spec.ts`, `tests/unit/contact-action.test.ts`
+
+Prompt file: `docs/prompts/16_ABOUT_AND_CONTACT_PAGES.md`
+
+## Batch 17: Catalog Schema - Categories And Reviews
+
+Database only - no UI. Migration `0004_catalog_categories_and_reviews.sql`.
+
+### Task 17.1: Categories, Course Category, And Reviews Tables
+
+Objective: A `categories` table (slug unique, name_en/name_he, sort_order),
+`courses.category_id` (NULL FK ON DELETE SET NULL, indexed), and a
+`course_reviews` table (FK course/user, rating 1-5 CHECK, nullable body,
+UNIQUE (course_id, user_id), indexed).
+
+Files:
+
+- `supabase/migrations/0004_catalog_categories_and_reviews.sql`
+
+### Task 17.2: Aggregate Views And RLS
+
+Objective: Views `course_ratings` (rating_average, rating_count) and
+`course_popularity` (enrollment_count) with `security_invoker = true` (no
+paid_count - the "Most purchased" sort was dropped). RLS: categories +
+course_reviews public SELECT; review INSERT/UPDATE own-row AND only when
+enrolled; admins (`private.is_admin()`) full access. Existing policies stay
+intact.
+
+### Task 17.3: Seed And Regenerated Types
+
+Objective: Idempotent seed (a few categories with EN+HE names; assign
+category_id to the 2 seeded courses; a realistic spread of reviews; enough
+enrollments that "Most popular" is non-degenerate) referencing existing seeded
+user ids. Regenerate `lib/supabase/database.types.ts` via the Supabase MCP;
+verify typecheck and `get_advisors`.
+
+Files:
+
+- `lib/supabase/database.types.ts` (regenerated)
+
+Prompt file: `docs/prompts/17_CATALOG_SCHEMA_CATEGORIES_AND_REVIEWS.md`
+
+## Batch 18: Courses Catalog Page
+
+The core batch: the Udemy-style `/courses` page. `/search` redirects to
+`/courses`.
+
+### Task 18.1: Catalog Domain And DTO
+
+Objective: `lib/catalog/queries.ts#getCatalog({ q, categorySlug, mine, sort,
+userId })` (server-only) joining published courses with
+`course_lesson_counts`, `course_ratings`, `course_popularity`, and
+`categories`; category filter, ILIKE course search, My-Courses filter (inner
+join enrollments), and sort (popular | rated | newest). With a userId, surface
+per-course enrollment + progress (reuse `lib/progress/calculate.ts`).
+`getCategories()` for the filter UI. `lib/catalog/types.ts` `CatalogCourse`
+DTO + `toCatalogCourse` mapper.
+
+Files:
+
+- `lib/catalog/queries.ts`, `lib/catalog/types.ts`
+
+### Task 18.2: Query-Param Validation
+
+Objective: `lib/validation/catalog.ts` Zod schema for the query params (q,
+category slug, sort enum default "popular", mine boolean), parsed through
+parseWithSchema; invalid values fall back to defaults rather than erroring.
+
+Files:
+
+- `lib/validation/catalog.ts`
+
+### Task 18.3: Catalog Page And Filter Components
+
+Objective: `app/[locale]/courses/page.tsx` (server component) with a category
+filter, search input, sort control, and My-Courses toggle - all state in URL
+query params (no-JS navigable, shareable). My-Courses hidden/disabled for
+anonymous users. Filter components under `components/catalog/` (kebab-case),
+server-rendered where possible. Cards gain a star-rating display and, when
+enrolled, an inline progress bar; the home-page card keeps working. Mobile-
+first + RTL, no overflow at 390/768/1280.
+
+Files:
+
+- `app/[locale]/courses/page.tsx`, `components/catalog/*`,
+  `components/courses/course-card.tsx` (and/or `catalog-course-card.tsx`)
+
+### Task 18.4: Search Redirect, i18n, Tests
+
+Objective: Redirect `/search` to `/courses` (preserve `?q=`); fold/remove the
+old global search page. New `Catalog` i18n namespace (key-identical). Unit
+tests for getCatalog filter/sort (mocked Supabase builder); extend
+`e2e/catalog.spec.ts` (no-overflow EN+HE, each sort/filter changes results,
+search filters, My-Courses auth-gated).
+
+Files:
+
+- `app/[locale]/search/page.tsx` (-> redirect), `messages/en-US.json`,
+  `messages/he-IL.json`, `e2e/catalog.spec.ts`
+
+Prompt file: `docs/prompts/18_COURSES_CATALOG_PAGE.md`
+
+## Batch 19: Course Reviews And In-Course Lesson Search
+
+Both touch the course detail page `app/[locale]/courses/[courseSlug]/page.tsx`.
+
+### Task 19.1: Review Write Path
+
+Objective: A review schema in `lib/validation/course.ts` (rating 1-5; optional
+body; course id) and `lib/courses/actions.ts#submitReview` - auth + enrollment
+gated, validated, idempotent upsert on UNIQUE (course_id, user_id), feedback
+via `?notice=`/`?error=`, RLS request client (never service-role). A Tier-2
+no-JS `review-form.tsx` shown only to enrolled signed-in students (edit mode
+pre-fill), and a public `review-list.tsx` with average + count.
+
+Files:
+
+- `lib/validation/course.ts`, `lib/courses/actions.ts`,
+  `lib/courses/queries.ts` (getCourseReviews if needed),
+  `components/courses/review-form.tsx`,
+  `components/courses/review-list.tsx`
+
+### Task 19.2: In-Course Lesson Search, i18n, Tests
+
+Objective: `components/courses/lesson-search.tsx` filtering THIS course's
+already-loaded lessons by title/description, degrading to the full list with
+no JS (no global cross-course search). New reviews + lesson-search keys under
+the `Course` namespace (key-identical). Tests: submitReview gating (anon ->
+fail, not-enrolled -> fail, enrolled -> idempotent upsert), lesson-search
+filter unit, e2e for form gating + the search box, no overflow 390/768/1280
+EN+HE.
+
+Files:
+
+- `components/courses/lesson-search.tsx`, `messages/en-US.json`,
+  `messages/he-IL.json`, `e2e/*`
+
+Prompt file: `docs/prompts/19_COURSE_REVIEWS_AND_LESSON_SEARCH.md`
