@@ -13,13 +13,13 @@ export async function SiteFooter() {
 
   return (
     <footer className="mt-auto border-t bg-background">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-2 px-6 py-6 text-sm text-muted-foreground sm:flex-row sm:justify-between">
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-2 px-6 py-6 text-sm text-muted-foreground">
+        <p className="text-center">{t("rights", { year })}</p>
         <nav aria-label={t("tagline")} className="flex items-center gap-4">
           <Link href="/" className="hover:underline">
             {t("home")}
           </Link>
         </nav>
-        <p>{t("rights", { year })}</p>
       </div>
     </footer>
   )
