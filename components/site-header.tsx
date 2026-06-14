@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server"
-import { Menu } from "lucide-react"
+import { Menu, Search } from "lucide-react"
 
 import { Link } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/server"
@@ -15,6 +15,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 /**
  * Global top navigation, server-rendered so it reflects the current auth state
@@ -35,12 +41,12 @@ export async function SiteHeader() {
   const t = await getTranslations("Nav")
   const common = await getTranslations("Common")
 
-  const navLinks = user
-    ? [
-        { href: "/dashboard", label: t("dashboard") },
-        { href: "/search", label: t("search") },
-      ]
-    : [{ href: "/search", label: t("search") }]
+  const searchLabel = t("searchLabel")
+
+  // Text links shown inline (md+) and in the drawer. Search is handled
+  // separately as an icon inline; the drawer keeps it as a labelled list item.
+  const textLinks = user ? [{ href: "/dashboard", label: t("dashboard") }] : []
+  const drawerLinks = [...textLinks, { href: "/search", label: t("search") }]
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
@@ -52,27 +58,34 @@ export async function SiteHeader() {
           {common("appName")}
         </Link>
 
-        {/* Inline nav: visible from md up. */}
+        {/* Inline nav: visible from md up. Search is an icon-only control with
+            a tooltip; Sign in / Sign out moves out of the nav to the header's
+            inline end (see the trailing block below). */}
         <nav
           aria-label={t("mainNavigation")}
           className="hidden min-w-0 flex-1 items-center justify-end gap-4 text-sm md:flex"
         >
-          {navLinks.map((item) => (
+          {textLinks.map((item) => (
             <Link key={item.href} href={item.href} className="hover:underline">
               {item.label}
             </Link>
           ))}
-          {user ? (
-            <form action="/auth/signout" method="post">
-              <button type="submit" className="hover:underline">
-                {t("signOut")}
-              </button>
-            </form>
-          ) : (
-            <Link href="/login" className="hover:underline">
-              {t("signIn")}
-            </Link>
-          )}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Link
+                    href="/search"
+                    aria-label={searchLabel}
+                    className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <Search className="size-5" aria-hidden />
+                  </Link>
+                }
+              />
+              <TooltipContent>{searchLabel}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </nav>
 
         {/* Controls cluster: always visible. ms-auto pushes it to the inline
@@ -103,7 +116,7 @@ export async function SiteHeader() {
                 aria-label={t("mainNavigation")}
                 className="flex flex-col gap-1 px-4 pb-4 text-sm"
               >
-                {navLinks.map((item) => (
+                {drawerLinks.map((item) => (
                   <SheetClose
                     key={item.href}
                     render={
@@ -145,6 +158,20 @@ export async function SiteHeader() {
             </SheetContent>
           </Sheet>
         </div>
+
+        {/* Sign in / Sign out: pinned to the header's inline end (far right in
+            LTR, far left in RTL) on md+. On mobile it lives in the drawer. */}
+        {user ? (
+          <form action="/auth/signout" method="post" className="hidden md:block">
+            <button type="submit" className="text-sm hover:underline">
+              {t("signOut")}
+            </button>
+          </form>
+        ) : (
+          <Link href="/login" className="hidden text-sm hover:underline md:block">
+            {t("signIn")}
+          </Link>
+        )}
       </div>
     </header>
   )

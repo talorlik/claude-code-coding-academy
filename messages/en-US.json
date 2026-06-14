@@ -22,6 +22,7 @@
   "Nav": {
     "home": "Home",
     "search": "Search",
+    "searchLabel": "Search",
     "dashboard": "Dashboard",
     "signIn": "Sign in",
     "signOut": "Sign out",
