@@ -53,7 +53,10 @@ export async function SiteHeader() {
     { href: "/contact", label: t("contact") },
     ...(user ? [{ href: "/dashboard", label: t("dashboard") }] : []),
   ]
-  const drawerLinks = [...textLinks, { href: "/search", label: t("search") }]
+  // The search affordance points at the /courses catalog, whose search box is
+  // the course-level search (batch 18 replaced the standalone /search page; the
+  // /search route still redirects to /courses for old links).
+  const drawerLinks = [...textLinks, { href: "/courses", label: t("search") }]
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
@@ -82,7 +85,7 @@ export async function SiteHeader() {
               <TooltipTrigger
                 render={
                   <Link
-                    href="/search"
+                    href="/courses"
                     aria-label={searchLabel}
                     className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >

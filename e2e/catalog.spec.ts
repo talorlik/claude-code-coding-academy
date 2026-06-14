@@ -125,3 +125,74 @@ test.describe("home page catalog - public access", () => {
     await expectNoHorizontalOverflow(page)
   })
 })
+
+// ---------------------------------------------------------------------------
+// /courses catalog (Batch 18)
+// ---------------------------------------------------------------------------
+
+const VIEWPORTS = [
+  { name: "mobile", width: 390, height: 844 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "desktop", width: 1280, height: 800 },
+] as const
+
+const CATALOG_PAGES = [
+  { name: "en", path: "/en/courses", dir: "ltr" },
+  { name: "he", path: "/he/courses", dir: "rtl" },
+] as const
+
+test.describe("courses catalog page", () => {
+  for (const vp of VIEWPORTS) {
+    for (const target of CATALOG_PAGES) {
+      test(`${target.name} catalog has no horizontal overflow at ${vp.name} (${vp.width}px)`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width: vp.width, height: vp.height })
+        await page.goto(target.path)
+        await expect(page.getByRole("banner")).toBeVisible()
+        await expect(page.locator("html")).toHaveAttribute("dir", target.dir)
+        await expectNoHorizontalOverflow(page)
+      })
+    }
+  }
+
+  test("exposes main, exactly one h1, and the filter form", async ({ page }) => {
+    await page.goto("/en/courses")
+    await expect(page.getByRole("main")).toBeVisible()
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1)
+    // The no-JS filter form (search role) with its controls.
+    const filters = page.getByRole("search", { name: /course filters/i })
+    await expect(filters).toBeVisible()
+    await expect(filters.getByLabel("Category")).toBeVisible()
+    await expect(filters.getByLabel("Sort by")).toBeVisible()
+  })
+
+  test("the sort control change is reflected in the URL query (no-JS form)", async ({
+    page,
+  }) => {
+    await page.goto("/en/courses")
+    const filters = page.getByRole("search", { name: /course filters/i })
+    await filters.getByLabel("Sort by").selectOption("rated")
+    await filters.getByRole("button", { name: /apply/i }).click()
+    await expect(page).toHaveURL(/[?&]sort=rated/)
+  })
+
+  test("the search box filters via the query string", async ({ page }) => {
+    await page.goto("/en/courses")
+    const filters = page.getByRole("search", { name: /course filters/i })
+    await filters.getByLabel("Search").fill("javascript")
+    await filters.getByRole("button", { name: /apply/i }).click()
+    await expect(page).toHaveURL(/[?&]q=javascript/)
+    await expect(page.getByRole("main")).toBeVisible()
+  })
+
+  test("My Courses is hidden for anonymous visitors", async ({ page }) => {
+    await page.goto("/en/courses")
+    await expect(page.getByText("My courses", { exact: true })).toHaveCount(0)
+  })
+
+  test("/search redirects to /courses preserving q", async ({ page }) => {
+    await page.goto("/en/search?q=react")
+    await expect(page).toHaveURL(/\/en\/courses\?q=react/)
+  })
+})

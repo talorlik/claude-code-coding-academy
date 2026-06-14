@@ -231,16 +231,19 @@ test.describe("Admin - Groups page", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Navigation search link", () => {
-  test("search link is present in EN home page nav", async ({ page }) => {
+  // Batch 18 replaced the standalone /search page with the /courses catalog
+  // (whose search box is the course-level search). The header search affordance
+  // now points at /courses; the /search route still redirects there for old
+  // links. These assert the search entry point resolves to the catalog.
+  test("search affordance points at the catalog in EN nav", async ({ page }) => {
     await page.goto("/en")
-    // The nav should contain a link to /en/search.
-    const searchLink = page.locator("a[href*='/search']")
+    const searchLink = page.locator("header a[href*='/courses']")
     expect(await searchLink.count()).toBeGreaterThan(0)
   })
 
-  test("search link is present in HE home page nav", async ({ page }) => {
+  test("search affordance points at the catalog in HE nav", async ({ page }) => {
     await page.goto("/he")
-    const searchLink = page.locator("a[href*='/search']")
+    const searchLink = page.locator("header a[href*='/courses']")
     expect(await searchLink.count()).toBeGreaterThan(0)
   })
 })

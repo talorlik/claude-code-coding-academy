@@ -2347,3 +2347,58 @@ the linked Supabase project via the MCP; regenerated types. No UI, no DTOs.
   enrollments, so a local `supabase db reset` would not seed them. Fold the
   migration's seed into seed.sql if local-reset parity is needed.
 - Reviews spread is thin (4 rows, 2 users) until real users exist.
+
+## Batch 18: Courses Catalog Page (2026-06-14)
+
+The Udemy-style `/courses` catalog: filters, search, sorts, My-Courses, star
+ratings, and an in-card progress bar. `/search` now redirects to `/courses`.
+
+### What Was Added
+
+| Area | Implementation | Key files |
+| ---- | -------------- | --------- |
+| Catalog domain | `getCatalog({q,categorySlug,mine,sort,userId})` + `getCategories()`, server-only; joins courses + lesson counts + ratings + popularity + categories by id, filters/sorts | `lib/catalog/queries.ts` |
+| DTO | `CatalogCourse` extends `CourseSummary` (categorySlug/Name, ratingAverage/Count, enrollmentCount, progressPercent, isEnrolled) + `toCatalogCourse` | `lib/catalog/types.ts` |
+| Validation | `catalogQuerySchema` (q, category, sort enum default popular, mine bool); forgiving via `.catch` | `lib/validation/catalog.ts` |
+| Page | server component, URL-param state, Suspense + skeleton, empty state | `app/[locale]/courses/page.tsx` |
+| Filters | single no-JS GET form (search + category + sort + my-courses) | `components/catalog/catalog-filters.tsx` |
+| Card | catalog variant with star rating + enrolled progress bar | `components/courses/catalog-course-card.tsx` |
+| Redirect | `/search` -> `/courses` (preserves `?q=`); header search affordance repointed to `/courses` | `app/[locale]/search/page.tsx`, `components/site-header.tsx` |
+| i18n | new `Catalog` namespace, EN+HE | `messages/en-US.json`, `messages/he-IL.json` |
+| Tests | getCatalog filter/sort unit (mocked builder), schema unit, e2e `/courses` | `tests/integration/catalog-queries.test.ts`, `tests/unit/catalog-validation.test.ts`, `e2e/catalog.spec.ts`, `e2e/extended-features.spec.ts` |
+
+### Decisions
+
+- **Filters = one native GET form**, fully no-JS; URL params are the only state.
+- **Forgiving validation** (`.catch`): junk params coerce to defaults, page
+  always renders. Page uses `.parse()` directly (every field has a fallback).
+- **Sort in JS** after merging view aggregates (popularity/rating live in
+  separate views); search + category pushed into SQL. `newest` uses the SQL
+  `created_at desc` order as a rank map; ties -> newest.
+- **null rating = "no ratings yet"**, never 0 stars.
+- **`/search` redirects** to `/courses`; `lib/search/*` RETAINED (still used by
+  `search.test.ts` + `validation.test.ts`); only the page was replaced. Global
+  lesson search is gone (lesson search becomes in-course in batch 19).
+- **Separate `catalog-course-card.tsx`** so the home `course-card.tsx` is
+  untouched.
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - 525 keys in sync (was 505).
+- `npm run typecheck` - exit 0.
+- `npm run build` - succeeds; `/[locale]/courses` and `/[locale]/search` routes
+  present.
+- `npm run test` - 451 passed, 3 skipped (19 new catalog tests).
+- `npm run test:e2e` - 102 passed, 4 skipped (7 new `/courses` tests; 2 nav
+  tests updated for the search->catalog repoint).
+- Manual: `next start` serves `/en/courses` HTTP 200 with full content. NOTE: the
+  Turbopack DEV server in the worktree returned 404 for the route (stale copied
+  `.next`/SW artifact) - the built app is correct; trust e2e + `next start`.
+
+### Known Follow-Up
+
+- Client-side enhancement of the filter form (instant filtering on change) can
+  be layered later without changing the no-JS contract.
+- `lib/search/*` is now only reachable via tests + the redirected route; a
+  future cleanup batch could remove it if those tests are retired.

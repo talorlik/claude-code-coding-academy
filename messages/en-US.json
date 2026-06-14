@@ -667,5 +667,31 @@
       "messageTooLong": "Your message is too long. Please shorten it.",
       "submissionFailed": "We couldn't send your message. Please try again."
     }
+  },
+  "Catalog": {
+    "metaTitle": "Courses - Eyal's Coding Academy",
+    "metaDescription": "Browse the full course catalog. Filter by category, search, sort by popularity or rating, and track your progress.",
+    "title": "Courses",
+    "subtitle": "Browse the catalog. Filter by category, search, and sort to find your next course.",
+    "filtersLabel": "Course filters",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search courses...",
+    "categoryLabel": "Category",
+    "allCategories": "All categories",
+    "sortLabel": "Sort by",
+    "sort": {
+      "popular": "Most popular",
+      "rated": "Highest rated",
+      "newest": "Newest"
+    },
+    "myCourses": "My courses",
+    "apply": "Apply",
+    "noRatings": "No ratings yet",
+    "ratingLabel": "Rated {average} out of 5 from {count} reviews",
+    "progressLabel": "{percent}% complete",
+    "empty": {
+      "title": "No courses found",
+      "body": "No courses match these filters. Try clearing the search or choosing a different category."
+    }
   }
 }

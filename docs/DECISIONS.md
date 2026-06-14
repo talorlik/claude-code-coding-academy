@@ -698,3 +698,66 @@ independently releasable.
 `tests/factories/*` builder constructs will break that builder the same way -
 add the new field to the factory default in the same batch. typecheck (not
 vitest) catches this.
+
+### 2026-06-14 - Batch 18 - /courses catalog page + domain
+
+The Udemy-style `/courses` catalog: `lib/catalog/queries.ts#getCatalog` +
+`getCategories` (server-only), `lib/catalog/types.ts` (`CatalogCourse` extends
+`CourseSummary`), `lib/validation/catalog.ts`, `app/[locale]/courses/page.tsx`,
+`components/catalog/catalog-filters.tsx`, and
+`components/courses/catalog-course-card.tsx`. New `Catalog` i18n namespace (525
+keys).
+
+- **Filters are ONE native GET form, not client islands.** `catalog-filters.tsx`
+  is a single server-rendered `<form method="GET" action="/{locale}/courses">`
+  holding the search input, category `<select>`, sort `<select>`, and a
+  "My Courses" checkbox, with an always-present Apply submit. The browser
+  serializes the controls into `?q=&category=&sort=&mine=1`, so all filtering
+  is fully no-JS and shareable - no client component, no JS dependency. The page
+  reads the params back via `catalogQuerySchema`.
+- **Validation is forgiving (`.catch`), never throws.** `catalogQuerySchema`
+  coerces junk to defaults (unknown sort -> "popular", blank q -> undefined,
+  overlong q -> undefined, mine truthy only for "1"/"true"). A hand-edited URL
+  must always render the page, never 400. The page calls `.parse()` directly
+  (not parseWithSchema) because every field has a `.catch` fallback so parse
+  cannot reject.
+- **Sort is applied in JS after merging view aggregates.** Popularity and rating
+  live in separate views (`course_popularity`, `course_ratings`), not on the
+  courses row, so getCatalog fetches them by id and sorts in memory: popular by
+  enrollment_count, rated by rating_average (NULLs treated as -1 => last),
+  newest by the SQL `created_at desc` order (captured as a rank map so the DTO
+  needn't carry created_at). Ties fall back to newest for determinism. Search
+  and category filters ARE pushed into SQL (`.or` ILIKE, `.eq category_id`).
+- **`rating_average` null is "no ratings yet", not 0 stars.** The card's
+  RatingStars renders a muted label when average is null/count is 0 rather than
+  an empty 5-star row that reads as a 1-star course.
+- **`/search` -> `/courses` redirect + header repoint.**
+  `app/[locale]/search/page.tsx` is now a locale-aware redirect preserving
+  `?q=`. The header search icon + drawer "Search" link were repointed straight
+  at `/courses` (no redirect hop); the catalog's search box IS the course-level
+  search. The two `extended-features.spec.ts` nav tests that asserted an
+  `href*='/search'` were updated to assert the catalog link
+  (`header a[href*='/courses']`), matching the new behavior.
+- **`lib/search/*` RETAINED, not removed.** `lib/search/queries.ts`,
+  `lib/search/types.ts`, and `lib/validation/search.ts` are still referenced by
+  `tests/integration/search.test.ts` and `tests/unit/validation.test.ts`.
+  Removing them was out of scope and would break those tests, so they stay; only
+  the standalone search PAGE was replaced. (The catalog has its own
+  `lib/catalog/queries.ts`; it does not use `searchPublished`.) Lesson-level
+  search moves to the course detail page in batch 19.
+- **CatalogCourseCard is separate from CourseCard.** Rather than overload the
+  home-page card with optional rating/progress props, batch 18 added a parallel
+  `catalog-course-card.tsx` (rating stars + enrolled progress bar). The home
+  page's `course-card.tsx` and `course-catalog.tsx` are untouched and still
+  pass their tests.
+
+**Why:** URL-param state + a single GET form is the simplest thing that fully
+satisfies the no-JS contract while staying server-rendered; client enhancement
+can be layered later without changing the contract.
+
+**Dev-only artifact (NOT a bug):** `/en/courses` returned 404 from the
+Turbopack DEV server in the worktree (stale copied `.next`/SW state), while
+`next build` + `next start` serve it 200 with full content and all 7 new
+`/courses` e2e tests pass against the built app. Trust the built app + e2e, not
+a manual dev-server probe in a freshly-copied worktree (same lesson as the
+batch-16 PWA offline-page dev artifact).
