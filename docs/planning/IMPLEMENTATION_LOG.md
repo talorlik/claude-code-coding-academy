@@ -2291,3 +2291,59 @@ No database changes (catalog schema is batch 17).
 The Courses nav/CTA links point at `/courses`, which does not exist until
 batch 18. Those links 404 by design until then (batch 16 adds navigation;
 batch 18 adds the page).
+
+## Batch 17: Catalog Schema - Categories And Reviews (2026-06-14)
+
+Database only. Migration `0004_catalog_categories_and_reviews.sql` applied to
+the linked Supabase project via the MCP; regenerated types. No UI, no DTOs.
+
+### What Was Added
+
+| Area | Implementation | Key files |
+| ---- | -------------- | --------- |
+| categories | `slug` unique, `name_en`/`name_he`, `sort_order`, timestamps; sort_order index; updated_at trigger | `supabase/migrations/0004_catalog_categories_and_reviews.sql` |
+| courses.category_id | NULL FK -> categories ON DELETE SET NULL, indexed | same migration |
+| course_reviews | FK course/user, `rating` 1-5 CHECK, nullable `body`, UNIQUE (course_id, user_id), course_id index, updated_at trigger | same migration |
+| Views | `course_ratings` (rating_average, rating_count), `course_popularity` (enrollment_count); both `security_invoker = true`, published-only | same migration |
+| RLS | categories + course_reviews public SELECT; review INSERT/UPDATE own-row AND enrolled; DELETE own-row; admin full | same migration |
+| Seed | 4 categories (EN+HE), 2 courses categorized, 3 enrollments, 4 reviews; idempotent | same migration |
+| Types | regenerated (categories, course_reviews, courses.category_id, the 2 views) | `lib/supabase/database.types.ts` |
+| Factory fix | `buildCourse` gains `category_id: null` default | `tests/factories/course.ts` |
+
+### Decisions
+
+- **Review gate is DB-enforced**: INSERT/UPDATE requires `auth.uid() = user_id`
+  AND an enrollments row for (user_id, course_id). Batch 19's action re-checks,
+  but the policy is the real gate.
+- **Views published-only**: never surface ratings/popularity for draft or
+  archived courses. `rating_average` is null when a course has no reviews -
+  consumers must handle null, not assume 0.
+- **No `paid_count`**: "Most purchased" sort was dropped; popularity =
+  enrollment_count only. Batch 18 sort enum is popular | rated | newest.
+- **Seed lives in the migration** (idempotent), not `supabase/seed.sql`. Only 2
+  seeded users exist, so the UNIQUE (course_id, user_id) caps reviews at 4 (each
+  user reviews each course). `supabase/seed.sql` was NOT extended to keep scope
+  tight; a fresh local DB reset will not reproduce the catalog seed until
+  seed.sql is updated (follow-up below).
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - 505 keys in sync (no i18n change this batch).
+- `npm run typecheck` - clean (after the buildCourse `category_id` fix; the new
+  required column on the `courses` Row first broke the factory - typecheck, not
+  vitest, caught it).
+- `npm run build` - succeeds.
+- `npm run test` - 432 passed, 3 skipped (no new unit tests; schema is exercised
+  by existing query/factory compilation).
+- `npm run test:e2e` - 91 passed, 4 skipped (new seed enrollments did not break
+  any assertion).
+- `get_advisors(security)` post-migration - only the pre-existing
+  `auth_leaked_password_protection` account WARN; no new RLS/security lint.
+
+### Known Follow-Up
+
+- `supabase/seed.sql` does not yet include the catalog categories/reviews/
+  enrollments, so a local `supabase db reset` would not seed them. Fold the
+  migration's seed into seed.sql if local-reset parity is needed.
+- Reviews spread is thin (4 rows, 2 users) until real users exist.

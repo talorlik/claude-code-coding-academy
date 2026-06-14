@@ -649,3 +649,52 @@ and header/footer Courses links will resolve once batch 18 lands.
 Next's `__next-route-announcer__` live region (a sibling of `<main>`), so a
 bare role query is ambiguous. Scope banner assertions to
 `page.getByRole("main").getByRole("alert"|"status")`.
+
+### 2026-06-14 - Batch 17 - Catalog schema: categories, reviews, aggregate views
+
+Migration `0004_catalog_categories_and_reviews.sql` applied to the linked
+Supabase project via the MCP. Adds `categories` (slug unique, name_en/name_he,
+sort_order), `courses.category_id` (NULL FK ON DELETE SET NULL, indexed),
+`course_reviews` (rating 1-5 CHECK, nullable body, UNIQUE (course_id, user_id),
+indexed), and two `security_invoker = true` views: `course_ratings`
+(rating_average, rating_count) and `course_popularity` (enrollment_count).
+Database only - no UI, no DTOs.
+
+- **Review write gate is enforced in the DB, not just the action.** The
+  course_reviews INSERT/UPDATE policies require `auth.uid() = user_id` AND an
+  `enrollments` row for that (user_id, course_id). Batch 19's submitReview will
+  re-check enrollment in the action, but the policy is the real gate. Public
+  SELECT on categories + course_reviews (ratings are public); admins
+  (`private.is_admin()`) full access.
+- **Views are published-only.** Both `course_ratings` and `course_popularity`
+  filter `c.status = 'published'`, so the catalog never surfaces ratings or
+  popularity for draft/archived courses. `rating_average` is null for a course
+  with no reviews (the catalog must handle null, not 0).
+- **No `paid_count`.** `course_popularity` exposes only `enrollment_count`; the
+  "Most purchased" sort was dropped (design spec) as redundant with Most
+  popular. Batch 18's sort enum is popular | rated | newest only.
+- **Seed limitation (documented).** Only two seeded users exist (one instructor
+  `df0f6725...`, one student `780c2905...`). The UNIQUE (course_id, user_id)
+  caps reviews at one per user per course, so the seed creates 4 reviews (each
+  user reviews each of the 2 courses). Enrollments seeded so "Most popular" is
+  non-degenerate: html-css-fundamentals = 2, javascript-crash-course = 1. The
+  instructor enrolling is harmless demo data. Seed lives IN the migration
+  (idempotent: ON CONFLICT DO NOTHING + guarded category UPDATEs);
+  `supabase/seed.sql` was left as the batch-02 baseline (not extended) to avoid
+  scope drift - a fresh local reset would not reproduce the catalog seed until
+  seed.sql is updated (follow-up).
+- **No new security advisors.** `get_advisors(security)` after the migration
+  showed only the pre-existing account-level `auth_leaked_password_protection`
+  WARN (unrelated); no new RLS/security lint.
+
+**Why:** isolating the schema in its own batch (mirrors batch 02) keeps the
+catalog UI batch (18) and the review write path (19) free of migration risk and
+independently releasable.
+
+**Cross-batch trap discovered:** adding `courses.category_id` made the generated
+`courses` Row type require `category_id: string | null`, which broke
+`tests/factories/course.ts` (its returned object omitted the field, yielding
+`string | null | undefined`). Any migration that adds a column to a table a
+`tests/factories/*` builder constructs will break that builder the same way -
+add the new field to the factory default in the same batch. typecheck (not
+vitest) catches this.

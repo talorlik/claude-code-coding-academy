@@ -59,7 +59,7 @@ is a snapshot, not a ceiling - expect rows beyond 19 in future.
 | 14 | `14_YOUTUBE_PLAYLIST_IMPORT_LIVE.md` | YouTube live key | `feature/` | Done |
 | 15 | `15_REMINDER_EMAIL_DELIVERY_SMTP.md` | Reminder SMTP | `feature/` | Done |
 | 16 | `16_ABOUT_AND_CONTACT_PAGES.md` | About + Contact | `feature/` | Done |
-| 17 | `17_CATALOG_SCHEMA_CATEGORIES_AND_REVIEWS.md` | Catalog schema | `feature/` | Pending |
+| 17 | `17_CATALOG_SCHEMA_CATEGORIES_AND_REVIEWS.md` | Catalog schema | `feature/` | Done |
 | 18 | `18_COURSES_CATALOG_PAGE.md` | Catalog page | `feature/` | Pending |
 | 19 | `19_COURSE_REVIEWS_AND_LESSON_SEARCH.md` | Reviews + search | `feature/` | Pending |
 

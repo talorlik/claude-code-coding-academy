@@ -29,7 +29,9 @@ export type CourseStatus = Database["public"]["Enums"]["course_status"]
  *
  * Note: `created_by` in the DB schema is `string | null`. The factory always
  * generates a deterministic UUID so the default value is never null, but the
- * type allows overriding to null for edge-case tests.
+ * type allows overriding to null for edge-case tests. `category_id` (added in
+ * the batch-17 catalog schema) defaults to null - uncategorized - and can be
+ * overridden to a category UUID when a test needs the catalog category filter.
  */
 export function buildCourse(
   overrides: Partial<CourseFactoryRecord> = {}
@@ -44,6 +46,7 @@ export function buildCourse(
     cover_image_url: null,
     status: "published",
     language: "en",
+    category_id: null,
     created_by: deterministicUuid(ENTITY_CODES.user, seq),
     created_at: FACTORY_TIMESTAMP,
     updated_at: FACTORY_TIMESTAMP,

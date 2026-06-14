@@ -4,7 +4,9 @@
  * DO NOT EDIT MANUALLY. Regenerate via the Supabase MCP tool:
  *   mcp__supabase__generate_typescript_types (no params)
  *
- * Last generated: 2026-06-13 (Batch 2 - 0003_course_platform_core migration).
+ * Last generated: 2026-06-14 (Batch 17 - 0004_catalog_categories_and_reviews
+ * migration: categories, course_reviews, courses.category_id, and the
+ * course_ratings / course_popularity views).
  */
 
 export type Json =
@@ -52,6 +54,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ai_tutor_conversations_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "ai_tutor_conversations_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
           {
             foreignKeyName: "ai_tutor_conversations_course_id_fkey"
             columns: ["course_id"]
@@ -113,6 +129,36 @@ export type Database = {
           },
         ]
       }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name_en: string
+          name_he: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name_en: string
+          name_he: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name_en?: string
+          name_he?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           course_id: string
@@ -139,6 +185,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
           {
             foreignKeyName: "certificates_course_id_fkey"
             columns: ["course_id"]
@@ -262,13 +322,87 @@ export type Database = {
             foreignKeyName: "course_prices_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "course_prices_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "course_prices_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
         ]
       }
+      course_reviews: {
+        Row: {
+          body: string | null
+          course_id: string
+          created_at: string
+          id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_reviews_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "course_reviews_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "course_reviews_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       courses: {
         Row: {
+          category_id: string | null
           cover_image_url: string | null
           created_at: string
           created_by: string | null
@@ -282,6 +416,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -295,6 +430,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -308,6 +444,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "courses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "courses_created_by_fkey"
             columns: ["created_by"]
@@ -343,6 +486,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
           {
             foreignKeyName: "enrollments_course_id_fkey"
             columns: ["course_id"]
@@ -392,6 +549,20 @@ export type Database = {
           watched_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lesson_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "lesson_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
           {
             foreignKeyName: "lesson_progress_course_id_fkey"
             columns: ["course_id"]
@@ -466,6 +637,20 @@ export type Database = {
             foreignKeyName: "lessons_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
@@ -515,6 +700,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "payments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
           {
             foreignKeyName: "payments_course_id_fkey"
             columns: ["course_id"]
@@ -603,6 +802,20 @@ export type Database = {
             foreignKeyName: "reminder_events_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "reminder_events_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "reminder_events_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
@@ -649,6 +862,20 @@ export type Database = {
             foreignKeyName: "enrollments_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
@@ -672,10 +899,39 @@ export type Database = {
             foreignKeyName: "lessons_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
         ]
+      }
+      course_popularity: {
+        Row: {
+          course_id: string | null
+          enrollment_count: number | null
+        }
+        Relationships: []
+      }
+      course_ratings: {
+        Row: {
+          course_id: string | null
+          rating_average: number | null
+          rating_count: number | null
+        }
+        Relationships: []
       }
       group_progress_summary: {
         Row: {
@@ -693,6 +949,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "class_groups"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
           },
           {
             foreignKeyName: "enrollments_course_id_fkey"
@@ -730,6 +1000,20 @@ export type Database = {
             foreignKeyName: "enrollments_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
+            referencedRelation: "course_popularity"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course_ratings"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
@@ -762,10 +1046,7 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<
-  keyof Database,
-  "public"
->]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
