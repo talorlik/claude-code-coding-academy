@@ -72,10 +72,18 @@ Requirements:
    (average + count) and, when isEnrolled, an inline progress bar
    (components/ui/progress) bound to progressPercent. The home page card must
    continue to render correctly (no rating/progress required there).
+   - Every page and every element (cards, rating stars, progress bar, filter
+     bar, category chips, search input, sort control) must be responsive and
+     mobile-first: base styles target narrow screens with sm:/md:/lg: overrides
+     upward; let flex children shrink (min-w-0), keep fixed controls shrink-0,
+     wrap filter/button rows (flex-wrap), break long strings, and use logical
+     RTL utilities. No horizontal overflow at 390/768/1280 in EN (LTR) and HE
+     (RTL). Follow docs/RESPONSIVE.md.
 5. Filter components under components/catalog/ (kebab-case): category filter,
    sort control, my-courses toggle, search box. Prefer server rendering;
    client islands only where interaction needs them, each with a no-JS
-   fallback.
+   fallback. The filter row must wrap and remain usable on a 390px viewport in
+   both LTR and RTL.
 6. Replace /search: redirect app/[locale]/search to /courses, preserving an
    incoming ?q= as the catalog search term. Remove the now-unused global
    search page/UI (keep lib/search/* only if still referenced; otherwise note

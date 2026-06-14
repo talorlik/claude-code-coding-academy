@@ -53,12 +53,18 @@ Requirements:
    (components/site-header.tsx textLinks AND drawerLinks) and to the footer
    (components/site-footer.tsx). Use @/i18n/navigation Link. Keep the header
    no-overflow contract and the mobile Sheet drawer behavior intact.
-4. Add EN/HE translations for every new user-facing string, key-identical.
-5. Add TSDoc for the exported server action, schema, and any exported helpers.
-6. Add e2e coverage for /about and /contact: no horizontal overflow at
+4. Every page and every element on it must be responsive and mobile-first:
+   base styles target narrow screens with sm:/md:/lg: overrides upward; let
+   flex children shrink (min-w-0), keep fixed controls shrink-0, wrap button
+   rows (flex-wrap), break long strings, and use logical RTL utilities. No
+   horizontal overflow at 390/768/1280 in EN (LTR) and HE (RTL). Follow
+   docs/RESPONSIVE.md.
+5. Add EN/HE translations for every new user-facing string, key-identical.
+6. Add TSDoc for the exported server action, schema, and any exported helpers.
+7. Add e2e coverage for /about and /contact: no horizontal overflow at
    390/768/1280 in EN (LTR) and HE (RTL), landmarks/one-h1 present, and the
    contact form renders with labelled fields and a submit button.
-7. Update docs/planning/IMPLEMENTATION_LOG.md (placeholder-content decision,
+8. Update docs/planning/IMPLEMENTATION_LOG.md (placeholder-content decision,
    fake-details note, form-queue decision) and the academy-build-state memory.
 
 Rules:

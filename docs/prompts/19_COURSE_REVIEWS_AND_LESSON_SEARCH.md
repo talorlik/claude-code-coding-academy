@@ -53,6 +53,12 @@ Requirements:
      server round-trip, add a course-scoped helper to lib/courses/queries.ts
      filtered by course_id - do not reintroduce a global cross-course search.
    - This replaces the lesson hits that the old global /search returned.
+   - Every new element (review form, rating control, review list, lesson-search
+     box) must be responsive and mobile-first: base styles target narrow
+     screens with sm:/md:/lg: overrides upward; let flex children shrink
+     (min-w-0), keep fixed controls shrink-0, wrap rows (flex-wrap), break long
+     strings, and use logical RTL utilities. No horizontal overflow at
+     390/768/1280 in EN (LTR) and HE (RTL). Follow docs/RESPONSIVE.md.
 3. Add EN/HE translations for every new string (reviews + lesson-search keys
    under the "Course" namespace), key-identical.
 4. Add TSDoc for submitReview, the review schema, and any new query helper.

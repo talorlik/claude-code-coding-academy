@@ -59,7 +59,14 @@ Non-negotiables enforced by gates (apply to every batch):
 - Tier-2 forms are full no-JS: real `<form>` + `type="submit"` +
   `<label for>`, `FormData` server action, `?error=`/`?notice=` query-param
   feedback channel resolved to a localized banner.
-- No horizontal overflow at 390 / 768 / 1280 px in EN (LTR) and HE (RTL).
+- Every page and every element on it (heroes, cards, rating stars, progress
+  bars, filter bars, category chips, search inputs, sort controls, forms, and
+  the contact/map blocks) is responsive and mobile-first: base styles target
+  narrow screens with `sm:`/`md:`/`lg:` overrides upward; flex children shrink
+  (`min-w-0`), fixed controls stay `shrink-0`, button/filter rows wrap
+  (`flex-wrap`), long strings break, and layout uses logical RTL utilities.
+  The measurable contract: no horizontal overflow at 390 / 768 / 1280 px in
+  EN (LTR) and HE (RTL). Follow `docs/RESPONSIVE.md`.
 - RLS, admin guards, and secret handling must not be weakened. Server-only
   modules carry `import "server-only"`.
 - Full gate run per batch: `lint`, `lint:i18n`, `typecheck`, `test`,
