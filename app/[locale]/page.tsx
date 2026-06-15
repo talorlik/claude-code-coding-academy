@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import Image from "next/image"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 import type { Metadata } from "next"
 import { BookOpen, Video, Code2, Users } from "lucide-react"
@@ -21,6 +22,24 @@ import type { Locale } from "@/i18n/routing"
 
 /** How many of the newest courses the home page features. */
 const HOME_COURSE_LIMIT = 3
+
+/**
+ * DESIGN.md button geometry (4px radius, 12x24 padding, Inter 500 14px) applied
+ * to the hero CTAs via `className`. The shared {@link Button} ships shadcn's
+ * `rounded-lg`/fixed-height sizing; the hero overrides it to the DESIGN.md spec
+ * locally rather than mutating the global button (consumed app-wide). `h-auto`
+ * unsets the variant's fixed height so the 12px vertical padding governs.
+ */
+const HERO_CTA_GEOMETRY =
+  "h-auto rounded-[var(--radius-buttons)] px-6 py-3 text-sm font-medium"
+
+/**
+ * Intrinsic pixel dimensions of `public/brand/header_banner.png` (1672x941, a
+ * ~16:9 dark IDE mockup). Passed to `next/image` so the browser reserves the
+ * box and the hero never shifts as the artifact loads.
+ */
+const BANNER_WIDTH = 1672
+const BANNER_HEIGHT = 941
 
 // ---------------------------------------------------------------------------
 // Metadata
@@ -159,6 +178,14 @@ const BENEFIT_KEYS: BenefitKey[] = [
 // Page
 // ---------------------------------------------------------------------------
 
+/**
+ * Localized home page. Renders the DESIGN.md hero (JetBrains Mono eyebrow, a
+ * display headline with exactly one accent-highlighted word via the `<hl>`
+ * rich-text tag, a dual CTA at DESIGN.md button geometry, and the
+ * `header_banner.png` artifact framed at the large-block radius), the benefits
+ * as Feature Cards, and the Suspense-wrapped {@link CatalogSection}. The single
+ * `<h1>` lives in the hero; all copy comes from the `Home` namespace.
+ */
 export default async function Page({
   params,
 }: {
@@ -171,40 +198,67 @@ export default async function Page({
 
   return (
     <main id="main-content" className="flex flex-1 flex-col">
-      {/* Hero */}
-      <section className="bg-gradient-to-b from-background to-muted/30 px-4 py-16 text-center sm:py-24">
-        <div className="mx-auto max-w-3xl">
-          <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-5xl">
-            {t("hero.headline")}
+      {/* Hero: a centered editorial text stack over the canvas, immediately
+          followed by the wide header_banner.png artifact (DESIGN.md hero). */}
+      <section className="bg-background px-4 py-16 sm:py-24">
+        <div className="mx-auto max-w-3xl text-center">
+          {/* JetBrains Mono eyebrow above the headline (DESIGN.md Eyebrow). */}
+          <p className="font-mono text-[length:var(--text-eyebrow)] font-medium tracking-[var(--tracking-eyebrow)] text-muted-foreground uppercase">
+            {t("hero.eyebrow")}
+          </p>
+          {/* Single h1 at DESIGN.md display size with exactly one
+              accent-highlighted word (the <hl> tag in the message). The
+              highlighted run keeps the surrounding weight/size and only takes
+              var(--color-accent) via the brand-accent utility. */}
+          <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-[length:var(--text-display)] sm:leading-[var(--leading-display)] sm:tracking-[var(--tracking-display)]">
+            {t.rich("hero.headline", {
+              hl: (chunks) => (
+                <span className="text-brand-accent">{chunks}</span>
+              ),
+            })}
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-balance text-lg text-muted-foreground">
             {t("hero.subhead")}
           </p>
+          {/* Dual CTA: filled primary + ghost secondary (never a lone primary),
+              both at DESIGN.md button geometry. */}
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Button
               render={<Link href="#catalog" />}
-              size="lg"
-              className="min-w-0"
+              className={`min-w-0 ${HERO_CTA_GEOMETRY}`}
             >
               {t("hero.ctaBrowse")}
             </Button>
             <Button
               render={<Link href="/register" />}
-              size="lg"
               variant="outline"
-              className="min-w-0"
+              className={`min-w-0 ${HERO_CTA_GEOMETRY}`}
             >
               {t("hero.ctaStart")}
             </Button>
           </div>
         </div>
+
+        {/* The wide hero artifact: a dark IDE mockup framed at the large-block
+            radius. Flush on the canvas in dark mode; a framed dark code panel on
+            cream in light mode (intentional, DESIGN.md). Explicit intrinsic
+            dimensions + h-auto reserve the box so there is no layout shift, and
+            the max-width keeps it from overflowing at 390/768/1280. */}
+        <div className="mx-auto mt-12 max-w-5xl">
+          <Image
+            src="/brand/header_banner.png"
+            alt={t("hero.bannerAlt")}
+            width={BANNER_WIDTH}
+            height={BANNER_HEIGHT}
+            priority
+            sizes="(max-width: 1024px) 100vw, 1024px"
+            className="h-auto w-full rounded-[var(--radius-large-blocks)] border border-border"
+          />
+        </div>
       </section>
 
-      {/* Benefits */}
-      <section
-        className="px-4 py-16"
-        aria-labelledby="benefits-heading"
-      >
+      {/* Benefits: DESIGN.md Feature Cards. */}
+      <section className="px-4 py-16" aria-labelledby="benefits-heading">
         <div className="mx-auto max-w-5xl">
           <h2
             id="benefits-heading"
@@ -212,18 +266,17 @@ export default async function Page({
           >
             {t("benefits.heading")}
           </h2>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {BENEFIT_KEYS.map((key) => {
               const Icon = BENEFIT_ICONS[key]
               return (
                 <div
                   key={key}
-                  className="flex min-w-0 flex-col items-center gap-3 text-center"
+                  className="flex min-w-0 flex-col gap-3 rounded-[var(--radius-cards)] border border-border bg-card p-6 text-start"
                 >
-                  <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon aria-hidden="true" />
-                  </div>
-                  <h3 className="font-semibold">
+                  {/* Accent icon, top-left (DESIGN.md Feature Card). */}
+                  <Icon className="size-6 text-brand-accent" aria-hidden="true" />
+                  <h3 className="text-base font-semibold text-foreground">
                     {t(`benefits.${key}.title`)}
                   </h3>
                   <p className="text-sm text-muted-foreground">

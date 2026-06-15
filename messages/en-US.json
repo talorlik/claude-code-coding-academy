@@ -56,7 +56,9 @@
     "getStarted": "Get Started",
     "signIn": "Sign In",
     "hero": {
-      "headline": "Learn to Code with Expert-Led Video Courses",
+      "eyebrow": "Learn to code",
+      "headline": "Learn to <hl>Code</hl> with Expert-Led Video Courses",
+      "bannerAlt": "A dark code editor showing a lesson project",
       "subhead": "Structured, beginner-friendly courses taught by Eyal. Go from zero to confident developer at your own pace.",
       "ctaBrowse": "Browse Courses",
       "ctaStart": "Get Started Free"

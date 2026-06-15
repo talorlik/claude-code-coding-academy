@@ -2565,3 +2565,71 @@ reads.
 - Align the PWA manifest install-splash colors (`THEME_COLOR`/`BACKGROUND_COLOR`
   in `lib/pwa/manifest.ts`) with the DESIGN.md canvas in a later batch.
 - `<Logo />` is created but not placed; Batch 21 wires it into the header/chrome.
+
+## Batch 21: Home Hero and Global Chrome (2026-06-15)
+
+Applies the DESIGN.md look to the home hero and the global chrome: an editorial
+hero with the `header_banner.png` artifact, benefits as Feature Cards, and the
+theme-scoped `<Logo />` placed in the header and footer with DESIGN.md nav
+geometry. Presentation only; preserves the responsive collapse and auth
+behavior.
+
+### What
+
+- **`app/[locale]/page.tsx`**: hero rebuilt to DESIGN.md. JetBrains Mono eyebrow
+  (`font-mono`, `--text-eyebrow`/`--tracking-eyebrow`, muted, uppercase) above a
+  single `<h1>` at the display scale (`--text-display`/`--leading-display`/
+  `--tracking-display` from `sm:` up) with exactly one accent-highlighted word
+  rendered via `t.rich` + an `<hl>` tag. `header_banner.png` (1672x941) rendered
+  through `next/image` with explicit intrinsic dimensions, `priority`, and
+  `rounded-[var(--radius-large-blocks)]` so there is no layout shift and no
+  overflow. Dual CTA (filled primary + ghost `outline`) at DESIGN.md button
+  geometry via a local `HERO_CTA_GEOMETRY` className. Benefits grid -> Feature
+  Cards (`bg-card`, `border-border`, `rounded-[var(--radius-cards)]`, 24px
+  padding, accent icon top-left, Inter 600 16px title, Inter 400 14px body).
+- **`components/site-header.tsx`**: text wordmark -> `<Logo width={120} priority>`
+  linked home with `aria-label={nav("home")}`. DESIGN.md nav geometry: `h-16`
+  (64px), `bg-[var(--color-nav-bg)]` with the existing `backdrop-blur`, hairline
+  `border-border` bottom border, inline nav links `font-medium` (Inter 14px/500).
+  The mobile Sheet drawer, the icon-only search control + tooltip, the controls
+  cluster (InstallPrompt `hidden sm:flex`, LanguageSwitcher, ModeToggle), the
+  Sign in / Sign out control, and all RTL/logical utilities + aria labels are
+  unchanged.
+- **`components/site-footer.tsx`**: leads with `<Logo />` (home-linked,
+  `aria-label`) above the link row; surface moved to `bg-card` (`--color-surface`)
+  with `border-border` and `text-muted-foreground`.
+- **i18n**: `Home.hero` gains `eyebrow`, `bannerAlt`, and an `<hl>`-tagged
+  `headline`, key-identical in both catalogs (EN highlights "Code", HE "לתכנת").
+- **`e2e/home-hero.spec.ts`** (new): banner artifact + single `<h1>` + both CTAs;
+  header logo image (not text wordmark); guest mobile Sheet drawer opens below
+  `md` and exposes the nav links, hamburger hidden at desktop width.
+
+### Decisions
+
+- Inline highlight via `t.rich`/`<hl>` not string splitting; hero CTA geometry
+  applied locally without touching the shared Button; logo-link a11y name is
+  "Home" overriding the img alt; the pre-batch `layout.tsx` icon fix was
+  committed to `main` standalone before branching. See DECISIONS (2026-06-15,
+  Batch 21).
+- Overflow/theme/RTL for the home page (now carrying the banner) stay covered by
+  the existing `responsive.spec.ts` guest + Hebrew loops at 390/768/1280; the new
+  spec owns the hero/logo render and the guest drawer (the prior drawer test is
+  authenticated-only and skips without creds).
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean, no warnings.
+- `npm run lint:i18n` - catalogs key-identical (added `Home.hero.eyebrow` +
+  `Home.hero.bannerAlt` to both).
+- `npm run typecheck` - exit 0 (checked exit code, not a log tail).
+- `npm run build` - succeeds.
+- `npm run test` - 466 passed, 3 skipped, 0 failed (vitest).
+- `npm run test:e2e` - 114 passed, 4 skipped, 0 failed; the 3 new home-hero
+  tests pass.
+
+### Known Follow-Up
+
+- The PWA manifest install-splash colors (`lib/pwa/manifest.ts`) are still
+  unaligned with the DESIGN.md canvas (carried from Batch 20).
+- Batch 22 takes the theme surface sweep (hardcoded-color hot spots, tutor
+  Terminal Code Panel, WCAG AA pass).

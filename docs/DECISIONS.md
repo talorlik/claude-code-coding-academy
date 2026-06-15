@@ -960,3 +960,66 @@ per-request user authorization in the live session, which a memory note cannot
 substitute for. To deploy, the user runs `git push origin main` (or re-authorizes
 the push in-session). This does not block batch 21, which branches off local
 `main`.
+
+### 2026-06-15 - Batch 21 - Inline highlight via `t.rich` `<hl>` tag, not string split
+
+The single accent-highlighted word in the hero headline (DESIGN.md Inline
+Highlighted Word) is implemented with next-intl rich text: the message carries
+an `<hl>...</hl>` tag (`"Learn to <hl>Code</hl> with ..."` / HE
+`"למדו <hl>לתכנת</hl> ..."`) and the page passes `t.rich("hero.headline", { hl:
+(chunks) => <span className="text-brand-accent">{chunks}</span> })`. No
+index-based string splitting.
+
+**Why:** the highlighted word differs per locale (EN "Code", HE "לתכנת") and
+must stay translatable and RTL-correct. Splitting on a word index is brittle
+and breaks under translation/reordering; the tag travels with the string in
+both catalogs and `lint:i18n` keeps it key-identical. Reusable pattern for any
+future highlighted heading: add an `<hl>` tag to the message and render it with
+`t.rich`. The accent color uses the `text-brand-accent` utility, which maps to
+`--color-accent` (distinct from shadcn `accent`, the hover surface).
+
+### 2026-06-15 - Batch 21 - Hero CTA geometry applied locally, shared Button untouched
+
+The DESIGN.md button geometry (4px radius, 12x24 padding, Inter 500 14px) is
+applied to the two hero CTAs via a local `HERO_CTA_GEOMETRY` className
+(`h-auto rounded-[var(--radius-buttons)] px-6 py-3 text-sm font-medium`), NOT by
+changing `components/ui/button.tsx`. The shared Button keeps its shadcn
+`rounded-lg` + fixed-height sizing.
+
+**Why:** the shared Button is consumed app-wide; the prompt scopes batch 21 to
+the hero/chrome, not a global button restyle. Overriding per-call keeps the
+blast radius at the hero and avoids regressing every other button's height/
+radius. If a later batch wants the DESIGN.md button geometry app-wide, change
+the `default`/`lg` size variants in `button.tsx` then and drop the local
+override. Token-only values (`--radius-buttons`); no literals.
+
+### 2026-06-15 - Batch 21 - Logo-link a11y name set to "Home", overriding the img alt
+
+Both the header and footer wrap `<Logo />` in a home `<Link>` carrying
+`aria-label={nav("home")}`. The Logo's `<img>` variants carry `Brand.logoAlt`
+("Eyal's Coding Academy"); the link's `aria-label` overrides that so the link's
+accessible name is "Home", its actual destination, not the brand string.
+
+**Why:** a logo-as-home-link should announce its purpose ("Home"), and a single
+clear name avoids the redundant brand-name announcement. Consequence for tests:
+the header logo is located by the `img` role with the localized `Brand.logoAlt`
+(two variants rendered for the no-JS CSS theme swap; exactly one is visible),
+NOT by the link's accessible name. The new `e2e/home-hero.spec.ts` follows
+this.
+
+### 2026-06-15 - Batch 21 - Pre-batch: leftover `layout.tsx` icon fix committed to main
+
+Before batch 21 could start, the working tree was dirty: a leftover, unrelated
+edit to `app/[locale]/layout.tsx` (de-duplicate the PWA `icons.icon`/`shortcut`
+favicon declarations Next already serves by file convention, and expand the
+icon-sources TSDoc). It was batch-20 polish left uncommitted. With explicit user
+authorization, it was committed to local `main` as its own
+`fix(design): de-duplicate PWA icon metadata...` commit (`dd8070e`) BEFORE the
+batch-21 worktree branched, so it is not part of the batch-21 squash.
+
+**Why:** the runbook forbids stashing/discarding the user's uncommitted work and
+forbids WIP on `main`; the change was out of batch-21 scope (which never touches
+`layout.tsx`). Committing it standalone kept the batch-21 history clean and the
+tree clean for the precondition. Manifest install-splash colors
+(`lib/pwa/manifest.ts`), flagged as a Batch 21+ follow-up by Batch 20, were NOT
+touched - still open for a later batch.

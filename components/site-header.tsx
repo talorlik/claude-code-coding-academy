@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ModeToggle } from "@/components/mode-toggle"
 import { InstallPrompt } from "@/components/install-prompt"
+import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -24,7 +25,10 @@ import {
 
 /**
  * Global top navigation, server-rendered so it reflects the current auth state
- * on every page. On wide viewports the nav links sit inline; below the `md`
+ * on every page. Styled to the DESIGN.md Navigation Bar: ~64px tall, the
+ * `--color-nav-bg` surface with the existing backdrop blur, a hairline bottom
+ * border, the theme-scoped {@link Logo} at the inline start, and Inter 14px/500
+ * nav links. On wide viewports the nav links sit inline; below the `md`
  * breakpoint they collapse into a hamburger Sheet drawer so the header never
  * overflows a phone. The language and theme controls stay visible at all widths;
  * only the links collapse. Signed-out visitors see a Sign in link; signed-in
@@ -39,7 +43,6 @@ export async function SiteHeader() {
     data: { user },
   } = await supabase.auth.getUser()
   const t = await getTranslations("Nav")
-  const common = await getTranslations("Common")
 
   const searchLabel = t("searchLabel")
 
@@ -59,13 +62,14 @@ export async function SiteHeader() {
   const drawerLinks = [...textLinks, { href: "/courses", label: t("search") }]
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-x-4 px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-border bg-[var(--color-nav-bg)] backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-x-4 px-4 sm:px-6">
         <Link
           href="/"
-          className="flex shrink-0 items-center font-mono text-sm font-medium"
+          aria-label={t("home")}
+          className="flex shrink-0 items-center"
         >
-          {common("appName")}
+          <Logo width={120} priority className="max-h-9 w-auto" />
         </Link>
 
         {/* Inline nav: visible from md up. Search is an icon-only control with
@@ -73,7 +77,7 @@ export async function SiteHeader() {
             inline end (see the trailing block below). */}
         <nav
           aria-label={t("mainNavigation")}
-          className="hidden min-w-0 flex-1 items-center justify-end gap-4 text-sm md:flex"
+          className="hidden min-w-0 flex-1 items-center justify-end gap-4 text-sm font-medium md:flex"
         >
           {textLinks.map((item) => (
             <Link key={item.href} href={item.href} className="hover:underline">
