@@ -722,5 +722,8 @@
       "title": "No courses found",
       "body": "No courses match these filters. Try clearing the search or choosing a different category."
     }
+  },
+  "Brand": {
+    "logoAlt": "Eyal's Coding Academy"
   }
 }

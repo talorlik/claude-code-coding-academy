@@ -1,6 +1,6 @@
 import { hasLocale, NextIntlClientProvider } from "next-intl"
 import { setRequestLocale } from "next-intl/server"
-import { Geist_Mono, Inter } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import type { Metadata, Viewport } from "next"
 import { notFound } from "next/navigation"
 
@@ -20,7 +20,10 @@ import {
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
-const fontMono = Geist_Mono({
+// JetBrains Mono is the DESIGN.md developer-language face: eyebrow labels, code
+// blocks, terminal output, and IDs. Bound to --font-mono so every existing
+// `font-mono` utility now resolves to it.
+const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
@@ -38,7 +41,8 @@ export function generateStaticParams() {
  * install) and declares the iOS standalone web-app behavior. `appleWebApp`
  * supplies the Add-to-Home-Screen title and is paired with the `apple` touch
  * icon iOS reads instead of the manifest icons. `app/favicon.ico` is served
- * automatically by Next and is not re-declared here.
+ * automatically by Next; it is also declared explicitly under `icons.icon` so
+ * older browsers that ignore the file-convention `<link>` still resolve it.
  */
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
@@ -48,6 +52,8 @@ export const metadata: Metadata = {
     title: "Academy",
   },
   icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
     apple: "/icons/apple-touch-icon-180.png",
   },
 }
@@ -56,14 +62,14 @@ export const metadata: Metadata = {
  * Document-level viewport metadata. `width`/`initialScale` make mobile scaling
  * explicit (no accidental desktop-width zoom-out on phones), and `themeColor`
  * tints the mobile browser chrome to match the active theme. The colors track
- * the light/dark `--background` values.
+ * the DESIGN.md light/dark `--color-bg` page-canvas values.
  */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+    { media: "(prefers-color-scheme: light)", color: "#fafaf8" },
+    { media: "(prefers-color-scheme: dark)", color: "#06051d" },
   ],
 }
 

@@ -2493,3 +2493,75 @@ The final catalog-group batch. On the course detail page: a review write path
   "Out of Scope"). Reviewer name falls back to a generic "Student" label when
   `profiles.full_name` is unset.
 - The catalog group (batches 16-19) is complete.
+
+## Batch 20: Design Tokens, Fonts, and Brand Assets (2026-06-15)
+
+Adopts the `docs/design/DESIGN.md` token system as the app's styling contract in
+both themes, switches the mono face to JetBrains Mono, and installs the real
+brand assets. Highest-risk batch: it rewrites the CSS contract every component
+reads.
+
+### What
+
+- **`app/globals.css` rewritten** to the DESIGN.md structure. `:root` holds
+  theme-agnostic structure only (typography families/scale/weights, spacing,
+  layout, named radii, `--radius`) - no color (DESIGN.md hard rule).
+  `@media (prefers-color-scheme: dark) :root` carries the DESIGN.md dark
+  semantic values + shadcn bridge for JS-disabled dark-OS visitors. `.light`
+  and `.dark` carry the full DESIGN.md raw palette + semantic `--color-*`
+  tokens + the shadcn bridge.
+- **Shadcn bridge**: every shadcn primitive the 93 files consume
+  (`--background`, `--foreground`, `--card`, `--primary`, `--secondary`,
+  `--muted`, `--accent`=hover surface, `--border`/`--input`, `--ring`=accent,
+  `--destructive`, the full `--sidebar-*` set, `--chart-1..5`) is remapped to a
+  DESIGN.md `--color-*` token. Token *names* are frozen; only their values
+  changed.
+- **`@theme inline` additions**: `--color-brand-accent[-strong]`,
+  `--color-code-background`/`--color-code-panel`, `--color-syntax-*`, a
+  `--color-success`/`--color-success-foreground` passthrough of the existing
+  per-theme palette green (light `#62b06d`, dark `#00bc7d`) for Batch 22 status
+  pills, and the typography scale (`--text-eyebrow|heading-sm|heading|display`
+  with leading/tracking). All existing shadcn `@theme inline` mappings kept;
+  `--radius-*` preserved.
+- **`app/[locale]/layout.tsx`**: `Geist_Mono` -> `JetBrains_Mono` on
+  `--font-mono`; viewport `themeColor` -> `#fafaf8`/`#06051d`; `metadata.icons`
+  now declares the favicon (`icon`/`shortcut`) alongside the Apple touch icon.
+- **Inter calt/liga disabled** via `font-feature-settings: "calt" 0, "liga" 0`
+  in `@layer base html` for the engineered DESIGN.md letterform.
+- **Brand assets**: `docs/design/favicon.ico` -> `app/favicon.ico`;
+  `logo_light.png`/`logo_dark.png`/`header_banner.png` -> `public/brand/`.
+  `scripts/generate-pwa-icons.mjs` re-pointed from the "CA" placeholder to the
+  real dark logo composited on a `#03041d` canvas; `public/icons/*` and
+  `public/icon.png` regenerated.
+- **`components/logo.tsx`**: theme-aware `<Logo />` rendering both PNGs with a
+  pure-CSS `[data-logo]` swap (no JS, no flash); localized alt via the new
+  `Brand` namespace. Created, not yet placed (placement is Batch 21).
+
+### Decisions
+
+- The shadcn bridge restyles the whole app with zero per-component edits and is
+  revertible by one CSS file; see DECISIONS (2026-06-15, Batch 20).
+- `--radius` raised `0.625rem -> 0.75rem` so the shadcn-derived radius scale
+  lands on the DESIGN.md 12px card radius without renaming any radius token.
+- The e2e suite asserts behavior and pins no color literal, so freezing the
+  token names was sufficient to keep it green; this de-risked the rewrite.
+- Manifest `theme_color`/`background_color` left unchanged (out of scope;
+  flagged as a Batch 21+ follow-up in DECISIONS).
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - 549 keys in sync (was 548; +1 `Brand.logoAlt`).
+- `npm run typecheck` - exit 0 (checked exit code, not a log tail).
+- `npm run build` - succeeds; JetBrains Mono fetched, new CSS compiled.
+- `npm run test` - 466 passed, 3 skipped (10 new: 6 `<Logo />`, 4 brand-asset
+  resolution). One lint warning (unused `jsx-a11y/alt-text` disable in the test
+  mock) found and removed before the final lint pass.
+- `npm run test:e2e` - 111 passed, 4 skipped, 0 failed (the theme/RTL/no-overflow
+  regression - the proof for this CSS-contract batch).
+
+### Known Follow-Up
+
+- Align the PWA manifest install-splash colors (`THEME_COLOR`/`BACKGROUND_COLOR`
+  in `lib/pwa/manifest.ts`) with the DESIGN.md canvas in a later batch.
+- `<Logo />` is created but not placed; Batch 21 wires it into the header/chrome.

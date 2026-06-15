@@ -882,3 +882,81 @@ named-color literals, no new hues.
 resolves the direct conflict with DESIGN.md (which forbids photography and is
 otherwise authoritative) without losing either intent. Self-hosting the photos
 keeps the build offline/PWA-safe and license-clean.
+
+### 2026-06-15 - Batch 20 - Shadcn bridge implemented; e2e is behavioral, not color-pinned
+
+Implemented the DESIGN.md token system. The `.light`/`.dark` blocks now carry
+the full DESIGN.md raw + semantic palette, and each shadcn primitive
+(`--background`, `--primary`, `--border`, ...) is bridged to a `--color-*`
+semantic token inside both class blocks AND inside the no-JS
+`@media (prefers-color-scheme: dark) :root` path. `:root` holds structure only
+(no color). The token rewrite was provably safe to the e2e suite because the
+suite asserts *behavior* - no horizontal overflow at 390/768/1280, the theme
+class round-trips, the Hebrew shell is RTL, the header collapses - and pins no
+`oklch`/hex/`rgb()` color literal anywhere. So freezing the shadcn token *names*
+(only remapping their values) was sufficient to keep all 111 e2e tests green.
+
+**Why:** confirming up front that no test compares a rendered color let the
+highest-risk batch proceed as a single-file CSS swap with confidence, rather
+than guessing whether a pixel changed would break something.
+
+### 2026-06-15 - Batch 20 - --radius raised 0.625rem -> 0.75rem to land on the DESIGN.md card radius
+
+The shadcn `@theme inline` derives `--radius-lg` from `var(--radius)`; DESIGN.md
+puts cards/code-panels at 12px. Setting `--radius: 0.75rem` (12px) makes the
+shadcn radius scale resolve near the DESIGN.md named radii without renaming any
+radius token. The explicit `--radius-md/lg/xl/2xl` keep their literal
+4/8/12/16px values (the DESIGN.md scale); the legacy `--radius-sm/3xl/4xl` stay
+calc-derived so any utility referencing them still resolves. No radius exceeds
+16px, honoring the DESIGN.md "no pill geometry above 16px" rule in both themes.
+
+**Why:** aligns the corner geometry the 93 shadcn-consuming files already
+request with the DESIGN.md spec by changing one base value, not every component.
+
+### 2026-06-15 - Batch 20 - PWA icons composite the real logo on a #03041d canvas; no-JS logo swap is pure CSS
+
+`scripts/generate-pwa-icons.mjs` now fits the real dark brand logo
+(`docs/design/logo_dark.png`) onto a `#03041d` rounded canvas. `#03041d` is the
+logo art's own backdrop (DESIGN.md cosmic-void family), so the fitted mark
+blends with zero seam; an earlier `#06051d` canvas left a faint bounding box (a
+3-value RGB delta). The `<Logo />` theme swap (`components/logo.tsx`) renders
+both PNGs and selects the visible one with CSS `[data-logo]` rules - explicit
+`.dark`/`.light` class first, `@media (prefers-color-scheme: dark)` for
+JS-disabled dark-OS visitors - so the correct mark shows with no JS and no
+hydration flash. Both `<img>`s carry the same `Brand.logoAlt`; the hidden one is
+`display:none` (out of the a11y tree), so the wordmark is announced exactly once
+in either theme.
+
+**Why:** the brand logos ship with a baked-in per-theme background (no alpha), so
+a single tinted asset is impossible; rendering both and letting CSS choose is the
+only no-flash, no-JS-dependent way to theme them. Matching the canvas to the art
+backdrop avoids a visible icon seam.
+
+### 2026-06-15 - Batch 20 - Manifest theme_color/background_color left out of scope (follow-up)
+
+The viewport `themeColor` in `app/[locale]/layout.tsx` was updated to the
+DESIGN.md page-canvas values (`#fafaf8` light, `#06051d` dark) per the prompt.
+The Web App Manifest's own `THEME_COLOR`/`BACKGROUND_COLOR` in
+`lib/pwa/manifest.ts` (`#ffffff` / `#0a0a0a`, used for the PWA install splash)
+were deliberately NOT changed - they are outside the batch-20 task list and no
+test pins them.
+
+**Why:** the prompt scopes batch 20 to the *viewport* themeColor; touching the
+manifest splash colors would drift from the literal Tasks. A later polish batch
+(21+) should align the install-splash colors with the DESIGN.md canvas so the
+PWA splash matches the app. Flagged here so it is not lost.
+
+### 2026-06-15 - Batch 20 - main merged but NOT pushed (auto-mode push denied)
+
+Batch 20 is squash-merged to local `main` (commit `1370d34`) and green, but the
+`git push origin main` was DENIED by the Claude Code auto-mode classifier: the
+"push-main authorized for this build run" authorization lives in agent memory /
+the runbook, not in this session's user message, and a push to `main` triggers
+the production Vercel deploy. `main` is therefore ONE commit ahead of
+`origin/main`; batch 20 is not yet deployed.
+
+**Why:** the guardrail is correct - a deploy-triggering push needs an explicit
+per-request user authorization in the live session, which a memory note cannot
+substitute for. To deploy, the user runs `git push origin main` (or re-authorizes
+the push in-session). This does not block batch 21, which branches off local
+`main`.
