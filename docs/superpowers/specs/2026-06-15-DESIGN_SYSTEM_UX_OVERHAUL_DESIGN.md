@@ -12,8 +12,13 @@ styled, on-brand product surface everywhere - marketing, chrome, course pages,
 dashboards, admin, and the AI tutor - with light and dark each looking
 intentional, not defaulted.
 
-This work is decomposed into three sequential, independently mergeable build
-batches (20, 21, 22) executable via `/run-batch NN`.
+Additionally, source coding-themed photography from Unsplash and place it on
+appropriate surfaces throughout the site (course covers, course-detail headers,
+About/Contact, an auth side panel), treated as content media with theme-token
+framing and required photographer attribution.
+
+This work is decomposed into four sequential, independently mergeable build
+batches (20, 21, 22, 23) executable via `/run-batch NN`.
 
 ## Context And Constraints
 
@@ -174,7 +179,68 @@ batches (20, 21, 22) executable via `/run-batch NN`.
     a palette color clearly covers (e.g. "success/sent" -> the palette green),
     expose that existing palette value through `@theme inline` and consume it -
     never introduce a new hue. This supersedes any prior wording that implied a
-    newly-invented success token.
+    newly-invented success token. Photographs (Decision 12) are content media,
+    not "elements," and are exempt from this rule; their framing/overlay/caption
+    still use theme tokens.
+
+12. **Unsplash coding photography, scoped and self-hosted (overrides DESIGN.md
+    imagery rule).** DESIGN.md forbids photography ("No lifestyle photography...
+    treats code as a first-class visual medium"). The user has explicitly
+    overridden this: source coding photos from
+    `https://unsplash.com/s/photos/coding` and place them throughout the site.
+    Resolution per the user's decisions:
+    - **Scoped, not everywhere.** Photos appear only on: course card covers
+      (fallback when a course has no `coverImageUrl`), course-detail page
+      headers, the About and Contact pages, and an optional auth (login/
+      register) side panel. The home hero keeps the DESIGN.md `header_banner.png`
+      - photos do NOT replace it. Dashboards, admin, and the tutor stay
+      photo-free.
+    - **Treated as media, theme the frame.** Photos are exempt from the
+      palette-only rule (like the banner and logos). Their frame, caption,
+      attribution line, and any gradient scrim/overlay use theme tokens. A
+      subtle theme-tinted overlay (a low-opacity `--color-bg` / `--color-accent`
+      scrim) keeps them coherent in both light and dark and guarantees legible
+      overlaid text (WCAG AA on any text placed on a photo).
+    - **Curated local files + attribution.** The specific photos are pinned in
+      this spec (see "Imagery - Curated Unsplash Photos"). The batch downloads
+      them to `public/images/unsplash/` (self-hosted: fast, offline/PWA-safe,
+      license-clean), serves them via `next/image`, and renders the required
+      Unsplash photographer attribution. No runtime hotlinking to the Unsplash
+      CDN.
+
+## Imagery - Curated Unsplash Photos
+
+All are free Unsplash photos (not Unsplash+). The download URL pattern is
+`https://unsplash.com/photos/<photoId>/download?force=true`; the stable CDN URL
+is `https://images.unsplash.com/<file>`. The batch saves each to
+`public/images/unsplash/<localName>.jpg` and records attribution. Source page:
+`https://unsplash.com/s/photos/coding`.
+
+| Local name | Unsplash ID | CDN file | Photographer | Profile | Suggested slot |
+| --- | --- | --- | --- | --- | --- |
+| `code-monitor` | `OqtafYT5kTw` | `photo-1461749280684-dccba630e2f6` | Ilya Pavlov | `unsplash.com/@ilyapavlov` | Course cover fallback; About header |
+| `html-lines` | `4hbJ-eymZ1o` | `photo-1542831371-29b0f74f9713` | Florian Olivo | `unsplash.com/@florianolv` | Course cover fallback |
+| `screen-code` | `ieic5Tq8YMk` | `photo-1515879218367-8466d910aaa4` | Florian Olivo | `unsplash.com/@florianolv` | Course cover fallback |
+| `monitor-code` | `LrxSl4ZxoRs` | `photo-1607705703571-c5a8695f18f6` | Mohammad Rahmani | `unsplash.com/@afgprogrammer` | Course-detail header |
+| `laptop-colorcode` | `8qEB0fTe9Vw` | `photo-1607799279861-4dd421887fb3` | Mohammad Rahmani | `unsplash.com/@afgprogrammer` | Auth side panel |
+| `macbook-code` | `f77Bh3inUpE` | `photo-1555066931-4365d14bab8c` | Arnold Francisca | `unsplash.com/@clark_fransa` | Contact header |
+| `matrix-code` | `iar-afB0QQw` | `photo-1526374965328-7f61d4dc18c5` | Markus Spiske | `unsplash.com/@markusspiske` | Course cover fallback (dark-leaning) |
+
+Attribution requirement (Unsplash guideline): each rendered photo shows a
+credit line "Photo by <Photographer> on Unsplash" linking to the photographer
+profile and to Unsplash, OR a consolidated credits list on a `/credits`-style
+section reachable from where the photos appear. The batch stores the mapping in
+a single typed module (`lib/images/unsplash.ts`) so a slot references a photo by
+local name and gets URL + alt + attribution together. Per-photo `alt` text is
+localized (EN + HE).
+
+Course-cover behavior: a real course `coverImageUrl` (DB `cover_image_url`,
+when present) always wins; the Unsplash photo is the fallback only.
+`components/courses/course-card.tsx` already branches on
+`course.coverImageUrl ? <img> : <fallback>` - Batch 23 makes that existing
+fallback branch render the Unsplash photo. Selection is deterministic (hash the
+course id/slug across the cover-eligible photos) so a given course always shows
+the same fallback - no layout shift, no randomness in tests.
 
 ## Batch Decomposition
 
@@ -273,6 +339,59 @@ Branch prefix `feature/`. Slug `surface-sweep`.
   swept pages; unit tests for any logic touched.
 - Gates: lint, lint:i18n, typecheck, build, test, test:e2e.
 
+### Batch 23 - Coding photography from Unsplash
+
+Branch prefix `feature/`. Slug `unsplash-imagery`.
+
+- Acquire assets: a committed script `scripts/fetch-unsplash-images.mjs`
+  downloads the seven curated photos (see "Imagery - Curated Unsplash Photos")
+  to `public/images/unsplash/<localName>.jpg` using the
+  `.../download?force=true` URLs, idempotent (skips existing). The image files
+  are committed (self-hosted, offline/PWA-safe). `set -euo pipefail`-equivalent
+  error handling; fail loudly if a download fails. Run the script as part of the
+  batch so the files land in the worktree.
+- Attribution source of truth: `lib/images/unsplash.ts` - a typed map from local
+  name to `{ src, photographer, profileUrl, unsplashUrl, altKey }`. TSDoc on the
+  exported map/type.
+- `<UnsplashImage />` component (`components/unsplash-image.tsx`): wraps
+  `next/image`, applies the theme-token frame + a low-opacity theme scrim, and
+  renders the localized `alt` and a credit line "Photo by <name> on Unsplash"
+  (links to profile + Unsplash) per Decision 12. Decorative-only placements pass
+  `alt=""` and surface attribution in a nearby credits line instead. No-JS safe
+  (server component; `next/image` degrades to `<img>`).
+- Placements:
+  - Course card cover fallback (`components/courses/course-card.tsx`): the
+    existing `course.coverImageUrl ? <img> : <fallback>` branch renders the
+    deterministic Unsplash fallback (hash course id/slug -> cover-eligible
+    photo) in its else branch. A real `coverImageUrl` always wins.
+  - Course-detail header (`app/[locale]/courses/[courseSlug]/page.tsx`): a
+    framed header photo with a theme scrim behind/beside the title, only if the
+    course has no own `coverImageUrl`.
+  - About page (`app/[locale]/about/page.tsx`) and Contact page
+    (`app/[locale]/contact/page.tsx`): one coding photo each, framed, with
+    attribution.
+  - Auth side panel (`app/[locale]/login/page.tsx`,
+    `app/[locale]/register/page.tsx`): an optional decorative photo column on
+    `md+` (hidden below `md` so it never crowds the mobile form), with a
+    consolidated credit line.
+- Theme behavior: the scrim/overlay and any overlaid text use theme tokens and
+  pass WCAG AA in BOTH themes; the photo itself is full-color media.
+- Translations: localized `alt` text per photo and an "Photo by {name} on
+  Unsplash" attribution string under an `Imagery` namespace, key-identical in
+  both catalogs.
+- TSDoc on new exports (`lib/images/unsplash.ts`, `<UnsplashImage />`).
+- Tests: unit test for the deterministic cover-fallback selector (same id ->
+  same photo; thumbnail present -> no fallback); a test asserting every photo in
+  the map has attribution + a localized alt key present in both catalogs; a test
+  asserting a course WITH `coverImageUrl` renders its own image (no Unsplash
+  fallback); e2e that the About/Contact/auth photos render with a visible credit
+  line and that no page overflows at 390/768/1280 EN+HE (the auth side panel is
+  hidden below `md`). The fetch script is run before the build gate; if network
+  is unavailable in the run environment, the committed files satisfy the build
+  (the script is idempotent and skips existing files). `about/page.tsx` already
+  imports `next/image`; local files need no `next.config` `remotePatterns`.
+- Gates: lint, lint:i18n, typecheck, build, test, test:e2e.
+
 ## File Structure (created / modified)
 
 Batch 20:
@@ -306,6 +425,22 @@ Batch 22:
 - Modified: `messages/en-US.json`, `messages/he-IL.json` (if new labels).
 - Modified/created: `e2e/*`.
 
+Batch 23:
+
+- Created: `scripts/fetch-unsplash-images.mjs` (downloader, committed).
+- Created: `public/images/unsplash/*.jpg` (seven committed photos).
+- Created: `lib/images/unsplash.ts` (typed attribution map).
+- Created: `components/unsplash-image.tsx` (`<UnsplashImage />`).
+- Modified: `components/courses/course-card.tsx` (cover fallback).
+- Modified: `app/[locale]/courses/[courseSlug]/page.tsx` (detail header).
+- Modified: `app/[locale]/about/page.tsx`, `app/[locale]/contact/page.tsx`.
+- Modified: `app/[locale]/login/page.tsx`, `app/[locale]/register/page.tsx`
+  (auth side panel).
+- Modified: `messages/en-US.json`, `messages/he-IL.json` (`Imagery` namespace).
+- Modified: `next.config.*` only if `next/image` needs config for local files
+  (local files normally need none; no remotePatterns since self-hosted).
+- Modified/created: `e2e/*`.
+
 ## Cross-Cutting Per-Batch Footer
 
 Every batch in this group:
@@ -333,14 +468,21 @@ Every batch in this group:
 - Inter + JetBrains Mono: Batch 20.
 - Whole-app themed surfaces, light + dark: Batch 20 (bridge) + Batch 22
   (polish/contrast).
-- Executable via `/run-batch`: prompts `20`/`21`/`22`, TASK_BREAKDOWN, RUNBOOK,
-  and README rows added (see the implementation plan).
+- Unsplash coding photos placed throughout (course covers, course-detail
+  headers, About/Contact, auth panel) with attribution: Batch 23 (Decision 12).
+- Executable via `/run-batch`: prompts `20`/`21`/`22`/`23`, TASK_BREAKDOWN,
+  RUNBOOK, and README rows added (see the implementation plan).
 
 ## Out Of Scope / Deferred
 
 - SVG conversion of the logo mark (TECH_DEBT follow-up; PNGs are used now).
 - Any new pages or features; this is purely visual/structural restyling of
-  existing surfaces.
+  existing surfaces (Batch 23 adds photography to existing pages, not new ones).
+- Unsplash+ (premium) photos; only free Unsplash photos are used. The Unsplash
+  API / dynamic search at runtime is out of scope - photos are pinned and
+  self-hosted.
+- Photographs on dashboards, admin, or the AI tutor; those surfaces stay
+  photo-free per DESIGN.md (Decision 12 scopes photos to specific surfaces).
 - Changing the next-themes configuration, the proxy/locale routing, RLS, or any
   data/domain logic.
 - Redesigning page information architecture beyond the hero and chrome; the
