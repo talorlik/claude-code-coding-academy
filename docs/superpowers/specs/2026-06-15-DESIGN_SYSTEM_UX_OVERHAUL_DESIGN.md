@@ -166,6 +166,16 @@ batches (20, 21, 22) executable via `/run-batch NN`.
     Serve via `next/image` for automatic resize/AVIF/WebP. Record optional SVG
     conversion of the logo mark as a TECH_DEBT follow-up; do not block on it.
 
+11. **Every element uses only DESIGN.md theme palette colors.** No element -
+    including status pills, banners, badges, and one-off states - may use a
+    Tailwind named-color literal (`green-*`, `red-*`, `blue-*`, ...) or a raw
+    hex outside the DESIGN.md `.light`/`.dark` palettes. Use the semantic
+    `--color-*` tokens; where DESIGN.md lacks a semantic name for a state that
+    a palette color clearly covers (e.g. "success/sent" -> the palette green),
+    expose that existing palette value through `@theme inline` and consume it -
+    never introduce a new hue. This supersedes any prior wording that implied a
+    newly-invented success token.
+
 ## Batch Decomposition
 
 ### Batch 20 - Design tokens, fonts, and brand assets
@@ -181,13 +191,15 @@ Branch prefix `feature/`. Slug `design-system`.
     bridge (Decision 3) + `color-scheme: light`.
   - `.dark`: full dark raw palette + semantic `--color-*` tokens + the shadcn
     bridge + `color-scheme: dark`.
-  - Add a semantic success token (DESIGN.md omits one): `--color-success-bg` /
-    `--color-success-text` in `.light` (from `--color-success-green`) and
-    `.dark` (from `--color-specimen-green`), consumed by Batch 22's status
-    pills.
+  - Expose the DESIGN.md palette greens that already exist
+    (`--color-success-green` `#62b06d` / `--color-forest` `#165424` in light,
+    `--color-specimen-green` `#00bc7d` in dark) as a `@theme inline` utility so
+    Batch 22's "success/sent" status pills can reference a DESIGN.md value
+    rather than a Tailwind `green-*` literal. This is a passthrough of an
+    existing palette color, not a new hue.
   - Extend `@theme inline` with DESIGN.md additions (`--color-brand-accent`,
-    `--color-brand-accent-strong`, `--color-code-*`, `--color-syntax-*`,
-    `--color-success`, `--color-success-foreground`, typography scale tokens
+    `--color-brand-accent-strong`, `--color-code-*`, `--color-syntax-*`, the
+    success-green passthrough above, typography scale tokens
     `--text-eyebrow|heading-sm|heading|display` and their leading/tracking)
     WITHOUT removing the existing shadcn `@theme inline` mappings the 93 files
     depend on. Keep `--radius-*` working.
@@ -240,13 +252,10 @@ Branch prefix `feature/`. Slug `hero-and-chrome`.
 Branch prefix `feature/`. Slug `surface-sweep`.
 
 - Fix the hardcoded-color hot spots: `admin/groups` and `admin/reminders`
-  status pills/banners -> semantic tokens. DESIGN.md has no semantic success
-  token, so Batch 20 adds one to `.light`/`.dark` (`--color-success-bg` /
-  `--color-success-text`) sourced from the existing raw palette entries
-  (`--color-success-green` `#62b06d` in light, `--color-specimen-green`
-  `#00bc7d` in dark), and exposes it via `@theme inline`
-  (`--color-success` / `--color-success-foreground`); Batch 22 consumes it for
-  the "success/sent" states. Error/failed states use `--color-danger-bg` /
+  status pills/banners -> DESIGN.md palette colors only (no Tailwind `green-*`
+  or `red-*` literals). "Success/sent" states use the DESIGN.md palette green
+  exposed in Batch 20 (`--color-success-green` light / `--color-specimen-green`
+  dark); "failed/error" states use the existing semantic `--color-danger-bg` /
   `--color-danger-text`. (The `layout.tsx` `themeColor` fix lands in Batch 20;
   if any literal remains, fix here.)
 - Verify and polish in BOTH themes for DESIGN.md conformance + WCAG AA:
