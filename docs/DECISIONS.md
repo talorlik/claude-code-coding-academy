@@ -1103,3 +1103,39 @@ exceed "presentation only") is the robust minimal approach. The retained hex are
 meta/print/vendored contexts outside the "app surface color" the sweep targets;
 documenting them here prevents a future sweep from "fixing" them and breaking
 mobile chrome theming, the printed certificate, or the chart overrides.
+
+### 2026-06-15 - Batch 23 - CourseCardCover extracted to make the cover slot unit-testable
+
+The course-card cover decision (`coverImageUrl ? own <img> : Unsplash fallback`)
+was extracted from the async `<CourseCard>` into a new sync exported
+`CourseCardCover` component in the same file. The async parent resolves the
+localized fallback alt (`Imagery.alt.<altKey>`) and passes it in as `coverAlt`;
+the cover component itself takes no async dependency.
+
+**Why:** `<CourseCard>` is an async server component that renders a nested async
+child (`RatingStars`, which awaits `getTranslations`). An async element tree with
+nested async components cannot be rendered by Testing Library under jsdom (the
+nested promise aborts the render before the DOM commits), so the prompt's
+required test - "a course WITH coverImageUrl renders its own image, no fallback"
+- was not directly assertable against the whole card. Isolating the cover slot as
+a sync component the parent feeds a prop makes exactly that unit renderable
+without an i18n request context, with no behavior change to the card.
+
+### 2026-06-15 - Batch 23 - Unsplash photos committed full-resolution; self-hosted, never hotlinked
+
+The seven curated FREE Unsplash coding photos are downloaded by
+`scripts/fetch-unsplash-images.mjs` (idempotent, fails loudly) and committed under
+`public/images/unsplash/` as the full-resolution originals (1.7-7.9 MB each,
+~30 MB total). Nothing hotlinks the Unsplash CDN or calls the Unsplash API at
+runtime; `next/image` serves resized variants from the committed local files.
+`register/page.tsx` was not touched (it is a pure redirect to
+`/login?tab=signup` and inherits the side panel). `About.heroImageAlt` /
+`About.heroImagePlaceholder` are now orphaned but left in both catalogs for i18n
+parity.
+
+**Why:** self-hosting is the spec's offline/PWA-safe requirement and avoids any
+runtime dependency on Unsplash. Committing the originals (rather than
+pre-downscaled copies) keeps the source of truth lossless and lets `next/image`
+own resizing; the repo-size cost is logged as a follow-up rather than solved here
+to stay in scope. The orphaned About keys are noted so a future cleanup batch can
+remove them without hunting for why they exist.

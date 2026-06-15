@@ -728,5 +728,17 @@
   },
   "Brand": {
     "logoAlt": "Eyal's Coding Academy"
+  },
+  "Imagery": {
+    "credit": "צילום של <name>{photographer}</name> ב-<unsplash>Unsplash</unsplash>",
+    "alt": {
+      "codeMonitor": "קוד מקור מוצג על פני מסך מחשב",
+      "htmlLines": "שורות קוד HTML על רקע עורך כהה",
+      "screenCode": "מסך מלא בקוד תוכנה צבעוני",
+      "monitorCode": "מסך רחב המציג עורך מלא בקוד",
+      "laptopColorcode": "מסך מחשב נייד המציג קוד עם הדגשת תחביר צבעונית",
+      "macbookCode": "מקבוק על שולחן המציג שורות קוד",
+      "matrixCode": "קוד ירוק צפוף נגלל על מסך כהה"
+    }
   }
 }

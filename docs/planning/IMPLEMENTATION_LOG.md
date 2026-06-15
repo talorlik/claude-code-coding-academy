@@ -2689,3 +2689,63 @@ behavior.
   unaligned with the DESIGN.md canvas (carried from Batch 20).
 - Batch 23 adds the Unsplash coding photography (home hero stays
   `header_banner.png`).
+
+## Batch 23: Coding Photography From Unsplash (2026-06-15)
+
+### What
+
+- **Fetch script + committed photos**: `scripts/fetch-unsplash-images.mjs` is an
+  idempotent downloader (skips existing files, exits non-zero on any failure)
+  that pulled the seven curated FREE Unsplash coding photos to
+  `public/images/unsplash/<localName>.jpg`. The .jpg files are committed, so the
+  site is offline/PWA-safe and never hotlinks the Unsplash CDN.
+- **Attribution map**: `lib/images/unsplash.ts` is the single source of truth -
+  a typed `UNSPLASH_IMAGES` map (`src`, `photographer`, `profileUrl`,
+  `unsplashUrl`, `altKey`) plus `COVER_FALLBACK_IMAGES` and the deterministic
+  `pickCoverFallbackImage(key)` (FNV-1a hash -> cover-eligible photo).
+- **Component**: `components/unsplash-image.tsx` exports `<UnsplashImage />`
+  (next/image + theme-token frame + optional low-opacity theme scrim + localized
+  alt + inline "Photo by {name} on Unsplash" credit), `<UnsplashCredit />`, and
+  `<UnsplashCreditLine />` (consolidated credit for decorative placements).
+  Server-component friendly, no-JS safe.
+- **Placements**: course-card cover fallback (extracted sync `CourseCardCover` in
+  `course-card.tsx`, fills the existing `coverImageUrl ? : ` else branch -
+  deterministic per course id, a real cover still wins); course-detail framed
+  header photo (`monitor-code`, scrim) only when no `coverImageUrl`; About hero
+  (`code-monitor`, replacing the former placeholder slot); Contact header
+  (`macbook-code`); login md+ decorative side panel (`laptop-colorcode`, hidden
+  below md) with a consolidated credit line. Home hero untouched.
+- **i18n**: new key-identical `Imagery` namespace in both catalogs - a per-photo
+  localized `alt` and the `credit` rich template
+  `Photo by <name>{photographer}</name> on <unsplash>Unsplash</unsplash>`.
+
+### Decisions
+
+- **`CourseCardCover` extracted as a sync component.** `<CourseCard>` is an async
+  server component that renders a nested async child (`RatingStars`), which makes
+  the whole card un-renderable under jsdom/RTL. Pulling the cover slot into a sync
+  `CourseCardCover` (the async parent resolves the localized fallback alt and
+  passes it in) makes the exact unit the prompt asks to test directly renderable
+  without an i18n request context. See DECISIONS (2026-06-15, Batch 23).
+- **`register/page.tsx` not edited.** It is a pure redirect to
+  `/login?tab=signup`; it has no UI of its own and inherits the side panel from
+  the login page. Editing it was unnecessary.
+- **Credit as a rich i18n template, not string concatenation.** The credit wraps
+  each link's text in a tag (`<name>`, `<unsplash>`) so the anchors are real
+  `<a>` elements and Hebrew can reorder the words; the photographer name is
+  interpolated as a plain value the `<name>` tag wraps.
+
+### Verification (gates, exit 0)
+
+- Filled in at merge time - see the batch report / squash commit.
+
+### Known Follow-Up
+
+- `About.heroImageAlt` / `About.heroImagePlaceholder` are now orphaned (the About
+  placeholder slot was replaced by `<UnsplashImage>`, which carries its own alt).
+  Left in both catalogs (i18n parity intact); a future cleanup batch can remove
+  them.
+- The committed JPEGs are full-resolution originals (1.7-7.9 MB each). Next/image
+  serves resized variants, so runtime payload is fine, but the repo carries
+  ~30 MB of source images. If repo size matters, a future batch could downscale
+  the committed originals.

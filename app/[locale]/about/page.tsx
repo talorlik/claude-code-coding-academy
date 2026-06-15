@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
+import { UnsplashImage } from "@/components/unsplash-image"
 import type { Locale } from "@/i18n/routing"
 
 export async function generateMetadata({
@@ -63,20 +64,17 @@ export default async function AboutPage({
           </div>
 
           {/*
-            HERO IMAGE SLOT - single edit point.
-            Replace this labelled placeholder with the real hero. The project
-            does not configure next/image (no remote domains), so a plain <img>
-            or a local /public asset is the expected swap target. Keep the
-            aspect ratio and the empty alt only while it is decorative; give the
-            real image a descriptive, localized alt when it lands.
+            HERO IMAGE - Batch 23 filled the former placeholder slot with a
+            curated, self-hosted Unsplash coding photo (code-monitor). Framed and
+            attributed by <UnsplashImage />, which carries its own credit line.
           */}
-          <div
-            className="flex aspect-video w-full min-w-0 flex-1 items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 text-center text-sm text-muted-foreground"
-            role="img"
-            aria-label={t("heroImageAlt")}
-          >
-            {t("heroImagePlaceholder")}
-          </div>
+          <UnsplashImage
+            name="code-monitor"
+            className="w-full min-w-0 flex-1"
+            rounded="rounded-[var(--radius-large-blocks)]"
+            sizes="(max-width: 768px) 100vw, 40vw"
+            priority
+          />
         </div>
       </section>
 

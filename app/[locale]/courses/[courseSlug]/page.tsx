@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { UnsplashImage } from "@/components/unsplash-image"
 import {
   Empty,
   EmptyHeader,
@@ -367,6 +368,22 @@ export default async function CourseDetailPage({
             <ArrowLeft className="size-4" aria-hidden="true" />
             {t("backToCatalog")}
           </Link>
+
+          {/* Framed Unsplash header photo (Batch 23) - shown ONLY when the
+              course has no real cover image. A theme scrim keeps any overlaid
+              text legible in both themes; the title text stays below for SEO
+              and single-<h1> semantics. */}
+          {!course.coverImageUrl && (
+            <UnsplashImage
+              name="monitor-code"
+              className="mb-3"
+              rounded="rounded-[var(--radius-large-blocks)]"
+              aspect="aspect-[16/5]"
+              sizes="(max-width: 1280px) 100vw, 1280px"
+              scrim
+              priority
+            />
+          )}
 
           <div className="flex min-w-0 flex-wrap items-start gap-3">
             <div className="min-w-0 flex-1">

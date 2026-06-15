@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Mail, MapPin, Phone, Clock } from "lucide-react"
 
 import { ContactForm } from "@/components/contact/contact-form"
+import { UnsplashImage } from "@/components/unsplash-image"
 import { resolveContactMessage } from "@/lib/contact/resolve-contact-message"
 import type { Locale } from "@/i18n/routing"
 
@@ -70,6 +71,17 @@ export default async function ContactPage({
         <p className="max-w-2xl text-pretty text-muted-foreground">
           {t("subtitle")}
         </p>
+
+        {/* Contact header photo (Batch 23): a framed, attributed Unsplash coding
+            photo. Content media; the frame + credit use theme tokens. */}
+        <UnsplashImage
+          name="macbook-code"
+          className="mt-6"
+          rounded="rounded-[var(--radius-large-blocks)]"
+          aspect="aspect-[16/6]"
+          sizes="(max-width: 1024px) 100vw, 1024px"
+          priority
+        />
 
         <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Details + map ------------------------------------------------ */}

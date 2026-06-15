@@ -728,5 +728,17 @@
   },
   "Brand": {
     "logoAlt": "Eyal's Coding Academy"
+  },
+  "Imagery": {
+    "credit": "Photo by <name>{photographer}</name> on <unsplash>Unsplash</unsplash>",
+    "alt": {
+      "codeMonitor": "Source code displayed across a computer monitor",
+      "htmlLines": "Lines of HTML markup on a dark editor background",
+      "screenCode": "A screen filled with colorful program code",
+      "monitorCode": "A widescreen monitor showing an editor full of code",
+      "laptopColorcode": "A laptop screen showing brightly syntax-highlighted code",
+      "macbookCode": "A MacBook on a desk displaying lines of code",
+      "matrixCode": "Dense green code scrolling on a dark screen"
+    }
   }
 }
