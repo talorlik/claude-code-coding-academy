@@ -40,9 +40,17 @@ export function generateStaticParams() {
  * PWA document metadata: links the Web App Manifest (so the browser offers
  * install) and declares the iOS standalone web-app behavior. `appleWebApp`
  * supplies the Add-to-Home-Screen title and is paired with the `apple` touch
- * icon iOS reads instead of the manifest icons. `app/favicon.ico` is served
- * automatically by Next; it is also declared explicitly under `icons.icon` so
- * older browsers that ignore the file-convention `<link>` still resolve it.
+ * icon iOS reads instead of the manifest icons.
+ *
+ * Icon sources, per platform, with no duplication:
+ * - Desktop/mobile browsers: `app/favicon.ico` is served and `<link rel="icon">`
+ *   is injected automatically by Next's file convention - it is NOT re-declared
+ *   here.
+ * - Installable PWA / Android: the manifest icons (`public/icons/*`) drive the
+ *   home-screen and splash mark.
+ * - iOS Add-to-Home-Screen: iOS ignores `.ico` and the manifest, so the Apple
+ *   touch icon below is the only thing it reads. It is therefore the one icon
+ *   that must be declared explicitly.
  */
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
@@ -52,8 +60,6 @@ export const metadata: Metadata = {
     title: "Academy",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
     apple: "/icons/apple-touch-icon-180.png",
   },
 }
