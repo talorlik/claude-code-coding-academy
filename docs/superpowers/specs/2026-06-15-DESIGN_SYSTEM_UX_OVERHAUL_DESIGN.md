@@ -147,7 +147,11 @@ batches (20, 21, 22, 23) executable via `/run-batch NN`.
    - Banner: copy `header_banner.png` to `public/brand/`, used as the home hero
      artifact via `next/image`.
 
-7. **Hero layout.** Centered editorial text stack (display type, one
+7. **Hero layout - the home hero image is `docs/design/header_banner.png`,
+   non-negotiable.** The home page hero MUST display the user-supplied
+   `header_banner.png` (served from `public/brand/header_banner.png`). No other
+   image - and specifically no Unsplash photo from Batch 23 - may replace or
+   stand in for it. Layout: centered editorial text stack (display type, one
    inline-highlighted word in `--color-accent`, JetBrains Mono eyebrow above)
    followed by the `header_banner.png` rendered as a wide framed artifact
    (`--radius-large-blocks`). Dark mode: banner sits flush on the cosmic-void
@@ -192,9 +196,10 @@ batches (20, 21, 22, 23) executable via `/run-batch NN`.
     - **Scoped, not everywhere.** Photos appear only on: course card covers
       (fallback when a course has no `coverImageUrl`), course-detail page
       headers, the About and Contact pages, and an optional auth (login/
-      register) side panel. The home hero keeps the DESIGN.md `header_banner.png`
-      - photos do NOT replace it. Dashboards, admin, and the tutor stay
-      photo-free.
+      register) side panel. The home hero ALWAYS displays the user-supplied
+      `header_banner.png` (Decision 7); Unsplash photos do NOT appear on the
+      home hero and do NOT replace the banner under any condition. Dashboards,
+      admin, and the tutor stay photo-free.
     - **Treated as media, theme the frame.** Photos are exempt from the
       palette-only rule (like the banner and logos). Their frame, caption,
       attribution line, and any gradient scrim/overlay use theme tokens. A
