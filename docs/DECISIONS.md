@@ -846,3 +846,39 @@ Vitest jsdom env. Fix: any test that imports a module which (now) pulls in
 `payments.test.ts` was unaffected because it mocks `@/lib/courses/actions`
 wholesale. When you add an `@/i18n/navigation` import to a shared lib module,
 grep for the module's importers in tests/ and add the mock.
+
+### 2026-06-15 - Batches 20-23 (spec/plan) - DESIGN.md adoption via a shadcn bridge
+
+The design-system & UX/UI overhaul
+(`docs/superpowers/specs/2026-06-15-DESIGN_SYSTEM_UX_OVERHAUL_DESIGN.md`) adopts
+`docs/design/DESIGN.md` by remapping the ~30 shadcn structural tokens
+(`--background`, `--primary`, `--border`, ...) onto the DESIGN.md semantic
+`--color-*` tokens inside the preserved `:root` / `.light` / `.dark` structure,
+rather than rewriting components to consume `--color-*` directly. Decomposed
+into four batches: 20 tokens+fonts+brand assets, 21 hero+chrome, 22 surface
+sweep, 23 Unsplash coding photography.
+
+**Why:** 93 files already consume the shadcn tokens via Tailwind utilities, so
+the bridge restyles the whole app with zero per-component edits and is reversible
+by reverting one CSS file; a full token replacement would touch every UI file
+for no benefit. `:root`/`.light`/`.dark` is kept because next-themes is
+configured `attribute="class"` + `value={{ light, dark }}` and the no-JS
+`@media (prefers-color-scheme: dark)` path is required by `docs/ACCESSIBILITY.md`.
+
+### 2026-06-15 - Batches 21+23 (spec/plan) - Home hero is header_banner.png; Unsplash photos are scoped
+
+The home page hero always displays the user-supplied
+`docs/design/header_banner.png` (served from `public/brand/`); no Unsplash photo
+may replace it. Unsplash coding photography (Batch 23) is a deliberate override
+of DESIGN.md's no-photography rule, scoped to course-card cover fallbacks,
+course-detail headers, About, Contact, and an optional `md+` auth side panel,
+treated as content media (exempt from the palette-only rule) with theme-token
+framing and photographer attribution. All other elements (including status
+pills) use only DESIGN.md `.light`/`.dark` palette colors - no Tailwind
+named-color literals, no new hues.
+
+**Why:** the user specified the banner as the hero and asked for photography
+"throughout" in the same engagement; scoping the photos and locking the banner
+resolves the direct conflict with DESIGN.md (which forbids photography and is
+otherwise authoritative) without losing either intent. Self-hosting the photos
+keeps the build offline/PWA-safe and license-clean.

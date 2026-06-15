@@ -27,6 +27,9 @@ section of `docs/planning/TASK_BREAKDOWN.md`.
   `docs/planning/IMPLEMENTATION_LOG.md`.
 - **Design spec for batches 16-19:**
   `docs/superpowers/specs/2026-06-14-courses-catalog-and-content-pages-design.md`.
+- **Design spec for batches 20-23:**
+  `docs/superpowers/specs/2026-06-15-DESIGN_SYSTEM_UX_OVERHAUL_DESIGN.md`.
+- **Style reference (token system, both themes):** `docs/design/DESIGN.md`.
 
 ## Batch Order
 
@@ -37,8 +40,8 @@ non-negative integer AND a matching `docs/prompts/NN_*.md` exists. Do not assume
 the highest batch listed here is the last one; always check
 `ls docs/prompts/` for the batches that currently exist.
 
-The table below lists the batches that exist **as of 2026-06-14** (00-19). It
-is a snapshot, not a ceiling - expect rows beyond 19 in future.
+The table below lists the batches that exist **as of 2026-06-15** (00-23). It
+is a snapshot, not a ceiling - expect rows beyond 23 in future.
 
 | Batch | Prompt File | Nature | Branch Prefix | Status |
 | --- | --- | --- | --- | --- |
@@ -62,6 +65,10 @@ is a snapshot, not a ceiling - expect rows beyond 19 in future.
 | 17 | `17_CATALOG_SCHEMA_CATEGORIES_AND_REVIEWS.md` | Catalog schema | `feature/` | Done |
 | 18 | `18_COURSES_CATALOG_PAGE.md` | Catalog page | `feature/` | Done |
 | 19 | `19_COURSE_REVIEWS_AND_LESSON_SEARCH.md` | Reviews + search | `feature/` | Done |
+| 20 | `20_DESIGN_TOKENS_FONTS_AND_BRAND_ASSETS.md` | Design tokens + assets | `feature/` | Pending |
+| 21 | `21_HOME_HERO_AND_GLOBAL_CHROME.md` | Hero + chrome | `feature/` | Pending |
+| 22 | `22_THEME_SURFACE_SWEEP_AND_POLISH.md` | Surface sweep | `feature/` | Pending |
+| 23 | `23_CODING_PHOTOGRAPHY_FROM_UNSPLASH.md` | Unsplash photos | `feature/` | Pending |
 
 Notes:
 
@@ -73,6 +80,12 @@ Notes:
 - Batches 16-19 implement the courses-catalog and content-pages design spec and
   are decomposed smallest-blast-radius first: 16 content pages (no DB), 17
   schema only, 18 the catalog page, 19 reviews + in-course lesson search.
+- Batches 20-23 implement the design-system & UX/UI overhaul spec
+  (`2026-06-15-DESIGN_SYSTEM_UX_OVERHAUL_DESIGN.md`): 20 adopts the DESIGN.md
+  token system (shadcn bridge) + fonts + brand assets, 21 the home hero +
+  chrome, 22 the full theme surface sweep, 23 the Unsplash coding photography.
+  The home hero ALWAYS uses `header_banner.png`, never an Unsplash photo. Run
+  them in order 20 -> 21 -> 22 -> 23.
 
 ## Branch Prefix Selection
 

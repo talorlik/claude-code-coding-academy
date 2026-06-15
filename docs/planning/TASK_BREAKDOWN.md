@@ -46,11 +46,19 @@ inline.
 - Tasks 18.1-18.4 (Batch 18): `docs/prompts/18_COURSES_CATALOG_PAGE.md`
 - Tasks 19.1-19.2 (Batch 19):
   `docs/prompts/19_COURSE_REVIEWS_AND_LESSON_SEARCH.md`
+- Tasks 20.1-20.4 (Batch 20):
+  `docs/prompts/20_DESIGN_TOKENS_FONTS_AND_BRAND_ASSETS.md`
+- Tasks 21.1-21.3 (Batch 21): `docs/prompts/21_HOME_HERO_AND_GLOBAL_CHROME.md`
+- Tasks 22.1-22.3 (Batch 22):
+  `docs/prompts/22_THEME_SURFACE_SWEEP_AND_POLISH.md`
+- Tasks 23.1-23.3 (Batch 23):
+  `docs/prompts/23_CODING_PHOTOGRAPHY_FROM_UNSPLASH.md`
 
 The batches above 13 were appended after the initial 00-13 build (14-15 are
 post-build add-ons; 16-19 implement the courses-catalog and content-pages
-design spec). Their detailed task sections live at the end of this document,
-under the matching `## Batch NN` headings.
+design spec; 20-23 implement the design-system & UX/UI overhaul spec). Their
+detailed task sections live at the end of this document, under the matching
+`## Batch NN` headings.
 
 ## Requirement Cross-Reference Map
 
@@ -1394,3 +1402,212 @@ Files:
   `messages/he-IL.json`, `e2e/*`
 
 Prompt file: `docs/prompts/19_COURSE_REVIEWS_AND_LESSON_SEARCH.md`
+
+## Design System And UX/UI Overhaul (Batches 20-23)
+
+Implements `docs/superpowers/specs/2026-06-15-DESIGN_SYSTEM_UX_OVERHAUL_DESIGN.md`
+against the style reference `docs/design/DESIGN.md`. Run in order 20 -> 23. The
+home hero always uses `header_banner.png`; Unsplash photos (Batch 23) never
+replace it.
+
+## Batch 20: Design Tokens, Fonts, And Brand Assets
+
+Adopts the DESIGN.md token system in `:root`/`.light`/`.dark` via a shadcn
+bridge (the styling contract every later batch consumes), switches the mono font
+to JetBrains Mono, and installs the real favicon, logos, and hero banner.
+Highest blast radius (the CSS contract); e2e theme/RTL/no-overflow is the proof.
+
+### Task 20.1: Token Rewrite And shadcn Bridge
+
+Objective: Rewrite `app/globals.css` to the DESIGN.md structure - `:root`
+(structure only, no color), the no-JS `@media (prefers-color-scheme: dark)` dark
+palette, `.light` and `.dark` (full DESIGN.md raw palettes + semantic
+`--color-*` tokens + the shadcn bridge mapping the ~30 shadcn tokens onto the
+DESIGN.md semantics, per spec Decision 3), the DESIGN.md palette-green
+passthrough for later success pills, and the extended `@theme inline` (DESIGN.md
+additions WITHOUT removing the existing shadcn mappings the 93 files depend on).
+Preserve `@layer base`, `sr-only-focusable`, and the reduced-motion block.
+
+Files:
+
+- `app/globals.css`
+
+### Task 20.2: Fonts And Viewport
+
+Objective: In `app/[locale]/layout.tsx` replace `Geist_Mono` with
+`JetBrains_Mono` on `--font-mono`, give Inter `font-feature-settings: "calt" 0,
+"liga" 0`, and change the viewport `themeColor` literals to the real DESIGN.md
+bg values (`#fafaf8` light, `#06051d` dark).
+
+Files:
+
+- `app/[locale]/layout.tsx`, `app/globals.css`
+
+### Task 20.3: Brand Assets And Logo Component
+
+Objective: Copy `docs/design/favicon.ico` to `app/favicon.ico` (and wire
+`metadata.icons`); copy the logos + banner to `public/brand/`; re-point the
+PWA/touch icons to the real mark; add `components/logo.tsx` (`<Logo />`) with a
+no-JS, no-flash theme swap via `next/image`.
+
+Files:
+
+- `app/favicon.ico`, `public/brand/logo_dark.png`,
+  `public/brand/logo_light.png`, `public/brand/header_banner.png`,
+  `components/logo.tsx`, `app/[locale]/layout.tsx`,
+  `scripts/generate-pwa-icons.mjs` (and/or `public/icons/*`)
+
+### Task 20.4: i18n, TSDoc, Tests
+
+Objective: Add a `Brand` namespace (logo alt) key-identical in both catalogs;
+TSDoc on `<Logo />`; tests (`<Logo />` both theme variants + favicon/manifest
+icons resolve); the e2e theme/RTL/no-overflow regression must stay green.
+
+Files:
+
+- `messages/en-US.json`, `messages/he-IL.json`, `e2e/*`, the `<Logo />` test
+
+Prompt file: `docs/prompts/20_DESIGN_TOKENS_FONTS_AND_BRAND_ASSETS.md`
+
+## Batch 21: Home Hero And Global Chrome
+
+Styles the home hero (display type, inline-highlighted word, the
+`header_banner.png` artifact, dual CTA, Feature Cards) and places `<Logo />` in
+the header + footer with DESIGN.md nav geometry, preserving the responsive
+collapse and auth behavior.
+
+### Task 21.1: Home Hero And Benefits
+
+Objective: `app/[locale]/page.tsx` - DESIGN.md display heading with one
+inline-highlighted word in `--color-accent`, a JetBrains Mono eyebrow, the
+`header_banner.png` rendered via `next/image` at `--radius-large-blocks`, a dual
+CTA (primary filled + secondary ghost) with DESIGN.md button geometry, and the
+benefits grid converted to DESIGN.md Feature Cards. Keep the single `<h1>`.
+
+Files:
+
+- `app/[locale]/page.tsx`
+
+### Task 21.2: Header And Footer
+
+Objective: Replace the text wordmark in `components/site-header.tsx` with
+`<Logo />`; apply DESIGN.md nav geometry (~64px, `--color-nav-bg` blur, hairline
+border, Inter 14px/500 links) while preserving the mobile Sheet drawer, the
+search control, the controls cluster, the auth control, and all RTL behavior.
+Place `<Logo />` + muted links on `--color-surface` in
+`components/site-footer.tsx`.
+
+Files:
+
+- `components/site-header.tsx`, `components/site-footer.tsx`
+
+### Task 21.3: i18n, TSDoc, Tests
+
+Objective: New hero/eyebrow strings key-identical in both catalogs; TSDoc on
+changed exports; e2e (hero renders the banner + dual CTA + single `<h1>`; header
+shows the logo; mobile drawer still opens below `md`; no overflow 390/768/1280
+EN+HE; theme toggle flips).
+
+Files:
+
+- `messages/en-US.json`, `messages/he-IL.json`, `e2e/*`
+
+Prompt file: `docs/prompts/21_HOME_HERO_AND_GLOBAL_CHROME.md`
+
+## Batch 22: Theme Surface Sweep And Polish
+
+Removes the last hardcoded colors, gives the AI tutor the Terminal Code Panel
+treatment, polishes the remaining surfaces in both themes, and runs a WCAG AA
+contrast pass. Token-driven; presentation only.
+
+### Task 22.1: Hardcoded-Color Hot Spots
+
+Objective: Replace the `bg-green-*`/`bg-red-*` literals in
+`app/[locale]/admin/groups/page.tsx` and `app/[locale]/admin/reminders/page.tsx`
+with DESIGN.md palette colors - the success-green passthrough (Batch 20) for
+sent/success, `--color-danger-bg`/`--color-danger-text` for failed/error - and
+remove every Tailwind named-color literal and stray hex from app code.
+
+Files:
+
+- `app/[locale]/admin/groups/page.tsx`, `app/[locale]/admin/reminders/page.tsx`
+
+### Task 22.2: Tutor Terminal Panel And Surface Polish
+
+Objective: Apply the DESIGN.md Terminal Code Panel treatment
+(`--color-code-bg`, JetBrains Mono, syntax colors) to
+`components/tutor/tutor-chat.tsx` technical output; polish course/catalog cards
+(Feature Card geometry), dashboards (Stats Blocks with accent numbers,
+theme-legible charts), admin tables, auth forms, and the certificate page in
+both themes (presentation classes only; the bridge supplies the colors).
+
+Files:
+
+- `components/tutor/tutor-chat.tsx`, `components/courses/*`,
+  `components/dashboard/*`, `components/admin/*`, auth pages,
+  the certificate page
+
+### Task 22.3: Contrast Pass, i18n, Tests
+
+Objective: WCAG AA contrast pass on every interactive pairing (dark
+Terminal-Amber secondary, dark Crimson/Fault-Red danger, dark
+Bioluminescent-Green primary); log any miss to `docs/planning/TECH_DEBT.md` +
+`docs/DECISIONS.md` with the measured ratio (do not alter the palette). Any new
+strings key-identical; TSDoc on changed exports; e2e visual-contract regression
+(theme + RTL + no-overflow; admin pills carry no green-*/red-* literal).
+
+Files:
+
+- `docs/planning/TECH_DEBT.md`, `docs/DECISIONS.md`, `messages/en-US.json`,
+  `messages/he-IL.json`, `e2e/*`
+
+Prompt file: `docs/prompts/22_THEME_SURFACE_SWEEP_AND_POLISH.md`
+
+## Batch 23: Coding Photography From Unsplash
+
+Sources the seven curated free Unsplash coding photos, self-hosts them, and
+places them on scoped surfaces as content media with theme-token framing and
+photographer attribution. The home hero stays `header_banner.png`.
+
+### Task 23.1: Fetch Script, Attribution Map, Image Component
+
+Objective: `scripts/fetch-unsplash-images.mjs` (idempotent downloader to
+`public/images/unsplash/`, files committed); `lib/images/unsplash.ts` (typed
+attribution map - the single source of truth, with TSDoc);
+`components/unsplash-image.tsx` (`<UnsplashImage />` - `next/image` + theme-token
+frame + low-opacity theme scrim + localized alt + "Photo by {name} on Unsplash"
+credit, no-JS safe).
+
+Files:
+
+- `scripts/fetch-unsplash-images.mjs`, `public/images/unsplash/*.jpg`,
+  `lib/images/unsplash.ts`, `components/unsplash-image.tsx`
+
+### Task 23.2: Placements
+
+Objective: Course-card cover fallback in the existing `coverImageUrl ? : ` else
+branch (deterministic id/slug hash across cover-eligible photos; a real
+`coverImageUrl` always wins); course-detail header photo when no `coverImageUrl`;
+one photo each on About and Contact; an optional `md+` auth side panel (hidden
+below `md`). The home hero is untouched.
+
+Files:
+
+- `components/courses/course-card.tsx`,
+  `app/[locale]/courses/[courseSlug]/page.tsx`, `app/[locale]/about/page.tsx`,
+  `app/[locale]/contact/page.tsx`, `app/[locale]/login/page.tsx`,
+  `app/[locale]/register/page.tsx`
+
+### Task 23.3: i18n, TSDoc, Tests
+
+Objective: An `Imagery` namespace (per-photo localized alt + "Photo by {name} on
+Unsplash" template) key-identical in both catalogs; TSDoc on the new exports;
+tests (deterministic cover selector; a course WITH `coverImageUrl` shows its own
+image; every map photo has attribution + a localized alt key in both catalogs;
+e2e credit-line render + no overflow 390/768/1280 EN+HE).
+
+Files:
+
+- `messages/en-US.json`, `messages/he-IL.json`, `e2e/*`, the selector test
+
+Prompt file: `docs/prompts/23_CODING_PHOTOGRAPHY_FROM_UNSPLASH.md`

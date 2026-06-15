@@ -33,9 +33,18 @@ Recommended order:
 | 18 | `17_CATALOG_SCHEMA_CATEGORIES_AND_REVIEWS.md` | Catalog data | Sections 5, 6, 7, 15, 16 |
 | 19 | `18_COURSES_CATALOG_PAGE.md` | Catalog UI | Sections 4, 8, 10, 11, 12, 15 |
 | 20 | `19_COURSE_REVIEWS_AND_LESSON_SEARCH.md` | Reviews + search | Sections 6.3, 8, 10, 11, 15 |
+| 21 | `20_DESIGN_TOKENS_FONTS_AND_BRAND_ASSETS.md` | Design tokens + assets | Sections 4, 10, 11, 12, 15 |
+| 22 | `21_HOME_HERO_AND_GLOBAL_CHROME.md` | Hero + chrome | Sections 4, 10, 11, 12, 15 |
+| 23 | `22_THEME_SURFACE_SWEEP_AND_POLISH.md` | Surface sweep | Sections 4, 10, 11, 12, 15 |
+| 24 | `23_CODING_PHOTOGRAPHY_FROM_UNSPLASH.md` | Unsplash photos | Sections 4, 10, 11, 12, 15 |
 
 The catalog/content batches (16-20 above) are backed by the design spec at
 `docs/superpowers/specs/2026-06-14-courses-catalog-and-content-pages-design.md`.
+
+The design-system & UX/UI batches (21-24 above, prompt files 20-23) are backed
+by `docs/superpowers/specs/2026-06-15-DESIGN_SYSTEM_UX_OVERHAUL_DESIGN.md` and
+the style reference `docs/design/DESIGN.md`. The home hero always uses
+`header_banner.png`; Unsplash photos (prompt 23) never replace it.
 
 Rule: after every prompt, run the verification commands and commit a stable
 checkpoint before moving to the next prompt.
