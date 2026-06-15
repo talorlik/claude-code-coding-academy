@@ -37,6 +37,10 @@ Recommended order:
 | 22 | `21_HOME_HERO_AND_GLOBAL_CHROME.md` | Hero + chrome | Sections 4, 10, 11, 12, 15 |
 | 23 | `22_THEME_SURFACE_SWEEP_AND_POLISH.md` | Surface sweep | Sections 4, 10, 11, 12, 15 |
 | 24 | `23_CODING_PHOTOGRAPHY_FROM_UNSPLASH.md` | Unsplash photos | Sections 4, 10, 11, 12, 15 |
+| 25 | `24_AUTH_ROUTING_COUNT_FIXES_AND_CHROME.md` | Routing + counts + chrome | Sections 4, 6.4, 7, 10, 11, 15 |
+| 26 | `25_USER_PROFILE_PAGE.md` | User profile page | Sections 4, 6.3, 10, 11, 12, 15 |
+| 27 | `26_ADMIN_USER_MANAGEMENT.md` | Admin user management | Sections 4, 7, 10, 11, 15 |
+| 28 | `27_ABOUT_CONTENT_AND_CONTACT_MAPS.md` | About content + Contact maps | Sections 4, 10, 11, 12, 15 |
 
 The catalog/content batches (16-20 above) are backed by the design spec at
 `docs/superpowers/specs/2026-06-14-courses-catalog-and-content-pages-design.md`.
@@ -45,6 +49,14 @@ The design-system & UX/UI batches (21-24 above, prompt files 20-23) are backed
 by `docs/superpowers/specs/2026-06-15-DESIGN_SYSTEM_UX_OVERHAUL_DESIGN.md` and
 the style reference `docs/design/DESIGN.md`. The home hero always uses
 `header_banner.png`; Unsplash photos (prompt 23) never replace it.
+
+The admin/profile/fixes batches (25-28 above, prompt files 24-27, batches 24-27)
+are backed by
+`docs/superpowers/specs/2026-06-16-ADMIN_PROFILE_FIXES_AND_USER_MANAGEMENT_DESIGN.md`
+and the plan
+`docs/superpowers/plans/2026-06-16-admin-profile-fixes-and-user-management.md`.
+For these, the prompt-file number equals the batch number (no offset). Run them
+in order 24 -> 25 -> 26 -> 27.
 
 Rule: after every prompt, run the verification commands and commit a stable
 checkpoint before moving to the next prompt.

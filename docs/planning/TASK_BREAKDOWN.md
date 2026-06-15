@@ -53,12 +53,19 @@ inline.
   `docs/prompts/22_THEME_SURFACE_SWEEP_AND_POLISH.md`
 - Tasks 23.1-23.3 (Batch 23):
   `docs/prompts/23_CODING_PHOTOGRAPHY_FROM_UNSPLASH.md`
+- Tasks 24.1-24.6 (Batch 24):
+  `docs/prompts/24_AUTH_ROUTING_COUNT_FIXES_AND_CHROME.md`
+- Tasks 25.1-25.5 (Batch 25): `docs/prompts/25_USER_PROFILE_PAGE.md`
+- Tasks 26.1-26.4 (Batch 26): `docs/prompts/26_ADMIN_USER_MANAGEMENT.md`
+- Tasks 27.1-27.3 (Batch 27):
+  `docs/prompts/27_ABOUT_CONTENT_AND_CONTACT_MAPS.md`
 
 The batches above 13 were appended after the initial 00-13 build (14-15 are
 post-build add-ons; 16-19 implement the courses-catalog and content-pages
-design spec; 20-23 implement the design-system & UX/UI overhaul spec). Their
-detailed task sections live at the end of this document, under the matching
-`## Batch NN` headings.
+design spec; 20-23 implement the design-system & UX/UI overhaul spec; 24-27
+implement the admin/profile/fixes spec). For batches 24-27 the prompt-file
+number equals the batch number (no offset). Their detailed task sections live at
+the end of this document, under the matching `## Batch NN` headings.
 
 ## Requirement Cross-Reference Map
 
@@ -1611,3 +1618,192 @@ Files:
 - `messages/en-US.json`, `messages/he-IL.json`, `e2e/*`, the selector test
 
 Prompt file: `docs/prompts/23_CODING_PHOTOGRAPHY_FROM_UNSPLASH.md`
+
+## Admin, Profile, Fixes, And User Management (Batches 24-27)
+
+Backed by
+`docs/superpowers/specs/2026-06-16-ADMIN_PROFILE_FIXES_AND_USER_MANAGEMENT_DESIGN.md`
+and the plan
+`docs/superpowers/plans/2026-06-16-admin-profile-fixes-and-user-management.md`.
+Ten reported issues plus the cross-repo adaptations they require; the reference
+repo is `/Users/talo/www/claude-code-ai-coach-assistant`. Run in order
+24 -> 25 -> 26 -> 27. Prompt-file number equals batch number (no offset).
+
+## Batch 24: Auth Routing, Count Fixes, Scroll, And Chrome
+
+Six contained fixes (issues 1, 2, 3, 4, 9, 10): admin post-login routing, the
+inflated admin-dashboard student/enrollment counts, the course page
+auto-scrolling to the tutor, the header logo overlapping its border, and the
+redundant footer logo. No new dependencies.
+
+### Task 24.1: Post-Login Role Routing (#1)
+
+Objective: `lib/auth/post-auth-redirect.ts` `resolvePostAuthDestination(userId)`
+awaits `isInstructor(userId)` and returns `/admin/dashboard` for instructors,
+`/dashboard` for students; callers and `?redirect=` precedence untouched. Update
+its unit test with an instructor-branch case.
+
+### Task 24.2: Dashboard Count View/RPC + Instructor Exclusion (#2, #3)
+
+Objective: migration
+`0005_dashboard_counts_and_block_instructor_enrollment.sql` adds a
+`security definer` view/rpc returning student count (distinct non-instructor
+enrollers), enrollment count (non-instructor rows), and the per-course
+completion breakdown with the same exclusion;
+`lib/dashboard/admin-queries.ts` reads it (DTOs unchanged). Applied via MCP.
+
+### Task 24.3: Block Instructor Enrollment + Cleanup (#3)
+
+Objective: same migration adds an RLS `WITH CHECK` on `enrollments` INSERT
+denying instructor-role users and DELETEs existing instructor-owned enrollment
+rows; the seed script no longer enrolls the instructor.
+
+### Task 24.4: Course Auto-Scroll Guard (#4)
+
+Objective: `components/tutor/tutor-chat.tsx` gains a mount/prev-count guard so
+the `scrollIntoView` effect skips the first render and fires only on message
+append or streaming start.
+
+### Task 24.5: Header Logo Clears Border (#9), Footer Logo Removed (#10)
+
+Objective: `components/site-header.tsx` constrains the logo within the header
+content box so it clears the `border-b`; `components/site-footer.tsx` deletes the
+`<Link><Logo/></Link>` block.
+
+### Task 24.6: Tests, Gates, Capture
+
+Objective: unit (role branch; any count helper); e2e (course scrolled to top on
+load; header/footer no-overflow 390/768/1280 EN+HE; corrected dashboard counts).
+Full gate set exit 0; DECISIONS + IMPLEMENTATION_LOG + memory.
+
+Files:
+
+- `lib/auth/post-auth-redirect.ts`, `lib/dashboard/admin-queries.ts`,
+  `supabase/migrations/0005_dashboard_counts_and_block_instructor_enrollment.sql`,
+  the seed script, `components/tutor/tutor-chat.tsx`,
+  `components/site-header.tsx`, `components/site-footer.tsx`, tests, `e2e/*`
+
+Prompt file: `docs/prompts/24_AUTH_ROUTING_COUNT_FIXES_AND_CHROME.md`
+
+## Batch 25: User Profile Page
+
+Issue 7. A profile page where any authenticated user edits name, phone, email,
+password, avatar, and locale. Adapted from the reference repo's profile page +
+actions; the `profiles` columns already exist.
+
+### Task 25.1: Avatars Storage Bucket
+
+Objective: migration `0006_avatars_storage_bucket.sql` - public-read `avatars`
+bucket; RLS so a user reads/writes only `{user_id}/` objects; public read for
+display. Applied via MCP.
+
+### Task 25.2: Validation Schemas
+
+Objective: `lib/validation/profile.ts` Zod schemas (contact, email, password
+match + length, locale enum, avatar MIME/size).
+
+### Task 25.3: Profile Actions + Resolver
+
+Objective: `lib/profile/profile-actions.ts` (`import "server-only"`):
+`ensureProfile`, `updateProfile`, `updateEmail`, `updatePassword`,
+`updateAvatar`, `updateLocale` + FormData wrappers redirecting with `?notice=`/
+`?error=`; `lib/profile/resolve-profile-message.ts` allowlist resolver.
+
+### Task 25.4: Page + Header Link + i18n
+
+Objective: `app/[locale]/profile/page.tsx` (guarded by `requireUser()`) with the
+five no-JS sections; a Profile link in the header user menu for both roles; a
+`Profile` namespace key-identical in both catalogs.
+
+### Task 25.5: Tests, Gates, Capture
+
+Objective: unit (action mappings; resolver; schemas); e2e (header link; fields;
+contact round-trip; no-overflow 390/768/1280 EN+HE). Full gate set exit 0;
+DECISIONS + IMPLEMENTATION_LOG + memory.
+
+Files:
+
+- `app/[locale]/profile/page.tsx`, `lib/profile/profile-actions.ts`,
+  `lib/profile/resolve-profile-message.ts`, `lib/validation/profile.ts`,
+  `supabase/migrations/0006_avatars_storage_bucket.sql`, the header component,
+  `messages/en-US.json`, `messages/he-IL.json`, tests, `e2e/*`
+
+Prompt file: `docs/prompts/25_USER_PROFILE_PAGE.md`
+
+## Batch 26: Admin User Management
+
+Issue 8. Admin-only list/view/role/invite/deactivate/delete via a server-only
+service-role data layer (RLS prevents cross-user reads). Depends on Batch 24
+(role-branch) and Batch 25 (profile/header patterns).
+
+### Task 26.1: Service-Role Data Layer
+
+Objective: `lib/admin/users.ts` (`import "server-only"`, service-role client
+from `SUPABASE_SERVICE_ROLE_KEY`); every function calls `requireAdmin()` first:
+`listUsers` (set-based, paginated), `getUser`, `setUserRole`, `inviteUser`
+(`inviteUserByEmail`), `setUserDisabled` (`ban_duration`), `deleteUser`.
+Self-protection + last-instructor guards enforced here.
+
+### Task 26.2: Validation + Resolver
+
+Objective: `lib/validation/admin-users.ts` (invite email, role enum, disable
+toggle); `lib/admin/resolve-users-message.ts` allowlist resolver.
+
+### Task 26.3: Pages + Actions + i18n
+
+Objective: `app/[locale]/admin/users/layout.tsx` (requireAdmin guard),
+`page.tsx` (paginated table), `[userId]/page.tsx` (detail + Tier-2 FormData
+actions; destructive actions confirm); link from the admin dashboard; an
+`AdminUsers` namespace key-identical in both catalogs.
+
+### Task 26.4: Invite Template, Tests, Gates, Capture
+
+Objective: document the styled invite template + the manual Supabase paste step;
+unit (action mappings; last-instructor guard; self-protection; requireAdmin on
+every function); e2e (table; role-change round-trip; student redirected from
+`/admin/users`; no-overflow/RTL). Full gate set exit 0; DECISIONS +
+IMPLEMENTATION_LOG + memory.
+
+Files:
+
+- `app/[locale]/admin/users/layout.tsx`, `app/[locale]/admin/users/page.tsx`,
+  `app/[locale]/admin/users/[userId]/page.tsx`, `lib/admin/users.ts`,
+  `lib/admin/resolve-users-message.ts`, `lib/validation/admin-users.ts`,
+  the admin dashboard, `messages/en-US.json`, `messages/he-IL.json`, tests,
+  `e2e/*`
+
+Prompt file: `docs/prompts/26_ADMIN_USER_MANAGEMENT.md`
+
+## Batch 27: About Content And Contact Google Maps
+
+Issues 5 and 6. Port the supplied About copy (EN + HE) and replace the Contact
+map placeholder with a keyed Maps Embed iframe. Independent; needs
+`NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`.
+
+### Task 27.1: Port About Content (#5)
+
+Objective: the six sections of `docs/content/ABOUT_EN.md` / `ABOUT_HE.md` become
+discrete heading + paragraph keys in the `About` namespace (English canonical,
+Hebrew key-for-key; section 4's 5-step list as ordered item keys);
+`app/[locale]/about/page.tsx` renders them in order, keeping the hero-image slot.
+
+### Task 27.2: Contact Google Maps (#6)
+
+Objective: `app/[locale]/contact/page.tsx` renders a Maps Embed API iframe
+(`/maps/embed/v1/place?key=...&q=...`, localized `title`, `loading="lazy"`) when
+`NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` is set, and the existing placeholder box
+when absent.
+
+### Task 27.3: Tests, Gates, Capture
+
+Objective: e2e (About headings EN+HE no-overflow 390/768/1280; Contact shows the
+iframe with the key and the placeholder without it). Document the env var (plain,
+referrer-restricted). Full gate set exit 0; DECISIONS + IMPLEMENTATION_LOG +
+memory.
+
+Files:
+
+- `app/[locale]/about/page.tsx`, `app/[locale]/contact/page.tsx`,
+  `messages/en-US.json`, `messages/he-IL.json`, `e2e/*`
+
+Prompt file: `docs/prompts/27_ABOUT_CONTENT_AND_CONTACT_MAPS.md`

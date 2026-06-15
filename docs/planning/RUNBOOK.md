@@ -29,6 +29,10 @@ section of `docs/planning/TASK_BREAKDOWN.md`.
   `docs/superpowers/specs/2026-06-14-courses-catalog-and-content-pages-design.md`.
 - **Design spec for batches 20-23:**
   `docs/superpowers/specs/2026-06-15-DESIGN_SYSTEM_UX_OVERHAUL_DESIGN.md`.
+- **Design spec for batches 24-27:**
+  `docs/superpowers/specs/2026-06-16-ADMIN_PROFILE_FIXES_AND_USER_MANAGEMENT_DESIGN.md`.
+- **Implementation plan for batches 24-27:**
+  `docs/superpowers/plans/2026-06-16-admin-profile-fixes-and-user-management.md`.
 - **Style reference (token system, both themes):** `docs/design/DESIGN.md`.
 
 ## Batch Order
@@ -40,8 +44,8 @@ non-negative integer AND a matching `docs/prompts/NN_*.md` exists. Do not assume
 the highest batch listed here is the last one; always check
 `ls docs/prompts/` for the batches that currently exist.
 
-The table below lists the batches that exist **as of 2026-06-15** (00-23). It
-is a snapshot, not a ceiling - expect rows beyond 23 in future.
+The table below lists the batches that exist **as of 2026-06-16** (00-27). It
+is a snapshot, not a ceiling - expect rows beyond 27 in future.
 
 | Batch | Prompt File | Nature | Branch Prefix | Status |
 | --- | --- | --- | --- | --- |
@@ -69,6 +73,10 @@ is a snapshot, not a ceiling - expect rows beyond 23 in future.
 | 21 | `21_HOME_HERO_AND_GLOBAL_CHROME.md` | Hero + chrome | `feature/` | Pending |
 | 22 | `22_THEME_SURFACE_SWEEP_AND_POLISH.md` | Surface sweep | `feature/` | Pending |
 | 23 | `23_CODING_PHOTOGRAPHY_FROM_UNSPLASH.md` | Unsplash photos | `feature/` | Pending |
+| 24 | `24_AUTH_ROUTING_COUNT_FIXES_AND_CHROME.md` | Routing + count fixes + chrome | `fix/` | Pending |
+| 25 | `25_USER_PROFILE_PAGE.md` | User profile page | `feature/` | Pending |
+| 26 | `26_ADMIN_USER_MANAGEMENT.md` | Admin user management | `feature/` | Pending |
+| 27 | `27_ABOUT_CONTENT_AND_CONTACT_MAPS.md` | About content + Contact maps | `feature/` | Pending |
 
 Notes:
 
@@ -86,6 +94,21 @@ Notes:
   chrome, 22 the full theme surface sweep, 23 the Unsplash coding photography.
   The home hero ALWAYS uses `header_banner.png`, never an Unsplash photo. Run
   them in order 20 -> 21 -> 22 -> 23.
+- Batches 24-27 implement the admin/profile/fixes spec
+  (`2026-06-16-ADMIN_PROFILE_FIXES_AND_USER_MANAGEMENT_DESIGN.md`, plan
+  `2026-06-16-admin-profile-fixes-and-user-management.md`), decomposed
+  smallest-blast-radius first: 24 the contained routing/count/scroll/chrome
+  fixes (issues 1,2,3,4,9,10), 25 the user profile page (issue 7), 26 admin user
+  management (issue 8), 27 About content + Contact Google Maps (issues 5,6). Run
+  them in order 24 -> 25 -> 26 -> 27: 24's role-branch routing is a prerequisite
+  for 26, and 25's profile/header patterns are reused by 26. For these batches
+  the prompt-file number EQUALS the batch number (no offset); the historical
+  offset applies only to batches 03-23.
+- Batch 27 needs `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` in `.env.local` and
+  Vercel (plain, not Sensitive - referrer-restricted). Batch 26 reuses the
+  existing `SUPABASE_SERVICE_ROLE_KEY` (Sensitive, server-only) and requires a
+  one-time manual paste of the styled invite template into Supabase Auth ->
+  Email Templates -> Invite. See the spec's Environment Variables section.
 
 ## Branch Prefix Selection
 
