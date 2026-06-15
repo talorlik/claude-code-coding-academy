@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport, type UIMessage } from "ai"
 import { useTranslations } from "next-intl"
@@ -19,6 +19,108 @@ function textOf(message: UIMessage): string {
   return message.parts
     .map((part) => (part.type === "text" ? part.text : ""))
     .join("")
+}
+
+/** A parsed segment of an assistant message: either prose or a fenced block. */
+type Segment =
+  | { kind: "prose"; text: string }
+  | { kind: "code"; text: string }
+
+/**
+ * Splits an assistant message into prose and fenced-code segments on Markdown
+ * triple-backtick fences (```lang ... ```), the convention the tutor uses to
+ * return code and JSON. A trailing unterminated fence (still streaming) is
+ * treated as code so the panel appears as soon as the model opens the block.
+ * Presentation only - it never mutates the underlying message text.
+ */
+function segmentAssistantText(text: string): Segment[] {
+  const segments: Segment[] = []
+  // Match a fenced block: opening ``` + optional language token, body, closing
+  // ``` (or end-of-string while streaming). [\s\S] so the body spans newlines.
+  const fence = /```[^\n]*\n?([\s\S]*?)(?:```|$)/g
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  while ((match = fence.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ kind: "prose", text: text.slice(lastIndex, match.index) })
+    }
+    segments.push({ kind: "code", text: match[1] })
+    lastIndex = fence.lastIndex
+  }
+  if (lastIndex < text.length) {
+    segments.push({ kind: "prose", text: text.slice(lastIndex) })
+  }
+  return segments
+}
+
+/**
+ * The DESIGN.md Terminal Code Panel: code/JSON output on the dark code canvas
+ * (`--color-code-bg`), 12px panel radius, JetBrains Mono at the 13px floor, with
+ * an "I'M A DEVELOPER"-style eyebrow tab. Code text uses `--color-code-string`
+ * (the syntax token for strings/identifiers), the most legible mono default on
+ * the code canvas in both themes. The page's signature component.
+ */
+function CodePanel({ code, label }: { code: string; label: string }) {
+  return (
+    <div
+      className="overflow-hidden rounded-[var(--radius-code-panels)] bg-[var(--color-code-bg)]"
+      dir="ltr"
+    >
+      <div className="border-b border-white/10 px-4 py-2">
+        <span className="font-mono text-[length:var(--text-eyebrow)] font-medium uppercase tracking-[var(--tracking-eyebrow)] text-[var(--color-text-muted)]">
+          {label}
+        </span>
+      </div>
+      <pre className="overflow-x-auto px-4 py-3 font-mono text-[13px] leading-[1.57] text-[var(--color-code-string)]">
+        <code>{code}</code>
+      </pre>
+    </div>
+  )
+}
+
+/**
+ * Renders an assistant message with the Terminal Code Panel treatment applied to
+ * any fenced code/JSON it contains; prose renders as before. Inline `code` spans
+ * get a subtle `--color-code-surface` chip. Keeps `whitespace-pre-wrap break-words`
+ * on prose so wrapping, streaming, and RTL behavior are unchanged.
+ */
+function AssistantContent({ text, codeLabel }: { text: string; codeLabel: string }) {
+  const segments = segmentAssistantText(text)
+  return (
+    <span className="flex flex-col gap-2">
+      {segments.map((segment, i) =>
+        segment.kind === "code" ? (
+          <CodePanel key={i} code={segment.text} label={codeLabel} />
+        ) : (
+          <span key={i} className="whitespace-pre-wrap break-words">
+            {renderInlineCode(segment.text)}
+          </span>
+        )
+      )}
+    </span>
+  )
+}
+
+/**
+ * Splits prose on single-backtick inline code, rendering those spans on a quiet
+ * `--color-code-surface` chip in JetBrains Mono. DESIGN.md: code never sits
+ * directly on the page canvas.
+ */
+function renderInlineCode(text: string): React.ReactNode {
+  const parts = text.split(/(`[^`]+`)/g)
+  return parts.map((part, i) =>
+    part.startsWith("`") && part.endsWith("`") && part.length > 2 ? (
+      <code
+        key={i}
+        dir="ltr"
+        className="rounded-[var(--radius-badges)] bg-[var(--color-code-surface)] px-1.5 py-0.5 font-mono text-[0.85em] text-[var(--color-code-string)]"
+      >
+        {part.slice(1, -1)}
+      </code>
+    ) : (
+      <Fragment key={i}>{part}</Fragment>
+    )
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -156,15 +258,22 @@ export function TutorChat({
                     className={
                       isUser
                         ? "max-w-[80%] rounded-2xl rounded-ee-sm bg-primary px-3 py-2 text-sm text-primary-foreground"
-                        : "max-w-[85%] rounded-2xl rounded-es-sm bg-muted px-3 py-2 text-sm"
+                        : "min-w-0 max-w-[85%] rounded-2xl rounded-es-sm bg-muted px-3 py-2 text-sm"
                     }
                   >
                     <span className="sr-only">
                       {isUser ? t("you") : t("assistant")}:{" "}
                     </span>
-                    <span className="whitespace-pre-wrap break-words">
-                      {textOf(message)}
-                    </span>
+                    {isUser ? (
+                      <span className="whitespace-pre-wrap break-words">
+                        {textOf(message)}
+                      </span>
+                    ) : (
+                      <AssistantContent
+                        text={textOf(message)}
+                        codeLabel={t("codeLabel")}
+                      />
+                    )}
                   </div>
                 </li>
               )

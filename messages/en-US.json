@@ -409,7 +409,8 @@
     "enrollToAsk": "Enroll in this course to chat with the AI tutor.",
     "signInToAsk": "Sign in to chat with the AI tutor.",
     "you": "You",
-    "assistant": "Tutor"
+    "assistant": "Tutor",
+    "codeLabel": "Code"
   },
   "Pwa": {
     "install": {

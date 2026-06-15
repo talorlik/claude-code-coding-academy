@@ -409,7 +409,8 @@
     "enrollToAsk": "הירשמו לקורס כדי לשוחח עם מדריך ה-AI.",
     "signInToAsk": "התחברו כדי לשוחח עם מדריך ה-AI.",
     "you": "אתה",
-    "assistant": "מדריך"
+    "assistant": "מדריך",
+    "codeLabel": "קוד"
   },
   "Pwa": {
     "install": {

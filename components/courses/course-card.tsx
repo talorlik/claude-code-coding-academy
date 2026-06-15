@@ -55,7 +55,7 @@ async function RatingStars({
             key={i}
             className={
               i <= rounded
-                ? "size-3.5 fill-amber-400 text-amber-400"
+                ? "size-3.5 fill-brand-accent text-brand-accent"
                 : "size-3.5 text-muted-foreground/40"
             }
           />

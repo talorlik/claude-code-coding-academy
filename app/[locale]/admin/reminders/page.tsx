@@ -83,7 +83,7 @@ export default async function AdminRemindersPage({
       {process.env.SMTP_HOST ? null : (
         <div
           role="note"
-          className="rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200"
+          className="rounded-md border border-border bg-muted px-4 py-3 text-sm text-muted-foreground"
         >
           {t("providerNote")}
         </div>
@@ -92,7 +92,7 @@ export default async function AdminRemindersPage({
       {notice === "queued" && (
         <div
           role="status"
-          className="rounded-md bg-green-50 px-4 py-3 text-sm text-green-800 dark:bg-green-950 dark:text-green-200"
+          className="rounded-md bg-success px-4 py-3 text-sm text-success-foreground"
         >
           {t("queueSuccess")}
         </div>
@@ -231,11 +231,11 @@ export default async function AdminRemindersPage({
                       <span
                         className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                           event.status === "sent"
-                            ? "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200"
+                            ? "bg-success text-success-foreground"
                             : event.status === "queued"
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200"
+                              ? "bg-muted text-muted-foreground"
                               : event.status === "failed"
-                                ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200"
+                                ? "bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]"
                                 : "bg-muted text-muted-foreground"
                         }`}
                       >

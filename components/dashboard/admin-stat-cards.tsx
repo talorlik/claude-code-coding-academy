@@ -7,7 +7,12 @@ interface AdminStatCardsProps {
 }
 
 /**
- * Renders the four overview stat cards on the admin dashboard.
+ * Renders the four overview stat cards on the admin dashboard as DESIGN.md
+ * Stats Blocks: the number is the visual anchor in `--color-accent` at the 36px
+ * heading scale (Inter 600, -0.72px tracking) and the caption recedes in
+ * `--color-text-muted`. The number scales down on the narrowest 2-column grid so
+ * it never overflows, stepping up to the full 36px from `sm`.
+ *
  * Server component - no client interactivity.
  */
 export function AdminStatCards({ stats }: AdminStatCardsProps) {
@@ -30,8 +35,8 @@ export function AdminStatCards({ stats }: AdminStatCardsProps) {
           key={card.label}
           className="flex flex-col gap-1 rounded-lg border bg-card p-4"
         >
-          <span className="text-xs text-muted-foreground">{card.label}</span>
-          <span className="text-2xl font-semibold tabular-nums">
+          <span className="text-sm text-muted-foreground">{card.label}</span>
+          <span className="text-3xl font-semibold tabular-nums text-brand-accent sm:text-[length:var(--text-heading)] sm:leading-[var(--leading-heading)] sm:tracking-[var(--tracking-heading)]">
             {card.value}
           </span>
         </li>

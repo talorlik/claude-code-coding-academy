@@ -2633,3 +2633,59 @@ behavior.
   unaligned with the DESIGN.md canvas (carried from Batch 20).
 - Batch 22 takes the theme surface sweep (hardcoded-color hot spots, tutor
   Terminal Code Panel, WCAG AA pass).
+
+## Batch 22: Theme Surface Sweep And Polish (2026-06-15)
+
+### What
+
+- **Full named-color sweep** (the prompt's Rule, not just its 2 named files):
+  removed every Tailwind `green-*`/`red-*`/`yellow-*`/`emerald-*`/`amber-*`
+  literal from 8 app files. `app/[locale]/admin/groups/page.tsx` and
+  `app/[locale]/admin/reminders/page.tsx` (status banners + pills),
+  `app/[locale]/courses/[courseSlug]/checkout/page.tsx` (simulation banner),
+  `components/contact/contact-form.tsx`, `components/courses/review-form.tsx`
+  (success banners), `components/dashboard/achievement-badge.tsx` (earned tile),
+  `components/courses/course-card.tsx`, `components/courses/review-list.tsx`
+  (rating stars). Token mapping in DECISIONS (2026-06-15, Batch 22).
+- **Tutor Terminal Code Panel** (`components/tutor/tutor-chat.tsx`): assistant
+  messages are segmented on Markdown fences; code/JSON renders in the DESIGN.md
+  panel (`--color-code-bg`, `--radius-code-panels`, JetBrains Mono 13px, LTR,
+  "CODE" eyebrow); inline code gets a `--color-code-surface` chip. Streaming /
+  a11y / RTL unchanged.
+- **Dashboard polish**: `admin-stat-cards.tsx` numbers are DESIGN.md Stats Blocks
+  (`brand-accent`, 36px heading scale from `sm`, -0.72px tracking);
+  `weekly-progress-chart.tsx` `hsl(var(--token))` -> `var(--token)` (a latent
+  Batch-20 rendering bug - the chart was colorless because the tokens are hex,
+  not HSL channels).
+- **WCAG AA contrast pass** over every interactive pairing; two DESIGN.md
+  danger-pill misses (2.97 light / 2.56 dark) and the light success pill (3.42)
+  logged to TECH_DEBT + DECISIONS with measured ratios, palette unaltered.
+- **i18n**: `Tutor.codeLabel` ("Code" / "קוד") added key-identical to both
+  catalogs for the code-panel eyebrow.
+- **`e2e/theme-surface-sweep.spec.ts`** (new): no removed color literal in the
+  rendered DOM of the swept guest pages (home, `/courses`); no overflow at
+  390/768/1280 in EN + HE; theme toggle flips `.light`/`.dark` on the catalog
+  (an inner page); an authed reminders-pill literal scan (skips without creds).
+
+### Decisions
+
+- No new bridge token: warning/caution has no DESIGN.md semantic and the light
+  palette has no amber, so caution states use the neutral `muted` surface and
+  gold stars use `brand-accent` (the sanctioned emphasis color), staying within
+  each palette. Failed pill keeps the DESIGN.md danger vars verbatim despite the
+  AA miss (logged, not re-colored). Three hex literals (layout `themeColor`,
+  certificate print border, vendored chart sentinel selectors) are deliberately
+  retained as non-app-surface contexts. See DECISIONS (2026-06-15, Batch 22).
+
+### Verification (gates, exit 0)
+
+- Filled in at merge time - see the batch report / squash commit.
+
+### Known Follow-Up
+
+- Two AA contrast misses on the DESIGN.md danger pill and the light success
+  pill are open in TECH_DEBT, pending a DESIGN.md-coordinated token change.
+- The PWA manifest install-splash colors (`lib/pwa/manifest.ts`) remain
+  unaligned with the DESIGN.md canvas (carried from Batch 20).
+- Batch 23 adds the Unsplash coding photography (home hero stays
+  `header_banner.png`).

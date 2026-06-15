@@ -15,7 +15,7 @@ function Stars({ rating }: { rating: number }) {
           key={i}
           className={
             i <= rating
-              ? "size-4 fill-amber-400 text-amber-400"
+              ? "size-4 fill-brand-accent text-brand-accent"
               : "size-4 text-muted-foreground/40"
           }
         />

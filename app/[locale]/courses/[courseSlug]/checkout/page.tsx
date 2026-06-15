@@ -148,22 +148,23 @@ export default async function CheckoutPage({
         {t("checkoutTitle")}
       </h1>
 
-      {/* Simulation banner - MUST be clearly visible */}
+      {/* Simulation banner - MUST be clearly visible. Uses the DESIGN.md accent
+          (the theme's emphasis color, present in both palettes) rather than an
+          amber the light palette does not define, so it stays prominent and
+          palette-conformant in light and dark. */}
       <div
         role="alert"
-        className="mb-6 flex items-start gap-3 rounded-lg border-2 border-yellow-400 bg-yellow-50 px-4 py-3 dark:border-yellow-600 dark:bg-yellow-950"
+        className="mb-6 flex items-start gap-3 rounded-lg border-2 border-brand-accent bg-brand-accent/10 px-4 py-3"
       >
         <ShieldCheck
-          className="mt-0.5 size-5 shrink-0 text-yellow-700 dark:text-yellow-300"
+          className="mt-0.5 size-5 shrink-0 text-brand-accent"
           aria-hidden="true"
         />
         <div>
-          <p className="font-semibold text-yellow-800 dark:text-yellow-200">
+          <p className="font-semibold text-brand-accent">
             {t("simulationBanner")}
           </p>
-          <p className="mt-0.5 text-sm text-yellow-700 dark:text-yellow-300">
-            {t("simulationNote")}
-          </p>
+          <p className="mt-0.5 text-sm text-foreground">{t("simulationNote")}</p>
         </div>
       </div>
 

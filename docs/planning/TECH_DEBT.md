@@ -6,7 +6,31 @@ date. This file is the canonical work-list for the tech-debt batch.
 
 ## Open Items
 
-(none)
+- [ ] **DESIGN.md danger-pill pairing fails WCAG AA as solid fill+text.**
+  (logged 2026-06-15, Batch 22) The DESIGN.md `--color-danger-text` on
+  `--color-danger-bg` pairing, used as a solid status pill (admin reminders
+  "failed" pill, `app/[locale]/admin/reminders/page.tsx`), measures **2.97:1**
+  in light (Burnt Orange `#be400f` on Rose Blush `#f9aea9`) and **2.56:1** in
+  dark (Fault Red `#ff2056` on Crimson Depth `#8b0836`). Both are below the
+  4.5:1 normal-text AA floor and the dark case is below the 3:1 UI floor too.
+  Batch 22 kept the DESIGN.md values verbatim per the prompt ("do NOT silently
+  alter the palette; log the miss"). The spec designed these tokens as a
+  background-tint + accent-text combo, not a solid fill+text pill. Acceptance:
+  either DESIGN.md gains an AA-passing on-danger text token (e.g. ice/cream on
+  the danger bg) and the pill adopts it, or the failed pill switches to a
+  tint+strong-text idiom (`bg-[var(--color-danger-bg)]/15` +
+  `text-[var(--color-danger-text)]`) that clears 4.5:1. Verify both themes with
+  a contrast tool before closing.
+
+- [ ] **Light success pill label is below AA for small text.** (logged
+  2026-06-15, Batch 22) The Batch-20 success passthrough (Forest `#165424` on
+  Success Green `#62b06d`) measures **3.42:1** - fine for large text / UI (>=3:1)
+  but under 4.5:1 for the `text-xs` (12px) / `text-sm` pill and banner labels it
+  now backs (admin groups/reminders success banners, the reminders "sent" pill,
+  contact + review success notices). Dark is fine (8.11:1). Acceptance: bump the
+  light on-success text toward a darker forest, or raise the pill/banner label to
+  a large-text size, so it clears 4.5:1 in light. Do not alter the palette
+  unilaterally; coordinate with DESIGN.md.
 
 ## Done
 

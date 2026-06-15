@@ -78,7 +78,7 @@ export default async function AdminGroupsPage({
       {notice === "created" && (
         <div
           role="status"
-          className="rounded-md bg-green-50 px-4 py-3 text-sm text-green-800 dark:bg-green-950 dark:text-green-200"
+          className="rounded-md bg-success px-4 py-3 text-sm text-success-foreground"
         >
           {t("success.created")}
         </div>

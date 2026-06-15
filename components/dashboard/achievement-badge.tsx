@@ -20,7 +20,7 @@ export function AchievementBadge({ id, earned }: AchievementBadgeProps) {
       className={[
         "flex min-w-0 flex-col gap-1 rounded-lg border p-3",
         earned
-          ? "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30"
+          ? "border-brand-accent/40 bg-brand-accent/5"
           : "border-border bg-muted/40 opacity-60",
       ].join(" ")}
       aria-label={earned ? t("badgeEarned") : t("badgeLocked")}
@@ -28,7 +28,7 @@ export function AchievementBadge({ id, earned }: AchievementBadgeProps) {
       <div className="flex items-center gap-2">
         {earned ? (
           <TrophyIcon
-            className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
+            className="h-4 w-4 shrink-0 text-brand-accent"
             aria-hidden="true"
           />
         ) : (

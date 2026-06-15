@@ -1023,3 +1023,83 @@ forbids WIP on `main`; the change was out of batch-21 scope (which never touches
 tree clean for the precondition. Manifest install-splash colors
 (`lib/pwa/manifest.ts`), flagged as a Batch 21+ follow-up by Batch 20, were NOT
 touched - still open for a later batch.
+
+### 2026-06-15 - Batch 22 - Swept 8 files, not 2; mapped each removed literal to an existing token
+
+The prompt named two hot-spot files (admin groups + reminders), but its Rule
+("no Tailwind named-color literals anywhere in app code after this batch; if any
+literal hex remains from earlier batches, fix it here too") mandates a full
+sweep. The grep found 8 files with literals; all were converted. Mapping:
+success/sent -> `bg-success text-success-foreground` (the Batch-20 passthrough);
+failed/error -> `bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]`;
+neutral/caution (provider note, queued pill) -> `bg-muted text-muted-foreground`;
+prominent caution (checkout simulation banner), achievement-earned tile, and
+rating stars -> the `brand-accent` utility (`--color-accent`, the DESIGN.md
+emphasis color present in both palettes).
+
+**Why:** DESIGN.md has semantic `success` and `danger` but **no warning/amber
+semantic, and the light palette defines no amber/gold at all**. Inventing one
+would violate the Don't rule ("no additional accent hues beyond each theme's
+palette"). So warning/caution states route to the neutral muted surface (always
+palette-clean) and the gold rating stars route to `brand-accent` (the sanctioned
+"highlighted" color) rather than a fabricated amber. No new token was added to
+the bridge - the success passthrough, danger vars, muted, and brand-accent all
+already existed. `--color-danger-bg/text` are not in `@theme inline`, so the
+failed pill uses arbitrary-value utilities (`bg-[var(--color-danger-bg)]`).
+
+### 2026-06-15 - Batch 22 - WCAG AA contrast pass: two DESIGN.md danger-pill misses kept and logged
+
+Measured every interactive pairing the prompt enumerates. Two solid fill+text
+pairings fail AA and were kept verbatim per the prompt (palette is authoritative;
+log the miss, do not re-color): the DESIGN.md danger pill
+(`--color-danger-text` on `--color-danger-bg`) is **2.97:1** light / **2.56:1**
+dark on the admin reminders "failed" pill; the light success passthrough (Forest
+on Success Green) is **3.42:1**, fine for UI/large text but under 4.5:1 for the
+small pill/banner labels. Both are in TECH_DEBT with acceptance criteria. All
+other pairings pass AA for normal text: dark primary 8.89, dark secondary
+(Terminal Amber) 8.38, light primary 5.34, brand-accent 5.11-8.79 across
+surfaces, code-string on code-bg 6.85-10.57, dark success 8.11.
+
+**Why:** the DESIGN.md danger tokens were specified as a background-tint +
+accent-text combo, never validated as a solid fill+text pill; using them as a
+solid pill is what trips AA. The prompt forbids altering the palette in this
+batch, so the fix (an on-danger text token or a tint idiom) is deferred to a
+DESIGN.md-coordinated change, not done silently here.
+
+### 2026-06-15 - Batch 22 - Fixed broken `hsl(var(--token))` chart colors left by the Batch-20 token migration
+
+`components/dashboard/weekly-progress-chart.tsx` still wrapped its Recharts color
+props in `hsl(var(--border))`, `hsl(var(--primary))`, etc. Since Batch 20 those
+bridge tokens resolve to DESIGN.md **hex/var** values, not HSL channel triplets,
+so `hsl(#004f3b)` is invalid and the bars/grid/ticks would not paint. Changed all
+references to bare `var(--token)`.
+
+**Why:** this was a latent rendering bug introduced by the token migration, not a
+cosmetic preference - the dashboard chart was effectively colorless. It surfaced
+under the prompt's "charts read in both themes" requirement. The shadcn
+`chart.tsx` ChartContainer already passes raw var values; this file was the only
+holdout still using the pre-migration `hsl()` convention.
+
+### 2026-06-15 - Batch 22 - Tutor Terminal Code Panel parses fenced code; three hex usages deliberately retained
+
+The tutor (`components/tutor/tutor-chat.tsx`) now segments each assistant message
+on Markdown triple-backtick fences and renders code/JSON in a DESIGN.md Terminal
+Code Panel (`--color-code-bg`, `--radius-code-panels`, JetBrains Mono 13px, code
+forced `dir="ltr"`, a localized "CODE" eyebrow tab); inline single-backtick code
+gets a `--color-code-surface` chip. Streaming, a11y, and RTL are untouched
+(presentation only); a still-streaming unterminated fence renders as code so the
+panel appears immediately. Three hex literals remain in the codebase by design
+and are NOT app-surface color decisions: `app/[locale]/layout.tsx` `themeColor`
+(`#fafaf8`/`#06051d`) is a Next.js `<meta>` value that cannot reference a CSS var
+and already tracks the DESIGN.md `--color-bg` canvas; the certificate page's
+`@media print` `border: 2px solid #000` is a print-only ink border where theme
+vars do not apply; and `components/ui/chart.tsx` `[stroke='#ccc']`/`[stroke='#fff']`
+are Recharts sentinel selectors the vendored shadcn wrapper overrides to
+`stroke-border` (matching, not applying, those colors).
+
+**Why:** the panel is DESIGN.md's signature component and fenced code is how the
+tutor returns code, so segmenting on fences (not full tokenization, which would
+exceed "presentation only") is the robust minimal approach. The retained hex are
+meta/print/vendored contexts outside the "app surface color" the sweep targets;
+documenting them here prevents a future sweep from "fixing" them and breaking
+mobile chrome theming, the printed certificate, or the chart overrides.

@@ -45,7 +45,7 @@ export async function ContactForm({
       ) : null}
       {noticeMessage ? (
         <p
-          className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400"
+          className="rounded-md bg-success px-3 py-2 text-sm text-success-foreground"
           role="status"
         >
           {noticeMessage}
