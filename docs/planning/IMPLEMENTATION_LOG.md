@@ -2821,3 +2821,77 @@ Six contained fixes (issues 1, 2, 3, 4, 9, 10), no new dependencies.
 
 - None specific to this batch. Batch 26 (admin user management) depends on this
   batch's role-branch routing.
+
+## Batch 25: User Profile Page (2026-06-16)
+
+### What
+
+Issue 7. A profile page where any authenticated user (instructor or student)
+edits their own name, phone, email, password, avatar, and preferred locale.
+Adapted from the reference repo's profile page + actions; the `profiles` columns
+(`full_name`, `phone`, `email`, `avatar_url`, `locale`) already existed.
+
+- **Avatars storage bucket.** Migration `0006_avatars_storage_bucket.sql`
+  creates a public-read `avatars` bucket and four `storage.objects` policies
+  scoped to this bucket: public SELECT (so `<img>` renders without signed URLs)
+  and per-user INSERT/UPDATE/DELETE gated by
+  `(storage.foldername(name))[1] = auth.uid()::text` (a user touches only their
+  own `{user_id}/` prefix). Applied live to project `nlqpuppwjtxhfcfyjfre` via
+  the Supabase MCP.
+- **Validation.** `lib/validation/profile.ts` Zod schemas: `contactSchema`
+  (optional trimmed name/phone with length caps), `emailSchema`
+  (trim+lowercase+format), `passwordSchema` (min/max length + confirm match via
+  `.refine`), `localeSchema` (`en`/`he` enum), `avatarSchema` (MIME allowlist +
+  2 MB cap). Server-side only.
+- **Data layer.** `lib/profile/profile-actions.ts` extended in place (it already
+  exported `ensureProfile`/`updatePassword` for the auth flow): added
+  `updateProfile`, `updateEmail`, `updateAvatar`, `updateLocale`, and five
+  FormData wrappers (`update*Form`) that redirect with a `?notice=`/`?error=`
+  code. `lib/profile/resolve-profile-message.ts` is the allowlist resolver
+  (mirrors `resolve-auth-message`/`resolve-contact-message`).
+- **Page.** `app/[locale]/profile/page.tsx`, guarded by `requireUser()`. Five
+  Tier-2 no-JS `<form>` sections (contact, email, password, avatar, locale),
+  each posting FormData to its action. One `<main id="main-content">`, one
+  `<h1>`, labelled `<section>`s. Locale uses the native `<select>`
+  (`NativeSelect`) so it works no-JS; avatar uses a file input (the one
+  non-no-JS part).
+- **Header link.** `components/site-header.tsx` adds a Profile link to
+  `textLinks` (gated on `user`), so it appears inline on md+ and in the drawer
+  below md, for both roles.
+- **i18n.** New `Profile` namespace (44 keys) + `Nav.profile`, key-identical in
+  both catalogs.
+
+### Decisions
+
+- **Extended, not replaced, `profile-actions.ts`.** The existing
+  `ensureProfile`/`updatePassword` are consumed by `login`/`/auth/confirm`;
+  overwriting would have broken auth. See `docs/DECISIONS.md`.
+- **Dropped the reference repo's phone country-code decomposition.** This
+  project's `profiles.phone` is plain text with no `country_iso2` column, so
+  phone is a single free-text field, not a `combineE164` recombination.
+- **Avatar `<form>` sets no `encType`/`method`.** React Server Actions set
+  `multipart/form-data` + POST automatically and warn if you set them; an e2e
+  run surfaced the warning. Object key is `{user_id}/avatar.<ext>` with
+  `upsert: true` (one object per user) and the stored URL carries `?v=<ts>` to
+  defeat stale caches.
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - catalogs in sync (604 keys; +45 new `Profile`/`Nav`
+  keys per locale).
+- `npm run typecheck` - exit 0 (checked by exit code, not log tail).
+- `npm run build` - exit 0; `/[locale]/profile` route registered; Proxy intact
+  (no `middleware.ts`).
+- `npm test` - 522 passed, 3 skipped (new: `tests/unit/profile-validation.test.ts`,
+  `tests/unit/resolve-profile-message.test.ts`,
+  `tests/integration/profile-actions.test.ts` - 41 new profile assertions).
+- `npm run test:e2e` - 166 passed, 4 skipped (new: `e2e/profile.spec.ts` - 11
+  tests: redirect protection EN/HE, header Profile link, all five field groups,
+  contact round-trip success banner, no-overflow at 390/768/1280 EN+HE).
+- Live DB: bucket `avatars` created (public=true), verified via MCP.
+
+### Known Follow-Up
+
+- Batch 26 (admin user management) reuses this batch's profile/header patterns
+  and depends on batch 24's role-branch routing.

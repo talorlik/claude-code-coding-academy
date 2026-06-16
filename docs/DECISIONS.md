@@ -1170,3 +1170,40 @@ never enrolls" is now documented in the script header so it is not reintroduced.
 The header logo crossed the hairline because the 4:3 PNG at width 120 renders
 ~90px tall while only the wrapping span (not the image) was height-capped; the
 fix caps the inner `<img>` directly (`[&_img]:max-h-9`).
+
+### 2026-06-16 - Batch 25 - User profile page; existing profile-actions.ts extended, not replaced
+
+Adapted the reference repo's profile page + actions, but `lib/profile/profile-actions.ts`
+already existed in this project (it shipped `ensureProfile` and `updatePassword`,
+both consumed by the login flow and `/auth/confirm`). Extended that file in place -
+added `updateProfile`/`updateEmail`/`updateAvatar`/`updateLocale` plus the five
+FormData wrappers - rather than overwriting it, so the auth callers keep working.
+Dropped the reference repo's phone country-code decomposition (`combineE164`,
+`country_iso2`, `phone-national`): this project's `profiles.phone` is plain text
+and there is no `country_iso2` column, so phone is a single free-text field.
+
+The avatar `<form>` must NOT set `encType`/`method` when its `action` is a
+function: React sets `multipart/form-data` + POST automatically and logs a
+runtime warning ("Cannot specify a encType or method for a form that specifies a
+function as the action") if you set them. The file upload still works without
+them. Avatar objects use a fixed key `{user_id}/avatar.<ext>` with `upsert: true`
+(one object per user, replaced in place) and the stored public URL carries a
+`?v=<timestamp>` cache-buster so a replaced avatar is not served stale.
+
+Migration `0006_avatars_storage_bucket.sql` (public-read bucket; per-user
+insert/update/delete RLS on `storage.objects` scoped by
+`(storage.foldername(name))[1] = auth.uid()::text`) was applied live to project
+`nlqpuppwjtxhfcfyjfre` via the Supabase MCP (bucket `avatars`, public=true,
+verified). The live apply was initially blocked by the auto-mode safety
+classifier as a production-infra action and required explicit user authorization
+before retrying.
+
+**Why:** the reference repo is a template, not a drop-in - this project's schema
+(plain-text phone, no country column) and its already-present auth-facing
+profile-actions exports force adaptation over copy. The `encType` rule is a
+non-obvious React Server Actions constraint that an e2e run surfaced as a console
+warning. Storing one upsert-in-place avatar object per user keeps the bucket from
+accumulating orphans and matches the per-user RLS prefix; the cache-buster is the
+standard fix for a fixed-key public object. Migrations against shared infra are
+gated by the classifier even inside an authorized build run, so the live apply
+needs a per-action confirm.

@@ -32,7 +32,8 @@ import {
  * breakpoint they collapse into a hamburger Sheet drawer so the header never
  * overflows a phone. The language and theme controls stay visible at all widths;
  * only the links collapse. Signed-out visitors see a Sign in link; signed-in
- * users see Dashboard and Search links plus a Sign out control. Labels come from
+ * users see Dashboard, Profile, and Search links plus a Sign out control (the
+ * Profile link is visible to both roles when authenticated). Labels come from
  * the `Nav` namespace; links use the locale-aware {@link Link}. Sign-out posts
  * to the non-localized `/auth/signout` route (POST so it cannot be triggered by
  * a cross-site navigation or prefetch).
@@ -54,7 +55,15 @@ export async function SiteHeader() {
     { href: "/courses", label: t("courses") },
     { href: "/about", label: t("about") },
     { href: "/contact", label: t("contact") },
-    ...(user ? [{ href: "/dashboard", label: t("dashboard") }] : []),
+    ...(user
+      ? [
+          { href: "/dashboard", label: t("dashboard") },
+          // Profile is reachable by both roles when authenticated; it sits
+          // inline on md+ and in the drawer below md (drawerLinks derives from
+          // textLinks).
+          { href: "/profile", label: t("profile") },
+        ]
+      : []),
   ]
   // The search affordance points at the /courses catalog, whose search box is
   // the course-level search (batch 18 replaced the standalone /search page; the
