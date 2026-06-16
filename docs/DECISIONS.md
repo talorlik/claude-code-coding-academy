@@ -1295,3 +1295,22 @@ gate (typecheck, e2e round-trip, build). The invite template is dashboard-only
 because Supabase does not template invite mail from repo files; the default
 template already works, so the styling step is optional and documented rather
 than coded.
+
+### 2026-06-16 - Batch 27 - About content as discrete keys; Maps Embed key is PLAIN
+
+The real About copy (six sections from `docs/content/ABOUT_*.md`) was ported as
+discrete per-section heading + ordered `bodyN` paragraph keys (and section 4's
+list as `skills.step1..5`) in the `About` namespace, not as Markdown/blob keys.
+The Contact page's Google Maps Embed key,
+`NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`, is a PLAIN (not Sensitive) env var, and
+the map falls back to the original placeholder box when the key is absent.
+
+**Why:** discrete keys keep RTL mirroring and per-paragraph typography
+controllable and let `lint:i18n` enforce EN/HE parity key-for-key - a single
+blob would lose both. The Embed key is client-visible by necessity (it rides in
+the iframe `src`, and `NEXT_PUBLIC_` is inlined into the browser bundle), so
+marking it Sensitive in Vercel is pointless; it is instead secured by
+Maps-Embed-API scope + HTTP-referrer restriction in Google Cloud Console. The
+absent-key -> placeholder fallback is what keeps secret-less CI green, so the
+single env-aware e2e test asserts whichever branch the environment selects
+rather than requiring a second web server.

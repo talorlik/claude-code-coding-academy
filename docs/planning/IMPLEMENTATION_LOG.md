@@ -2952,7 +2952,70 @@ and batch 25 (profile/header patterns).
 
 ### Known Follow-Up
 
-- Batch 27 (About content + Contact Google Maps) is next; independent, needs
-  `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`.
+- Optional: brand the Supabase Invite email template (manual dashboard paste;
+  template provided in `docs/DECISIONS.md`).
+
+## Batch 27: About Content And Contact Google Maps (2026-06-16)
+
+### What Was Built
+
+- Replaced the provisional About copy with the real supplied content (issue 5).
+  The six sections of `docs/content/ABOUT_EN.md` / `ABOUT_HE.md` became discrete
+  per-section i18n keys in the `About` namespace - a `heading` plus ordered
+  `bodyN` paragraph keys per section (NOT one blob), and section 4's five-step
+  list as `skills.step1..step5`. `app/[locale]/about/page.tsx` renders them in
+  order; section 1 (`intro`) supplies the hero heading + lead paragraphs next to
+  the preserved Unsplash hero image, sections 2-6 follow in a `max-w-3xl`
+  column, and the existing CTA is unchanged.
+- Replaced the Contact page's dashed map placeholder with a Google Maps Embed
+  API iframe (issue 6). `app/[locale]/contact/page.tsx` builds
+  `https://www.google.com/maps/embed/v1/place?key=...&q=<address>` from
+  `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` and the displayed `addressValue`, with
+  a localized `title`, `loading="lazy"`, and
+  `referrerPolicy="no-referrer-when-downgrade"`. When the key is ABSENT it falls
+  back to the original labelled placeholder box (no broken iframe).
+- i18n: new `About.{intro,smarter,teaching,skills,tutor,builders}.*` keys and
+  `Contact.mapTitle` added to BOTH catalogs, key-identical (697 keys total).
+  `Contact.mapAlt`/`mapPlaceholder` reworded from "coming soon" to reflect their
+  new role as the no-key fallback.
+- Env: documented `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` in `.env.example` -
+  PLAIN (not Sensitive) because `NEXT_PUBLIC_` is inlined into the client
+  bundle; secured by Maps-Embed-API scope + HTTP-referrer restriction in Google
+  Cloud Console (Vercel domains + localhost).
+
+### Decisions
+
+- About content modeled as discrete heading+paragraph keys (not Markdown blobs)
+  so RTL mirroring and typography stay independently controllable, per the
+  prompt. English canonical; Hebrew maps key-for-key (lint:i18n enforces parity).
+- Map `q` uses the locale's displayed `addressValue` rather than a hardcoded
+  string, so the pin matches the address the user reads; Maps geocodes both the
+  EN and HE address forms.
+- The absent-key -> placeholder fallback is mandatory and is what keeps
+  secret-less CI green. The e2e map test reads the same env the dev server does
+  (Playwright loads `.env.local`) and asserts whichever branch the environment
+  selects - iframe locally (key present), placeholder in secret-less CI - so one
+  test drives both branches without a second web server.
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - exit 0.
+- `npm run lint:i18n` - catalogs in sync (697 keys).
+- `npm run typecheck` - exit 0 (checked by exit code, not log tail).
+- `npm run build` - exit 0; routes intact, Proxy intact (no `middleware.ts`).
+- `npm test` - 569 passed, 3 skipped (no unit tests changed this batch).
+- `npm run test:e2e` - 183 passed, 4 skipped. New in `e2e/content-pages.spec.ts`:
+  all six real About headings render EN+HE; the section-4 list has exactly 5
+  items; About no-overflow at 390/768/1280 EN+HE; Contact map region renders the
+  iframe (with `loading=lazy` and a non-empty `title`) when the key is set and
+  the placeholder when absent, EN+HE.
+
+### Known Follow-Up
+
+- Set `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` in Vercel (all environments,
+  PLAIN) and lock it down in Google Cloud Console: restrict to the Maps Embed
+  API and add an HTTP-referrer allowlist (the production Vercel domains +
+  localhost). Without the Vercel value the deployed Contact page shows the
+  placeholder, not a broken map.
 - Optional: brand the Supabase Invite email template (manual dashboard paste;
   template provided in `docs/DECISIONS.md`).

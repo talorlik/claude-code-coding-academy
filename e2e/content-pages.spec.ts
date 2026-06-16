@@ -66,6 +66,91 @@ test.describe("content pages: landmarks and single h1", () => {
   }
 })
 
+test.describe("about: real supplied content", () => {
+  // The six section headings sourced from docs/content/ABOUT_*.md, per locale.
+  // English is canonical; Hebrew maps key-for-key.
+  const ABOUT_HEADINGS = {
+    "/en/about": [
+      "Learn to Code With Structure, Clarity, and Personal Attention",
+      "A Smarter Way to Learn Programming",
+      "Professional Teaching, Personal Guidance",
+      "Built for Real Coding Skills",
+      "AI Tutor Support Inside the Learning Context",
+      "For Students Who Want to Build, Not Just Watch",
+    ],
+    "/he/about": [
+      "ללמוד לתכנת עם מבנה, בהירות ויחס אישי",
+      "דרך חכמה יותר ללמוד תכנות",
+      "הוראה מקצועית, ליווי אישי",
+      "בנויה לכישורי תכנות אמיתיים",
+      "תמיכת מורה AI בתוך הקשר הלמידה",
+      "לתלמידים שרוצים לבנות, לא רק לצפות",
+    ],
+  } as const
+
+  for (const [path, headings] of Object.entries(ABOUT_HEADINGS)) {
+    test(`${path} renders all six real section headings`, async ({ page }) => {
+      await page.goto(path)
+      for (const heading of headings) {
+        await expect(
+          page.getByRole("heading", { name: heading }),
+        ).toBeVisible()
+      }
+    })
+  }
+
+  test("renders the section-4 five-step ordered list", async ({ page }) => {
+    await page.goto("/en/about")
+    const list = page
+      .getByRole("list")
+      .filter({ hasText: "Understand the concept." })
+    await expect(list.getByRole("listitem")).toHaveCount(5)
+  })
+
+  for (const vp of VIEWPORTS) {
+    for (const path of Object.keys(ABOUT_HEADINGS)) {
+      test(`${path} has no horizontal overflow at ${vp.name} (${vp.width}px)`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({ width: vp.width, height: vp.height })
+        await page.goto(path)
+        await expectNoHorizontalOverflow(page)
+      })
+    }
+  }
+})
+
+test.describe("contact: google maps region", () => {
+  // The map region is env-driven: a Maps Embed iframe when
+  // NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY is set, the labelled placeholder box
+  // otherwise. The Playwright runner sees the same env the dev server does
+  // (playwright.config.ts loads .env.local), so this single assertion drives
+  // whichever branch the current environment selects - the iframe locally with
+  // the key, the placeholder in secret-less CI.
+  const hasKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY)
+
+  for (const path of ["/en/contact", "/he/contact"]) {
+    test(`${path} renders ${
+      hasKey ? "the maps iframe" : "the placeholder"
+    } per the key`, async ({ page }) => {
+      await page.goto(path)
+
+      const iframe = page.locator('iframe[src*="google.com/maps/embed"]')
+      const placeholder = page.getByRole("img", { name: /tel aviv|תל אביב/i })
+
+      if (hasKey) {
+        await expect(iframe).toBeVisible()
+        await expect(iframe).toHaveAttribute("loading", "lazy")
+        await expect(iframe).toHaveAttribute("title", /.+/)
+        await expect(placeholder).toHaveCount(0)
+      } else {
+        await expect(placeholder).toBeVisible()
+        await expect(iframe).toHaveCount(0)
+      }
+    })
+  }
+})
+
 test.describe("contact form", () => {
   test("renders labelled name, email, and message fields with a submit button", async ({
     page,

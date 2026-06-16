@@ -27,13 +27,20 @@ export async function generateMetadata({
 }
 
 /**
- * Public Contact page (Batch 16).
+ * Public Contact page (Batch 16, map upgraded in Batch 27).
  *
  * Renders a fake Tel-Aviv contact block (a Rothschild Blvd address, an
  * Israeli-format phone number, an email, and opening hours - all placeholder/
- * demo values, see docs/planning/IMPLEMENTATION_LOG.md), a static map image
- * placeholder region (no live Google Maps embed, no API keys), and the Tier-2
- * no-JS {@link ContactForm}.
+ * demo values, see docs/planning/IMPLEMENTATION_LOG.md), a Google Maps Embed
+ * region, and the Tier-2 no-JS {@link ContactForm}.
+ *
+ * The map (Batch 27) renders a Maps Embed API iframe when
+ * `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY` is set, querying the displayed
+ * address; the key is public by necessity (it rides in the iframe `src`) and is
+ * secured by HTTP-referrer + API-scope restriction in Google Cloud, so it is a
+ * PLAIN (not Sensitive) env var. When the key is ABSENT the page falls back to
+ * the original labelled placeholder box rather than a broken iframe, so CI and
+ * any secret-less environment stay green.
  *
  * Feedback for the form arrives via the `?notice=`/`?error=` query-param
  * channel, resolved here through the allowlist in `resolve-contact-message.ts`
@@ -61,6 +68,17 @@ export default async function ContactPage({
 
   const errorMessage = resolveContactMessage(tMessages, sp.error)
   const noticeMessage = resolveContactMessage(tMessages, sp.notice)
+
+  // Maps Embed API src, built only when the (public, referrer-restricted) key is
+  // present. The displayed address is the query; both are URL-encoded. An absent
+  // key leaves this null so the page renders the placeholder box instead of a
+  // broken iframe - keeping secret-less environments green.
+  const mapsEmbedKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY
+  const mapSrc = mapsEmbedKey
+    ? `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(
+        mapsEmbedKey,
+      )}&q=${encodeURIComponent(t("addressValue"))}`
+    : null
 
   return (
     <main id="main-content" className="flex flex-1 flex-col px-4 py-12 sm:py-16">
@@ -127,18 +145,28 @@ export default async function ContactPage({
             </address>
 
             {/*
-              STATIC MAP PLACEHOLDER - no live embed, no API keys. A real
-              deployment would drop a static map image here; until then this is
-              a labelled decorative placeholder so no network call or secret is
-              introduced.
+              MAP (Batch 27): a Google Maps Embed API iframe when the public
+              key is configured; otherwise the original labelled placeholder box
+              so no broken iframe (and no network call) appears without a key.
             */}
-            <div
-              className="flex aspect-video w-full min-w-0 items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 text-center text-sm text-muted-foreground"
-              role="img"
-              aria-label={t("mapAlt")}
-            >
-              {t("mapPlaceholder")}
-            </div>
+            {mapSrc ? (
+              <iframe
+                title={t("mapTitle")}
+                src={mapSrc}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+                className="aspect-video w-full min-w-0 rounded-xl border border-border"
+              />
+            ) : (
+              <div
+                className="flex aspect-video w-full min-w-0 items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 text-center text-sm text-muted-foreground"
+                role="img"
+                aria-label={t("mapAlt")}
+              >
+                {t("mapPlaceholder")}
+              </div>
+            )}
           </section>
 
           {/* Form --------------------------------------------------------- */}
