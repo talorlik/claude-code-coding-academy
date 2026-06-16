@@ -414,23 +414,20 @@ a:hover {
   padding-inline: var(--spacing-24);
 }
 
-/* The brand PNGs are tight wordmarks (~5.7:1) with a baked-in theme-CANVAS
-   background (--color-bg: cream in light, #06051d in dark). Sit the logo on a
-   small --color-bg plaque so that baked background always matches its backing,
-   instead of showing as a mismatched rectangle on the steel-navy dark nav.
-   In light mode the cream logo and cream plaque blend into the bar seamlessly. */
+/* The brand PNGs are 4:3 wordmarks (1448x1086) that are now
+   background-transparent, so they sit directly on the nav surface with no
+   plaque and no mismatched rectangle in either theme. */
 .site-nav__brand {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  padding: var(--spacing-4) var(--spacing-8);
-  background-color: var(--color-bg);
-  border-radius: var(--radius-badges);
 }
 
 .site-nav__logo {
-  /* Size by height so the wordmark is legible in the 64px nav. */
-  height: 32px;
+  /* Size by height so the wordmark fills most of the 64px nav and stays
+     legible; the previous 32px cap left it tiny and barely visible. 56px
+     keeps a ~4px gap inside the bar and matches the app header logo. */
+  height: 56px;
   width: auto;
   display: block;
 }
