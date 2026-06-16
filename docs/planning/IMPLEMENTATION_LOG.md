@@ -3019,3 +3019,55 @@ and batch 25 (profile/header patterns).
   placeholder, not a broken map.
 - Optional: brand the Supabase Invite email template (manual dashboard paste;
   template provided in `docs/DECISIONS.md`).
+
+## Batch 28 - GitHub Pages Landing Site
+
+Standalone STATIC marketing landing site under `docs/`, served by GitHub Pages
+from the `main` branch `/docs` folder. NOT part of the Next.js app and NOT
+covered by the app gate set. English only, light + dark themes, plain
+HTML/CSS/JS, no framework/bundler/npm deps.
+
+### Files Added
+
+- `docs/index.html` - single semantic page: fixed nav (logo + center anchors +
+  theme toggle + primary CTA paired with a secondary link), hero (one
+  accent-highlighted word, framed `header_banner.png`, primary+secondary CTAs),
+  the DESIGN.md signature Terminal Code Panel (JetBrains Mono + syntax colors,
+  illustrative `course.json`), a 4-card Feature grid, a 3-column Stats block, a
+  final CTA band, and a footer (app link + repo link). Exactly one `<h1>`,
+  favicon + OG/Twitter card via `header_banner.png`, a pre-paint inline theme
+  snippet to avoid a flash.
+- `docs/site-assets/css/styles.css` - all styles. DESIGN.md token system ported
+  verbatim: shared NON-COLOR structure in `:root`, color-only tokens in `.light`
+  / `.dark`. Semantic `var(--color-*)` everywhere; no raw hex in component
+  rules; Inter (calt/liga 0) + JetBrains Mono from Google Fonts.
+- `docs/site-assets/js/main.js` - theme toggle (system default -> click flips ->
+  `localStorage` persist -> re-apply, ARIA + logo swap), mobile nav open/close,
+  and the single editable `APP_URL` constant synced onto `data-app-url` anchors.
+- `docs/site-assets/img/{header_banner,logo_dark,logo_light}.png`,
+  `favicon.ico` - copied from `docs/design/` so the site is self-contained.
+- `docs/.nojekyll` - empty; serves the tree as-is (no Jekyll over the markdown).
+
+### Verification (static; NO app gates run)
+
+Served `docs/` with `python3 -m http.server` and drove it with headless
+Chromium (playwright-core from the main checkout):
+
+- 0 console errors; 0 horizontal overflow at 390/768/1280 in BOTH themes.
+- Exactly one `<h1>`; all relative assets 200 (no 404).
+- Theme toggle flips `.light`/`.dark`, persists to `localStorage`, survives
+  reload, keeps `aria-pressed` in sync.
+- Mobile (<768px) nav collapses to a hamburger that opens a usable full-width
+  menu (links + theme toggle + both CTAs).
+- Light: cream canvas, burnt-orange accent + primary CTA. Dark: cosmic-void
+  canvas, Portal Blue accent, Bioluminescent Green primary CTA, Terminal Amber
+  secondary; no light-mode orange leaked into dark.
+
+Per the prompt, `npm run lint/typecheck/build/test/test:e2e` were deliberately
+NOT run - they cover the Next.js app, not these static files.
+
+### Known Follow-Up
+
+- One-time GitHub setting to publish the site: Settings -> Pages -> Source =
+  "Deploy from a branch", Branch = `main`, Folder = `/docs`. It then serves at
+  `https://talorlik.github.io/claude-code-coding-academy/`.

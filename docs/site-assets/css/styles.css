@@ -1,0 +1,885 @@
+/*
+ * Eyal's Coding Academy - GitHub Pages landing site styles.
+ *
+ * Design system ported verbatim from docs/design/DESIGN.md ("Fingerprint -
+ * Style Reference"). Per that spec:
+ *   - :root holds the SHARED NON-COLOR structure (typography, spacing, radius,
+ *     layout, type scale). No theme-specific color lives here.
+ *   - .light and .dark hold ONLY color/background/border/shadow tokens.
+ *   - Component rules use the semantic tokens (var(--color-*)) - no raw hex,
+ *     no Tailwind named colors.
+ */
+
+/* ------------------------------------------------------------------ *
+ * :root - shared, non-color structure (ported from DESIGN.md Quick Start)
+ * ------------------------------------------------------------------ */
+:root {
+  /* Typography - Font Families */
+  --font-inter: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-jetbrains-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Typography - Scale */
+  --text-eyebrow: 11px;
+  --leading-eyebrow: 1.45;
+  --tracking-eyebrow: 0.88px;
+  --text-heading-sm: 30px;
+  --leading-heading-sm: 1.17;
+  --tracking-heading-sm: -0.6px;
+  --text-heading: 36px;
+  --leading-heading: 1.15;
+  --tracking-heading: -0.72px;
+  --text-display: 48px;
+  --leading-display: 1.15;
+  --tracking-display: -2.98px;
+
+  /* Typography - Weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-w470: 470;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-unit: 4px;
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-48: 48px;
+  --spacing-56: 56px;
+  --spacing-72: 72px;
+  --spacing-96: 96px;
+
+  /* Layout */
+  --page-max-width: 1200px;
+  --section-gap: 72px;
+  --card-padding: 24px;
+  --element-gap: 8px;
+
+  /* Border Radius */
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  /* Named Radii */
+  --radius-nav: 4px;
+  --radius-cards: 12px;
+  --radius-badges: 4px;
+  --radius-buttons: 4px;
+  --radius-code-panels: 12px;
+  --radius-large-blocks: 16px;
+
+  /* Fixed nav height (shared structure; used for scroll offset + top padding) */
+  --nav-height: 64px;
+}
+
+/* ------------------------------------------------------------------ *
+ * .dark - color tokens only (ported verbatim from DESIGN.md)
+ * ------------------------------------------------------------------ */
+.dark {
+  color-scheme: dark;
+
+  /* Raw dark palette */
+  --color-cosmic-void: #06051d;
+  --color-deep-navy: #061434;
+  --gradient-cosmic-void: linear-gradient(0deg, rgb(6, 5, 29) 30%, rgb(6, 20, 52));
+  --color-abyssal-blue: #0f1c36;
+  --color-steel-navy: #1d293d;
+  --color-deep-slate: #314062;
+  --color-mist: #cad5e2;
+  --color-fog: #e5e7eb;
+  --color-ash: #2e3038;
+  --color-ghost-white: #ffffff;
+  --color-ice-blue: #ebf8ff;
+  --color-portal-blue: #63b3ed;
+  --color-bioluminescent-green: #004f3b;
+  --color-terminal-amber: #733e0a;
+  --color-crimson-depth: #8b0836;
+  --color-specimen-green: #00bc7d;
+  --color-warning-amber: #f0b100;
+  --color-fault-red: #ff2056;
+  --color-explore-cream: #fefce8;
+
+  /* Semantic colors */
+  --color-bg: var(--color-cosmic-void);
+  --color-bg-gradient: var(--gradient-cosmic-void);
+  --color-surface: var(--color-steel-navy);
+  --color-surface-muted: var(--color-abyssal-blue);
+  --color-surface-elevated: var(--color-deep-slate);
+  --color-border: var(--color-fog);
+  --color-text: var(--color-mist);
+  --color-text-strong: var(--color-ghost-white);
+  --color-text-muted: var(--color-mist);
+  --color-accent: var(--color-portal-blue);
+  --color-accent-strong: var(--color-ice-blue);
+  --color-primary-bg: var(--color-bioluminescent-green);
+  --color-primary-text: var(--color-ice-blue);
+  --color-secondary-bg: var(--color-terminal-amber);
+  --color-secondary-text: var(--color-explore-cream);
+  --color-danger-bg: var(--color-crimson-depth);
+  --color-danger-text: var(--color-fault-red);
+  --color-code-bg: var(--color-abyssal-blue);
+  --color-code-surface: var(--color-steel-navy);
+  --color-code-key: var(--color-portal-blue);
+  --color-code-string: var(--color-specimen-green);
+  --color-code-keyword: var(--color-warning-amber);
+  --color-code-alert: var(--color-fault-red);
+  --color-nav-bg: var(--color-steel-navy);
+
+  /* Elevation */
+  --shadow-nav: none;
+  --shadow-card: none;
+  --shadow-interactive: none;
+  --shadow-primary-button: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * .light - color tokens only (ported verbatim from DESIGN.md)
+ * ------------------------------------------------------------------ */
+.light {
+  color-scheme: light;
+
+  /* Raw light palette */
+  --color-cream-paper: #fafaf8;
+  --color-card-white: #ffffff;
+  --color-pebble-gray: #f0f0ef;
+  --color-linen-border: #e4e5e1;
+  --color-ash: #d9d9d9;
+  --color-ink: #141415;
+  --color-graphite: #2e2e2c;
+  --color-carbon: #454542;
+  --color-slate: #6e6f6c;
+  --color-stone: #8c8c89;
+  --color-fog-light: #b7b7b4;
+  --color-signal-orange: #f35b22;
+  --color-ember: #ff5e24;
+  --color-apricot: #f77c55;
+  --color-burnt-orange: #be400f;
+  --color-persimmon: #d14200;
+  --color-peach-blush: #ffcab5;
+  --color-teal-token: #88d2c3;
+  --color-sky-token: #8bc5f3;
+  --color-orchid-token: #c678dd;
+  --color-forest: #165424;
+  --color-success-green: #62b06d;
+  --color-coral-alert: #f67976;
+  --color-rose-blush: #f9aea9;
+
+  /* Semantic colors */
+  --color-bg: var(--color-cream-paper);
+  --color-bg-gradient: linear-gradient(0deg, #fafaf8 30%, #f0f0ef);
+  --color-surface: var(--color-card-white);
+  --color-surface-muted: var(--color-pebble-gray);
+  --color-surface-elevated: var(--color-card-white);
+  --color-border: var(--color-linen-border);
+  --color-text: var(--color-ink);
+  --color-text-strong: var(--color-ink);
+  --color-text-muted: var(--color-slate);
+  --color-accent: var(--color-burnt-orange);
+  --color-accent-strong: var(--color-signal-orange);
+  --color-primary-bg: var(--color-burnt-orange);
+  --color-primary-text: var(--color-card-white);
+  --color-secondary-bg: transparent;
+  --color-secondary-text: var(--color-ink);
+  --color-danger-bg: var(--color-rose-blush);
+  --color-danger-text: var(--color-burnt-orange);
+  --color-code-bg: var(--color-ink);
+  --color-code-surface: var(--color-graphite);
+  --color-code-key: var(--color-sky-token);
+  --color-code-string: var(--color-teal-token);
+  --color-code-keyword: var(--color-orchid-token);
+  --color-code-alert: var(--color-coral-alert);
+  --color-nav-bg: rgba(250, 250, 248, 0.85);
+
+  /* Elevation */
+  --shadow-subtle: rgba(24, 25, 22, 0.06) 0px 1px 2px 0px;
+  --shadow-subtle-2: rgba(24, 25, 22, 0.02) 0px 2px 1px 0px, rgba(24, 25, 22, 0.1) 0px -1px 0px 0px inset;
+  --shadow-subtle-4: rgba(228, 229, 225, 0.3) 0px 1px 0px 0px inset, rgba(110, 111, 109, 0.1) 0px -1px 0px 0px inset;
+  --shadow-subtle-5: rgba(255, 255, 255, 0.2) 0px 1px 0px 0px inset, rgba(24, 25, 22, 0.06) 0px 1px 2px 0px, rgba(24, 25, 22, 0.1) 0px -1px 0px 0px inset;
+  --shadow-nav: var(--shadow-subtle-2);
+  --shadow-card: var(--shadow-subtle-4);
+  --shadow-interactive: var(--shadow-subtle);
+  --shadow-primary-button: var(--shadow-subtle-5);
+}
+
+/* ------------------------------------------------------------------ *
+ * Base / reset
+ * ------------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Offset in-page anchor jumps so the fixed nav does not cover headings. */
+  scroll-padding-top: calc(var(--nav-height) + var(--spacing-16));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-inter);
+  font-feature-settings: "calt" 0, "liga" 0; /* DESIGN.md: engineered Inter */
+  font-weight: var(--font-weight-regular);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  background-image: var(--color-bg-gradient);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-accent-strong);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* Skip link for keyboard users. */
+.skip-link {
+  position: absolute;
+  left: var(--spacing-8);
+  top: -120px;
+  z-index: 100;
+  padding: var(--spacing-8) var(--spacing-16);
+  background: var(--color-primary-bg);
+  color: var(--color-primary-text);
+  border-radius: var(--radius-buttons);
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: var(--spacing-8);
+  color: var(--color-primary-text);
+}
+
+/* ------------------------------------------------------------------ *
+ * Layout helpers
+ * ------------------------------------------------------------------ */
+.container {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+  padding-inline: var(--spacing-24);
+}
+
+.section {
+  padding-block: var(--section-gap);
+}
+
+.section--muted {
+  background-color: var(--color-surface-muted);
+}
+
+.eyebrow {
+  font-family: var(--font-jetbrains-mono);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-eyebrow);
+  line-height: var(--leading-eyebrow);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin: 0 0 var(--spacing-12);
+}
+
+.eyebrow--muted {
+  color: var(--color-text-muted);
+}
+
+.section__title {
+  font-family: var(--font-inter);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-heading);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
+  color: var(--color-text-strong);
+  margin: 0 0 var(--spacing-16);
+}
+
+.section__lead {
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-32);
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+/* ------------------------------------------------------------------ *
+ * Buttons
+ * ------------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+  font-family: var(--font-inter);
+  font-weight: var(--font-weight-medium);
+  font-size: 14px;
+  letter-spacing: 0.14px;
+  line-height: 1;
+  padding: 12px 24px;
+  border-radius: var(--radius-buttons);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn--primary {
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary-text);
+  box-shadow: var(--shadow-primary-button);
+}
+
+.btn--primary:hover {
+  color: var(--color-primary-text);
+  filter: brightness(1.08);
+}
+
+.btn--secondary {
+  background-color: var(--color-secondary-bg);
+  color: var(--color-secondary-text);
+  border-color: var(--color-border);
+}
+
+.btn--secondary:hover {
+  color: var(--color-secondary-text);
+  background-color: var(--color-surface-elevated);
+}
+
+/* ------------------------------------------------------------------ *
+ * Navigation bar (fixed, ~64px - DESIGN.md Navigation Bar)
+ * ------------------------------------------------------------------ */
+.site-nav {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 50;
+  height: var(--nav-height);
+  background-color: var(--color-nav-bg);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-nav);
+  backdrop-filter: saturate(180%) blur(8px);
+  -webkit-backdrop-filter: saturate(180%) blur(8px);
+}
+
+.site-nav__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+  max-width: var(--page-max-width);
+  margin-inline: auto;
+  padding-inline: var(--spacing-24);
+}
+
+.site-nav__brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.site-nav__logo {
+  height: 32px;
+  width: auto;
+}
+
+/* Show the theme-appropriate logo; main.js keeps these in sync, but the
+   CSS fallback guarantees the right one is visible per active theme class. */
+.light .logo--dark,
+.dark .logo--light {
+  display: none;
+}
+
+.site-nav__links {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-24);
+  margin-inline: auto;
+  list-style: none;
+  padding: 0;
+}
+
+.site-nav__links a {
+  font-family: var(--font-inter);
+  font-weight: var(--font-weight-medium);
+  font-size: 14px;
+  color: var(--color-text-strong);
+}
+
+.site-nav__links a:hover {
+  color: var(--color-accent);
+}
+
+.site-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+/* Theme toggle - real <button>. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-buttons);
+  color: var(--color-text-strong);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-accent);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Show sun in dark mode (click -> go light), moon in light mode. */
+.light .theme-toggle .icon-sun,
+.dark .theme-toggle .icon-moon {
+  display: none;
+}
+
+/* Mobile menu button - hidden on desktop. */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-buttons);
+  color: var(--color-text-strong);
+  cursor: pointer;
+}
+
+.nav-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Main wrapper - clears the fixed nav.
+ * ------------------------------------------------------------------ */
+main {
+  padding-top: var(--nav-height);
+}
+
+/* ------------------------------------------------------------------ *
+ * Hero
+ * ------------------------------------------------------------------ */
+.hero {
+  text-align: center;
+  padding-block: var(--spacing-96) var(--spacing-72);
+}
+
+.hero__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero__title {
+  font-family: var(--font-inter);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--color-text-strong);
+  max-width: 18ch;
+  margin: 0 0 var(--spacing-24);
+}
+
+.hero__subtitle {
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--spacing-32);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  justify-content: center;
+  margin-bottom: var(--spacing-56);
+}
+
+.hero__figure {
+  width: 100%;
+  margin: 0;
+}
+
+.hero__image {
+  width: 100%;
+  max-width: var(--page-max-width);
+  aspect-ratio: 1536 / 384;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large-blocks);
+  box-shadow: var(--shadow-card);
+}
+
+/* ------------------------------------------------------------------ *
+ * Terminal Code Panel (signature component - DESIGN.md)
+ * ------------------------------------------------------------------ */
+.terminal {
+  background-color: var(--color-code-bg);
+  border-radius: var(--radius-code-panels);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.terminal__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-12);
+  padding: var(--spacing-12) var(--spacing-16);
+  background-color: var(--color-code-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.terminal__dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.terminal__dots span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background-color: var(--color-code-surface);
+  border: 1px solid var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.terminal__label {
+  font-family: var(--font-jetbrains-mono);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.terminal__body {
+  margin: 0;
+  padding: var(--spacing-24);
+  overflow-x: auto;
+  font-family: var(--font-jetbrains-mono);
+  font-weight: var(--font-weight-regular);
+  font-size: 13px;
+  line-height: 1.57;
+}
+
+.terminal__body code {
+  font-family: inherit;
+  color: var(--color-text-strong);
+  white-space: pre;
+}
+
+/* Syntax colors - DESIGN.md code-* tokens only, code context only. */
+.tok-key {
+  color: var(--color-code-key);
+}
+.tok-str {
+  color: var(--color-code-string);
+}
+.tok-kw {
+  color: var(--color-code-keyword);
+}
+.tok-alert {
+  color: var(--color-code-alert);
+}
+.tok-punc {
+  color: var(--color-text-muted);
+}
+
+/* ------------------------------------------------------------------ *
+ * Feature cards grid (DESIGN.md Feature Card)
+ * ------------------------------------------------------------------ */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-24);
+  margin-top: var(--spacing-48);
+}
+
+.feature-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-cards);
+  padding: var(--card-padding);
+  box-shadow: var(--shadow-card);
+}
+
+.feature-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: var(--spacing-16);
+  color: var(--color-accent);
+}
+
+.feature-card__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.feature-card__title {
+  font-family: var(--font-inter);
+  font-weight: var(--font-weight-semibold);
+  font-size: 16px;
+  color: var(--color-text-strong);
+  margin: 0 0 var(--spacing-8);
+}
+
+.feature-card__body {
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * Stats block (DESIGN.md Stats Block)
+ * ------------------------------------------------------------------ */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-72);
+  text-align: center;
+}
+
+.stat__number {
+  font-family: var(--font-inter);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-heading);
+  letter-spacing: var(--tracking-heading);
+  color: var(--color-accent);
+  line-height: 1.1;
+}
+
+.stat__caption {
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-8);
+}
+
+/* ------------------------------------------------------------------ *
+ * Final CTA band
+ * ------------------------------------------------------------------ */
+.cta-band {
+  text-align: center;
+}
+
+.cta-band__inner {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large-blocks);
+  padding: var(--spacing-72) var(--spacing-32);
+  box-shadow: var(--shadow-card);
+}
+
+.cta-band__title {
+  font-family: var(--font-inter);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-heading);
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-heading);
+  color: var(--color-text-strong);
+  margin: 0 0 var(--spacing-16);
+}
+
+.cta-band__lead {
+  max-width: 50ch;
+  margin: 0 auto var(--spacing-32);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.cta-band__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12);
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * Footer
+ * ------------------------------------------------------------------ */
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface-muted);
+  padding-block: var(--spacing-48);
+}
+
+.site-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-footer__copy {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-24);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-footer__links a {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.site-footer__links a:hover {
+  color: var(--color-accent);
+}
+
+/* ------------------------------------------------------------------ *
+ * Responsive - nav collapses below the medium breakpoint (768px).
+ * ------------------------------------------------------------------ */
+@media (max-width: 767px) {
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  /* Collapsed nav: links + actions drop into a panel toggled by main.js. */
+  .site-nav__links,
+  .site-nav .site-nav__actions {
+    position: fixed;
+    inset-block-start: var(--nav-height);
+    inset-inline: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-12);
+    margin: 0;
+    padding: var(--spacing-16) var(--spacing-24);
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .site-nav__links {
+    transform: translateY(-150%);
+    transition: transform 0.2s ease;
+  }
+
+  .site-nav__actions {
+    transform: translateY(-150%);
+    transition: transform 0.2s ease;
+    /* Sits just under the links panel when both are open. */
+    inset-block-start: calc(var(--nav-height) + 196px);
+    border-radius: 0 0 var(--radius-cards) var(--radius-cards);
+  }
+
+  /* The mobile menu button stays in the bar; keep it out of the panel flow. */
+  .nav-toggle {
+    margin-inline-start: auto;
+  }
+
+  .site-nav[data-open='true'] .site-nav__links,
+  .site-nav[data-open='true'] .site-nav__actions {
+    transform: translateY(0);
+  }
+
+  .btn,
+  .theme-toggle {
+    width: 100%;
+  }
+
+  .hero {
+    padding-block: var(--spacing-72) var(--spacing-48);
+  }
+
+  .hero__title {
+    font-size: var(--text-heading);
+    letter-spacing: var(--tracking-heading);
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-32);
+  }
+
+  .section__title,
+  .cta-band__title {
+    font-size: var(--text-heading-sm);
+    letter-spacing: var(--tracking-heading-sm);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

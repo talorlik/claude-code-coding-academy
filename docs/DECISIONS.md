@@ -1314,3 +1314,38 @@ Maps-Embed-API scope + HTTP-referrer restriction in Google Cloud Console. The
 absent-key -> placeholder fallback is what keeps secret-less CI green, so the
 single env-aware e2e test asserts whichever branch the environment selects
 rather than requiring a second web server.
+
+### 2026-06-16 - Batch 28 - GitHub Pages landing site lives in /docs, enable Pages manually
+
+Shipped a standalone static landing site (`docs/index.html`,
+`docs/site-assets/{css,js,img}`, `docs/.nojekyll`). One-time GitHub setting
+required to publish it: Settings -> Pages -> Source = "Deploy from a branch",
+Branch = `main`, Folder = `/docs`. It then serves at
+`https://talorlik.github.io/claude-code-coding-academy/`.
+
+**Why:** GitHub Pages can publish from a repo's `/docs` folder, which is where
+this repo already keeps planning markdown - so the site files sit at the `/docs`
+ROOT alongside the existing docs (they coexist; nothing was moved). The site is
+served under a PROJECT subpath, so every asset href/src is RELATIVE
+(`site-assets/...`), never root-absolute, or it 404s under the subpath.
+`.nojekyll` stops GitHub running Jekyll over the markdown/asset tree. The app
+URL is a single editable constant (`APP_URL` in `main.js`, mirrored on
+`data-app-url` anchors so it works JS-disabled). This batch ships no app code.
+
+### 2026-06-16 - Batch 28 - Static batches cannot use the preview MCP; verified with headless Playwright
+
+The Claude preview MCP (`preview_start`) is hardwired to `.claude/launch.json`
+(`npm run dev`, the Next.js app) and ignores a custom command/url, so it cannot
+serve this static site - and it also tripped the stale-Node-18 Next.js guard.
+Verified instead by serving `docs/` with `python3 -m http.server` and driving it
+with the main checkout's `playwright-core` headless Chromium: 0 console errors, 0
+horizontal overflow at 390/768/1280 in BOTH themes (rule `<=1`), exactly one
+`<h1>`, theme toggle flips + persists to `localStorage` + survives reload
+(`aria-pressed` synced), mobile hamburger opens a usable menu, no 404s on any
+relative asset.
+
+**Why:** Future static-only batches (anything outside the Next.js app tree)
+should skip the preview MCP and the app gate set entirely; serve the files
+directly and verify with a headless browser. Do NOT run npm lint/typecheck/
+build/test/e2e against static `/docs` files - those gates cover the app, not
+this site, and would only produce noise.
