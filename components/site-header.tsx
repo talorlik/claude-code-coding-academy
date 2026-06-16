@@ -78,15 +78,18 @@ export async function SiteHeader() {
           aria-label={t("home")}
           className="flex shrink-0 items-center"
         >
-          {/* The logo PNG is 4:3, so width={120} renders ~90px tall and would
-              cross the 64px header's bottom hairline (issue #9). Cap the inner
-              <Image> height to the header content box (max-h-9 == 36px) and let
-              width follow the aspect ratio; capping the image (not just the
-              wrapping span) is what actually clips it. */}
+          {/* The logo PNG is 4:3 with a baked-in background and generous dead
+              padding around the wordmark, so the previous max-h-9 (36px) cap
+              left the visible mark tiny and nearly invisible against the nav
+              surface (issue #9 fix was too conservative). Cap the inner <Image>
+              height to max-h-14 (56px), which keeps a ~4px hairline gap inside
+              the 64px header while letting the mark fill most of the bar; width
+              follows the aspect ratio. Capping the image (not just the wrapping
+              span) is what actually clips it. */}
           <Logo
-            width={120}
+            width={200}
             priority
-            className="[&_img]:max-h-9 [&_img]:w-auto"
+            className="[&_img]:max-h-14 [&_img]:w-auto"
           />
         </Link>
 
