@@ -69,7 +69,16 @@ export async function SiteHeader() {
           aria-label={t("home")}
           className="flex shrink-0 items-center"
         >
-          <Logo width={120} priority className="max-h-9 w-auto" />
+          {/* The logo PNG is 4:3, so width={120} renders ~90px tall and would
+              cross the 64px header's bottom hairline (issue #9). Cap the inner
+              <Image> height to the header content box (max-h-9 == 36px) and let
+              width follow the aspect ratio; capping the image (not just the
+              wrapping span) is what actually clips it. */}
+          <Logo
+            width={120}
+            priority
+            className="[&_img]:max-h-9 [&_img]:w-auto"
+          />
         </Link>
 
         {/* Inline nav: visible from md up. Search is an icon-only control with

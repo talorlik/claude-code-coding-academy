@@ -1139,3 +1139,34 @@ pre-downscaled copies) keeps the source of truth lossless and lets `next/image`
 own resizing; the repo-size cost is logged as a follow-up rather than solved here
 to stay in scope. The orphaned About keys are noted so a future cleanup batch can
 remove them without hunting for why they exist.
+
+### 2026-06-16 - Batch 24 - Dashboard count RPCs live in `public` (security definer); instructor login routes to `/admin/dashboard`
+
+The instructor-excluded dashboard counts are computed by two `security definer`
+RPCs in the `public` schema (`admin_overview_counts`,
+`admin_course_completion_counts`), gated internally by `private.is_admin()`, not
+by a `private` view. Instructor enrollment is blocked by a new `WITH CHECK` on
+the `enrollments` INSERT policy (`private.is_instructor_self()`, an alias of
+`is_admin()`), and the pre-existing instructor-owned enrollment rows were deleted
+in the same migration (0005), applied to project `nlqpuppwjtxhfcfyjfre` via MCP
+(live: enrollments 3 -> 2, instructor enrollments 1 -> 0, distinct users 1).
+`resolvePostAuthDestination` now branches on role, so the shared e2e `signIn`
+helper and the two `signInAsInstructor` helpers stopped asserting `/en/dashboard`
+for instructors.
+
+**Why:** PostgREST only exposes the `public` schema, so a `private` view/function
+is unreachable from the request-scoped client - the RPCs must be `public`, and
+they re-check `is_admin()` so granting EXECUTE to `authenticated` is safe.
+Pushing the count exclusion and the enrollment block into the DB (not a JS filter
+on fetched rows) is the prompt's hard requirement: a single source of truth that
+a future caller cannot bypass. The role-branch routing is a prerequisite for
+Batch 26 (admin user management); any test or helper that logs in as the
+instructor must now expect the admin dashboard - a trap for later batches that
+reuse the auth helper.
+
+The seed script needed no code change - it never enrolled anyone; the instructor
+enrollment that inflated the counts was created out-of-band. The invariant "seed
+never enrolls" is now documented in the script header so it is not reintroduced.
+The header logo crossed the hairline because the 4:3 PNG at width 120 renders
+~90px tall while only the wrapping span (not the image) was height-capped; the
+fix caps the inner `<img>` directly (`[&_img]:max-h-9`).

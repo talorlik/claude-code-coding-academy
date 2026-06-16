@@ -1028,6 +1028,24 @@ export type Database = {
       }
     }
     Functions: {
+      admin_course_completion_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed_enrollments: number
+          course_id: string
+          course_slug: string
+          course_title: string
+          total_enrollments: number
+        }[]
+      }
+      admin_overview_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed_count: number
+          enrollment_count: number
+          student_count: number
+        }[]
+      }
       is_instructor: { Args: { user_id: string }; Returns: boolean }
     }
     Enums: {

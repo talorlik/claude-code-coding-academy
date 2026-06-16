@@ -119,7 +119,9 @@ test.describe("admin dashboard smoke", () => {
     await page.getByLabel(/email/i).fill(instructorEmail!)
     await page.getByLabel(/password/i).fill(instructorPassword!)
     await page.getByRole("button", { name: /^sign in$/i }).click()
-    await expect(page).toHaveURL(/\/en\/dashboard/, { timeout: 15_000 })
+    // Post-login role routing (batch 24): instructors land on the admin
+    // dashboard, not the student dashboard.
+    await expect(page).toHaveURL(/\/en\/admin\/dashboard/, { timeout: 15_000 })
   }
 
   test("instructor can access /en/admin/dashboard and sees an h1", async ({

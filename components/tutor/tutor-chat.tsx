@@ -167,6 +167,13 @@ export function TutorChat({
     initialConversationId
   )
   const bottomRef = useRef<HTMLDivElement>(null)
+  // Guards the auto-scroll effect so it never fires on the initial render. The
+  // tutor sits low on the course page; scrolling it into view on mount would
+  // jump the whole page to the bottom on load (issue #4). We only scroll once a
+  // message is appended or streaming begins AFTER mount, comparing against the
+  // message count seen on the previous render.
+  const hasMountedRef = useRef(false)
+  const prevMessageCountRef = useRef(0)
 
   // Wrap the DefaultChatTransport to intercept the response header.
   // We use a custom fetch wrapper to read x-conversation-id before the
@@ -203,9 +210,23 @@ export function TutorChat({
 
   const isStreaming = status === "streaming" || status === "submitted"
 
-  // Scroll to the bottom when a new message arrives or streaming updates.
+  // Scroll to the bottom only AFTER mount, and only when a message was actually
+  // appended or streaming has started. Skipping the first render keeps the page
+  // anchored at the top on load (issue #4) even when history is hydrated; the
+  // prev-count check avoids scrolling on unrelated re-renders.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true
+      prevMessageCountRef.current = messages.length
+      return
+    }
+
+    const grew = messages.length > prevMessageCountRef.current
+    prevMessageCountRef.current = messages.length
+
+    if (grew || isStreaming) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
   }, [messages, isStreaming])
 
   const handleSubmit = (event: React.FormEvent) => {

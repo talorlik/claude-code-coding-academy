@@ -1,3 +1,5 @@
+import { isInstructor } from "@/lib/auth/roles"
+
 /**
  * Resolves where a just-authenticated user should land. Returns a
  * locale-agnostic in-app path WITHOUT a locale prefix; callers are responsible
@@ -5,24 +7,23 @@
  * server actions, or by writing the path onto a `NextResponse` redirect URL in
  * a route handler).
  *
- * Both roles (instructor and student) currently land on `/dashboard`, a single
- * protected landing. Role-specific routing can branch here later; keeping it a
- * pure function of the user id leaves it small and exhaustively testable.
+ * Routing branches on role: instructors land on the admin dashboard
+ * (`/admin/dashboard`), students on their student dashboard (`/dashboard`).
+ * Role is resolved through {@link isInstructor}, which reads `user_roles` under
+ * RLS. Keeping this a pure function of the user id + role lookup leaves it small
+ * and exhaustively testable.
  *
  * It deliberately does NOT accept or honor any external `?redirect=` / `next`
  * target. Same-site redirect precedence is handled by the callers (the login
- * action and the email-confirm route).
+ * action and the email-confirm route); a safe `?redirect=` target wins over the
+ * value returned here.
  *
- * The authenticated user's id is accepted so callers have a stable signature and
- * future role-specific routing can branch on it without a call-site change.
- *
- * @param userId - The authenticated user's id (reserved for future
- *   role-specific routing).
- * @returns A non-localized in-app path.
+ * @param userId - The authenticated user's id, used for the role lookup.
+ * @returns A non-localized in-app path: `/admin/dashboard` for instructors,
+ *   `/dashboard` otherwise.
  */
 export async function resolvePostAuthDestination(
   userId: string
 ): Promise<string> {
-  void userId
-  return "/dashboard"
+  return (await isInstructor(userId)) ? "/admin/dashboard" : "/dashboard"
 }

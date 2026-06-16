@@ -2749,3 +2749,75 @@ behavior.
   serves resized variants, so runtime payload is fine, but the repo carries
   ~30 MB of source images. If repo size matters, a future batch could downscale
   the committed originals.
+
+## Batch 24: Auth Routing, Count Fixes, Scroll, and Chrome (2026-06-16)
+
+### What
+
+Six contained fixes (issues 1, 2, 3, 4, 9, 10), no new dependencies.
+
+- **#1 Post-login role routing.** `lib/auth/post-auth-redirect.ts`
+  `resolvePostAuthDestination(userId)` now awaits `isInstructor(userId)` and
+  returns `/admin/dashboard` for instructors, `/dashboard` for students. Callers
+  (`login` action, `/auth/confirm`) and their `?redirect=` precedence are
+  untouched.
+- **#2/#3 Dashboard counts at the DB layer.** Migration
+  `0005_dashboard_counts_and_block_instructor_enrollment.sql` adds two
+  `security definer` RPCs in `public` (gated internally by `private.is_admin()`):
+  `admin_overview_counts()` (distinct non-instructor enrollers, non-instructor
+  enrollment rows, completed subset) and `admin_course_completion_counts()`
+  (per-course breakdown with the same exclusion). `lib/dashboard/admin-queries.ts`
+  `getAdminOverviewStats` and `getCourseCompletionRates` now read the RPCs instead
+  of fetching all rows into JS; DTOs unchanged. Types regenerated.
+- **#3 Block instructor enrollment.** The same migration replaces the
+  `Students can insert own enrollments` RLS policy with one whose `WITH CHECK`
+  also denies instructor-role inserters (`private.is_instructor_self()`, an alias
+  of `is_admin()` hard-coded to `auth.uid()`), then DELETEs the existing
+  instructor-owned enrollment rows. Applied to the linked project via MCP.
+- **#4 Course auto-scroll guard.** `components/tutor/tutor-chat.tsx` adds a
+  mount/prev-count guard (`hasMountedRef`, `prevMessageCountRef`) so the
+  `scrollIntoView` effect skips the first render and fires only when messages are
+  appended or streaming starts.
+- **#9 Header logo clears the border.** `components/site-header.tsx` caps the
+  inner `<Image>` height to the header content box (`[&_img]:max-h-9`,
+  `[&_img]:w-auto`); the 4:3 logo at width 120 would otherwise render ~90px tall
+  and cross the 64px header's hairline.
+- **#10 Footer logo removed.** `components/site-footer.tsx` drops the
+  `<Link><Logo/></Link>` block (and the now-unused `Logo`/`nav` imports/handles);
+  nav + copyright remain.
+
+### Decisions
+
+- **Counts via RPC in `public`, not a `private` view.** PostgREST only exposes
+  the `public` schema, so the request-scoped client cannot call a `private`
+  function. The RPCs live in `public`, are `security definer`, and re-check
+  `private.is_admin()` in the body so a non-admin caller gets an empty result.
+- **`getCourseCompletionRates(courseFilter)` filters in JS after the RPC.** The
+  heavy aggregation is now in the DB; the optional single-course filter runs over
+  the already-small result set, preserving the signature and DTO.
+- **Seed script needed no code change.** `scripts/seed.mjs` only creates users,
+  profiles, and role grants - it never enrolled anyone. Documented the invariant
+  in its header so a future edit does not reintroduce an instructor enrollment.
+- **Shared e2e `signIn` made role-agnostic.** Instructor login now lands on
+  `/admin/dashboard`, so `e2e/helpers/auth.ts` `signIn` accepts
+  `/en/(admin/)?dashboard`, and the two local `signInAsInstructor` helpers
+  (`admin.spec.ts`, `dashboard.spec.ts`) assert `/en/admin/dashboard`.
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - catalogs in sync (560 keys; no new strings this batch).
+- `npm run typecheck` - exit 0 (checked by exit code, not log tail).
+- `npm run build` - exit 0.
+- `npm test` - 481 passed, 3 skipped (new: `tests/unit/post-auth-redirect.test.ts`
+  role-branch cases; rewritten admin-dashboard-queries RPC mocks).
+- `npm run test:e2e` - 155 passed, 4 skipped (new:
+  `e2e/routing-counts-chrome.spec.ts` - course scroll-to-top EN/HE, header/footer
+  no-overflow at 390/768/1280 EN+HE, admin Total Students = 1).
+- Live DB after migration: total enrollments 3 -> 2, instructor enrollments
+  1 -> 0, distinct enrolled users 1.
+
+### Known Follow-Up
+
+- None specific to this batch. Batch 26 (admin user management) depends on this
+  batch's role-branch routing.

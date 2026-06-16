@@ -44,6 +44,11 @@ vi.mock("@/i18n/navigation", () => ({
 
 const mockData: Record<string, { data: unknown; count?: number | null; error: null }> = {}
 
+// RPC return values, keyed by function name. getAdminOverviewStats and
+// getCourseCompletionRates read security-definer RPCs (migration 0005) instead
+// of table rows.
+const mockRpc: Record<string, { data: unknown; error: null }> = {}
+
 let lastTable = ""
 
 type Builder = {
@@ -76,6 +81,8 @@ function makeBuilder(table: string): Builder {
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn().mockResolvedValue({
     from: (table: string) => makeBuilder(table),
+    rpc: (fn: string) =>
+      Promise.resolve(mockRpc[fn] ?? { data: [], error: null }),
   }),
 }))
 
@@ -96,6 +103,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   for (const key of Object.keys(mockData)) {
     delete mockData[key]
+  }
+  for (const key of Object.keys(mockRpc)) {
+    delete mockRpc[key]
   }
 })
 
@@ -120,7 +130,7 @@ describe("admin query guard", () => {
     mockUserId = "instructor-uuid"
     mockIsInstructor = true
     // Minimal mock so it doesn't throw on DB access.
-    mockData["enrollments"] = { data: [], error: null, count: 0 }
+    mockRpc["admin_overview_counts"] = { data: [], error: null }
     mockData["courses"] = { data: [], error: null, count: 0 }
     // Should not throw REDIRECT.
     await expect(getAdminOverviewStats()).resolves.toBeDefined()
@@ -138,7 +148,10 @@ describe("getAdminOverviewStats", () => {
   })
 
   it("returns shape with numeric fields and completionRate in [0,100]", async () => {
-    mockData["enrollments"] = { data: [], error: null, count: 0 }
+    mockRpc["admin_overview_counts"] = {
+      data: [{ student_count: 1, enrollment_count: 2, completed_count: 1 }],
+      error: null,
+    }
     mockData["courses"] = { data: [], error: null, count: 0 }
 
     const stats = await getAdminOverviewStats()
@@ -150,11 +163,30 @@ describe("getAdminOverviewStats", () => {
   })
 
   it("returns 0 completionRate when there are no enrollments", async () => {
-    mockData["enrollments"] = { data: [], error: null, count: 0 }
+    mockRpc["admin_overview_counts"] = {
+      data: [{ student_count: 0, enrollment_count: 0, completed_count: 0 }],
+      error: null,
+    }
     mockData["courses"] = { data: [], error: null, count: 0 }
 
     const stats = await getAdminOverviewStats()
     expect(stats.completionRate).toBe(0)
+  })
+
+  it("reads the instructor-excluded counts from the RPC (issues #2, #3)", async () => {
+    // The RPC already excludes instructor-owned enrollments at the DB layer;
+    // the function must surface those counts verbatim. Mirrors the live fix:
+    // 1 student, 2 enrollments (the instructor row removed), 1 completed.
+    mockRpc["admin_overview_counts"] = {
+      data: [{ student_count: 1, enrollment_count: 2, completed_count: 1 }],
+      error: null,
+    }
+    mockData["courses"] = { data: [], error: null, count: 3 }
+
+    const stats = await getAdminOverviewStats()
+    expect(stats.totalStudents).toBe(1)
+    expect(stats.totalEnrollments).toBe(2)
+    expect(stats.completionRate).toBe(50)
   })
 })
 
@@ -168,29 +200,21 @@ describe("getCourseCompletionRates", () => {
     mockIsInstructor = true
   })
 
-  it("returns empty array when there are no enrollments", async () => {
-    mockData["enrollments"] = { data: [], error: null }
+  it("returns empty array when the RPC returns no rows", async () => {
+    mockRpc["admin_course_completion_counts"] = { data: [], error: null }
     const rates = await getCourseCompletionRates()
     expect(rates).toEqual([])
   })
 
-  it("aggregates enrollments by course and computes completionPercent", async () => {
-    mockData["enrollments"] = {
+  it("maps the RPC rows and computes completionPercent", async () => {
+    mockRpc["admin_course_completion_counts"] = {
       data: [
         {
           course_id: "c1",
-          completed_at: "2026-01-01T00:00:00Z",
-          courses: { id: "c1", title: "Course One", slug: "course-one" },
-        },
-        {
-          course_id: "c1",
-          completed_at: null,
-          courses: { id: "c1", title: "Course One", slug: "course-one" },
-        },
-        {
-          course_id: "c1",
-          completed_at: null,
-          courses: { id: "c1", title: "Course One", slug: "course-one" },
+          course_title: "Course One",
+          course_slug: "course-one",
+          total_enrollments: 3,
+          completed_enrollments: 1,
         },
       ],
       error: null,
@@ -202,6 +226,33 @@ describe("getCourseCompletionRates", () => {
     expect(rates[0].totalEnrollments).toBe(3)
     expect(rates[0].completedEnrollments).toBe(1)
     expect(rates[0].completionPercent).toBe(33)
+  })
+
+  it("filters to a single course when courseFilter is given", async () => {
+    mockRpc["admin_course_completion_counts"] = {
+      data: [
+        {
+          course_id: "c1",
+          course_title: "Course One",
+          course_slug: "course-one",
+          total_enrollments: 2,
+          completed_enrollments: 2,
+        },
+        {
+          course_id: "c2",
+          course_title: "Course Two",
+          course_slug: "course-two",
+          total_enrollments: 4,
+          completed_enrollments: 1,
+        },
+      ],
+      error: null,
+    }
+
+    const rates = await getCourseCompletionRates("c2")
+    expect(rates).toHaveLength(1)
+    expect(rates[0].courseId).toBe("c2")
+    expect(rates[0].completionPercent).toBe(25)
   })
 })
 

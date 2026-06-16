@@ -83,48 +83,43 @@ async function assertAdmin(): Promise<void> {
 /**
  * Returns top-level overview stats for the admin dashboard.
  *
- * - Total distinct enrolled users (students who have at least one enrollment).
- * - Total enrollments across all courses.
+ * - Total distinct students (enrolled users who are NOT instructors).
+ * - Total enrollments owned by non-instructor users.
  * - Total published courses.
- * - Overall completion rate (completed enrollments / total enrollments).
+ * - Overall completion rate (completed enrollments / total enrollments), both
+ *   restricted to non-instructor enrollments.
+ *
+ * The student and enrollment counts come from the `admin_overview_counts`
+ * security-definer RPC (migration 0005), which excludes any enroller holding the
+ * instructor role at the DB layer. This avoids fetching all enrollment rows into
+ * JS and prevents the instructor account from inflating the counts.
  */
 export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
   await assertAdmin()
   const supabase = await createClient()
 
   const [
-    { count: totalEnrollments, error: enrollError },
-    { data: completedData, error: completedError },
+    { data: overviewRows, error: overviewError },
     { count: totalCourses, error: coursesError },
-    { data: distinctData, error: distinctError },
   ] = await Promise.all([
-    supabase.from("enrollments").select("id", { count: "exact", head: true }),
-    supabase
-      .from("enrollments")
-      .select("id", { count: "exact", head: false })
-      .not("completed_at", "is", null),
+    supabase.rpc("admin_overview_counts"),
     supabase
       .from("courses")
       .select("id", { count: "exact", head: true })
       .eq("status", "published"),
-    // Distinct students: count distinct user_id values.
-    supabase.from("enrollments").select("user_id"),
   ])
 
-  if (enrollError)
-    console.error("[dashboard/admin] getAdminOverviewStats enrollments:", enrollError)
-  if (completedError)
-    console.error("[dashboard/admin] getAdminOverviewStats completed:", completedError)
+  if (overviewError)
+    console.error("[dashboard/admin] getAdminOverviewStats overview:", overviewError)
   if (coursesError)
     console.error("[dashboard/admin] getAdminOverviewStats courses:", coursesError)
-  if (distinctError)
-    console.error("[dashboard/admin] getAdminOverviewStats distinct:", distinctError)
 
-  const enrollCount = totalEnrollments ?? 0
-  const completedCount = completedData?.length ?? 0
-  const distinctStudents = new Set(
-    (distinctData ?? []).map((r: { user_id: string }) => r.user_id)
-  ).size
+  // The RPC returns a one-row table. Read its first row, falling back to zeros
+  // when the caller is not an admin (empty result) or on error.
+  const overview = overviewRows?.[0]
+  const enrollCount = Number(overview?.enrollment_count ?? 0)
+  const completedCount = Number(overview?.completed_count ?? 0)
+  const distinctStudents = Number(overview?.student_count ?? 0)
 
   return {
     totalStudents: distinctStudents,
@@ -140,8 +135,11 @@ export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
 /**
  * Returns per-course completion rates.
  *
- * Aggregates from `enrollments` joined with `courses`. Optionally filters
- * to a specific course ID.
+ * Reads the `admin_course_completion_counts` security-definer RPC (migration
+ * 0005), which aggregates `enrollments` joined with `courses` at the DB layer
+ * EXCLUDING any enrollment owned by an instructor-role user. Only courses with
+ * at least one non-instructor enrollment appear. The completion percentage is
+ * derived in JS from the returned totals.
  *
  * @param courseFilter - Optional course ID to filter results to one course.
  */
@@ -151,64 +149,29 @@ export async function getCourseCompletionRates(
   await assertAdmin()
   const supabase = await createClient()
 
-  let query = supabase
-    .from("enrollments")
-    .select("course_id, completed_at, courses(id, title, slug)")
-    .order("course_id")
-
-  if (courseFilter) {
-    query = query.eq("course_id", courseFilter)
-  }
-
-  const { data, error } = await query
+  const { data, error } = await supabase.rpc("admin_course_completion_counts")
 
   if (error) {
     console.error("[dashboard/admin] getCourseCompletionRates:", error)
     return []
   }
 
-  // Aggregate by course.
-  type CourseAccum = {
-    courseId: string
-    courseTitle: string
-    courseSlug: string
-    total: number
-    completed: number
-  }
-  const courseMap = new Map<string, CourseAccum>()
+  const rows = courseFilter
+    ? (data ?? []).filter((r) => r.course_id === courseFilter)
+    : (data ?? [])
 
-  for (const row of data ?? []) {
-    const course = row.courses as {
-      id: string
-      title: string
-      slug: string
-    } | null
-    if (!course) continue
-
-    const existing = courseMap.get(course.id)
-    if (existing) {
-      existing.total++
-      if (row.completed_at) existing.completed++
-    } else {
-      courseMap.set(course.id, {
-        courseId: course.id,
-        courseTitle: course.title,
-        courseSlug: course.slug,
-        total: 1,
-        completed: row.completed_at ? 1 : 0,
-      })
+  return rows.map((r) => {
+    const total = Number(r.total_enrollments ?? 0)
+    const completed = Number(r.completed_enrollments ?? 0)
+    return {
+      courseId: r.course_id,
+      courseTitle: r.course_title,
+      courseSlug: r.course_slug,
+      totalEnrollments: total,
+      completedEnrollments: completed,
+      completionPercent: total === 0 ? 0 : Math.round((completed / total) * 100),
     }
-  }
-
-  return Array.from(courseMap.values()).map((c) => ({
-    courseId: c.courseId,
-    courseTitle: c.courseTitle,
-    courseSlug: c.courseSlug,
-    totalEnrollments: c.total,
-    completedEnrollments: c.completed,
-    completionPercent:
-      c.total === 0 ? 0 : Math.round((c.completed / c.total) * 100),
-  }))
+  })
 }
 
 /**

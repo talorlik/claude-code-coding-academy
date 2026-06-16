@@ -6,6 +6,12 @@
 // pre-confirmed users - something a SQL migration cannot do cleanly because it
 // would have to hash passwords and populate auth.identities by hand.
 //
+// It deliberately seeds ONLY users, profiles, and role grants. It never creates
+// an enrollment for any account, so the instructor is never enrolled (issue #3):
+// an instructor-owned enrollment inflates the admin dashboard's student and
+// enrollment counts. Migration 0005 additionally blocks instructor enrollment
+// at the RLS layer; this script must not reintroduce one.
+//
 // Reads credentials from the environment:
 //   E2E_INSTRUCTOR_EMAIL / E2E_INSTRUCTOR_PASSWORD
 //   E2E_STUDENT_EMAIL    / E2E_STUDENT_PASSWORD

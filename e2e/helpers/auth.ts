@@ -12,7 +12,10 @@ export const instructorCredentials = {
 
 /**
  * Signs in through the real login form. Auth has no captcha in this project, so
- * a form login works end to end. Lands on `/[locale]/dashboard` on success.
+ * a form login works end to end. Post-login role routing (batch 24) sends
+ * students to `/[locale]/dashboard` and instructors to
+ * `/[locale]/admin/dashboard`, so this helper accepts either destination and is
+ * role-agnostic for callers that just need an authenticated session.
  *
  * @param page - the Playwright page.
  * @param email - account email.
@@ -27,5 +30,6 @@ export async function signIn(
   await page.getByLabel(/email/i).fill(email)
   await page.getByLabel(/password/i).fill(password)
   await page.getByRole("button", { name: /^sign in$/i }).click()
-  await expect(page).toHaveURL(/\/en\/dashboard/, { timeout: 15_000 })
+  // Either the student dashboard or the admin dashboard, depending on role.
+  await expect(page).toHaveURL(/\/en\/(admin\/)?dashboard/, { timeout: 15_000 })
 }
