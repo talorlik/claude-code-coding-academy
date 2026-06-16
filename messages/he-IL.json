@@ -218,7 +218,8 @@
       "courses": "קורסים",
       "groups": "קבוצות",
       "reminders": "תזכורות",
-      "adminPanel": "פאנל ניהול"
+      "adminPanel": "פאנל ניהול",
+      "users": "משתמשים"
     },
     "title": "פאנל ניהול",
     "courseList": {
@@ -786,5 +787,82 @@
     "invalidLocale": "השפה אינה נתמכת.",
     "localeUpdateFailed": "לא ניתן היה לשנות את השפה. נסה שוב.",
     "signedOut": "עליך להתחבר כדי לערוך את הפרופיל שלך."
+  },
+  "AdminUsers": {
+    "title": "משתמשים",
+    "subtitle": "הזמנה, צפייה וניהול של כל החשבונות והתפקידים.",
+    "backToUsers": "חזרה למשתמשים",
+    "inviteHeading": "הזמנת משתמש",
+    "inviteEmailLabel": "כתובת אימייל",
+    "inviteEmailPlaceholder": "name@example.com",
+    "inviteRoleLabel": "תפקיד",
+    "inviteSubmit": "שליחת הזמנה",
+    "table": {
+      "caption": "כל המשתמשים",
+      "email": "אימייל",
+      "name": "שם",
+      "role": "תפקיד",
+      "enrollments": "הרשמות",
+      "status": "סטטוס",
+      "createdAt": "נוצר",
+      "actions": "פעולות",
+      "view": "צפייה",
+      "empty": "אין עדיין משתמשים."
+    },
+    "pagination": {
+      "previous": "הקודם",
+      "next": "הבא",
+      "page": "עמוד {page}"
+    },
+    "role": {
+      "instructor": "מדריך",
+      "student": "תלמיד"
+    },
+    "state": {
+      "active": "פעיל",
+      "disabled": "מושבת"
+    },
+    "detail": {
+      "heading": "פרטי משתמש",
+      "email": "אימייל",
+      "name": "שם",
+      "phone": "טלפון",
+      "locale": "שפה",
+      "role": "תפקיד",
+      "enrollments": "הרשמות",
+      "status": "סטטוס",
+      "createdAt": "נוצר",
+      "notSet": "לא הוגדר",
+      "self": "זהו החשבון שלך.",
+      "roleHeading": "תפקיד",
+      "roleSubmit": "שמירת תפקיד",
+      "disableHeading": "גישה לחשבון",
+      "disableSubmit": "השבתת חשבון",
+      "enableSubmit": "הפעלת חשבון מחדש",
+      "deleteHeading": "מחיקת משתמש",
+      "deleteSubmit": "מחיקת משתמש",
+      "confirmDisableTitle": "להשבית את החשבון?",
+      "confirmDisableBody": "המשתמש לא יוכל להתחבר עד להפעלה מחדש. הפעולה הפיכה.",
+      "confirmDeleteTitle": "למחוק את החשבון לצמיתות?",
+      "confirmDeleteBody": "הפעולה מוחקת את החשבון ואת כל הנתונים הקשורים (הרשמות, התקדמות). לא ניתן לבטל.",
+      "confirm": "אישור",
+      "cancel": "ביטול"
+    },
+    "messages": {
+      "inviteSent": "ההזמנה נשלחה.",
+      "roleChanged": "התפקיד עודכן.",
+      "userDisabled": "החשבון הושבת.",
+      "userEnabled": "החשבון הופעל מחדש.",
+      "userDeleted": "המשתמש נמחק.",
+      "invalidEmail": "יש להזין כתובת אימייל תקינה.",
+      "invalidRole": "יש לבחור תפקיד תקין.",
+      "inviteFailed": "לא ניתן היה לשלוח את ההזמנה.",
+      "roleChangeFailed": "לא ניתן היה לשנות את התפקיד.",
+      "disableFailed": "לא ניתן היה לשנות את מצב החשבון.",
+      "deleteFailed": "לא ניתן היה למחוק את המשתמש.",
+      "userNotFound": "המשתמש לא נמצא.",
+      "cannotSelf": "לא ניתן לבצע פעולה זו על החשבון שלך.",
+      "lastInstructor": "לא ניתן להסיר את המדריך האחרון; אזור הניהול ייחסם."
+    }
   }
 }

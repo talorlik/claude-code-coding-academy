@@ -53,6 +53,12 @@ export default async function AdminLayout({
             {t("nav.dashboard")}
           </Link>
           <Link
+            href="/admin/users"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {t("nav.users")}
+          </Link>
+          <Link
             href="/admin/courses"
             className="text-sm text-muted-foreground hover:text-foreground"
           >

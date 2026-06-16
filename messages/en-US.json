@@ -218,7 +218,8 @@
       "courses": "Courses",
       "groups": "Groups",
       "reminders": "Reminders",
-      "adminPanel": "Admin Panel"
+      "adminPanel": "Admin Panel",
+      "users": "Users"
     },
     "title": "Admin Panel",
     "courseList": {
@@ -786,5 +787,82 @@
     "invalidLocale": "That language is not supported.",
     "localeUpdateFailed": "Could not change your language. Please try again.",
     "signedOut": "You must be signed in to edit your profile."
+  },
+  "AdminUsers": {
+    "title": "Users",
+    "subtitle": "Invite, view, and manage all accounts and roles.",
+    "backToUsers": "Back to users",
+    "inviteHeading": "Invite a user",
+    "inviteEmailLabel": "Email address",
+    "inviteEmailPlaceholder": "name@example.com",
+    "inviteRoleLabel": "Role",
+    "inviteSubmit": "Send invite",
+    "table": {
+      "caption": "All users",
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "enrollments": "Enrollments",
+      "status": "Status",
+      "createdAt": "Created",
+      "actions": "Actions",
+      "view": "View",
+      "empty": "No users yet."
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page}"
+    },
+    "role": {
+      "instructor": "Instructor",
+      "student": "Student"
+    },
+    "state": {
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "detail": {
+      "heading": "User detail",
+      "email": "Email",
+      "name": "Name",
+      "phone": "Phone",
+      "locale": "Language",
+      "role": "Role",
+      "enrollments": "Enrollments",
+      "status": "Status",
+      "createdAt": "Created",
+      "notSet": "Not set",
+      "self": "This is your own account.",
+      "roleHeading": "Role",
+      "roleSubmit": "Save role",
+      "disableHeading": "Account access",
+      "disableSubmit": "Disable account",
+      "enableSubmit": "Reactivate account",
+      "deleteHeading": "Delete user",
+      "deleteSubmit": "Delete user",
+      "confirmDisableTitle": "Disable this account?",
+      "confirmDisableBody": "The user will be unable to sign in until reactivated. This is reversible.",
+      "confirmDeleteTitle": "Permanently delete this account?",
+      "confirmDeleteBody": "This removes the account and all related data (enrollments, progress). This cannot be undone.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "inviteSent": "Invitation sent.",
+      "roleChanged": "Role updated.",
+      "userDisabled": "Account disabled.",
+      "userEnabled": "Account reactivated.",
+      "userDeleted": "User deleted.",
+      "invalidEmail": "Enter a valid email address.",
+      "invalidRole": "Choose a valid role.",
+      "inviteFailed": "Could not send the invitation.",
+      "roleChangeFailed": "Could not change the role.",
+      "disableFailed": "Could not change the account state.",
+      "deleteFailed": "Could not delete the user.",
+      "userNotFound": "User not found.",
+      "cannotSelf": "You cannot perform this action on your own account.",
+      "lastInstructor": "You cannot remove the last instructor; the admin area would be locked out."
+    }
   }
 }

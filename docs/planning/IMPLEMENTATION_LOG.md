@@ -2895,3 +2895,64 @@ Adapted from the reference repo's profile page + actions; the `profiles` columns
 
 - Batch 26 (admin user management) reuses this batch's profile/header patterns
   and depends on batch 24's role-branch routing.
+
+## Batch 26: Admin User Management (2026-06-16)
+
+Issue 8. An admin-only area to list, view, role-change, invite, deactivate
+(reversible), and delete users, backed by a server-only service-role data layer
+(RLS blocks cross-user reads/writes). Depends on batch 24 (role-branch routing)
+and batch 25 (profile/header patterns).
+
+### What Was Built
+
+| Area | Implementation | Key files |
+| ---- | -------------- | --------- |
+| Data layer | `import "server-only"`; service-role `@supabase/supabase-js` client from `SUPABASE_SECRET_KEY`; every export calls `requireAdmin()` first | `lib/admin/users.ts` |
+| Functions | `listUsers` (set-based: one `auth.admin.listUsers` page + bulk `.in()` reads of roles/profiles/enrollments, merged in memory - no N+1), `getUser`, `setUserRole`, `inviteUser`, `setUserDisabled`, `deleteUser` | `lib/admin/users.ts` |
+| Guards | Self-protection (no self delete/disable/demote) + last-instructor (no demote/delete of final instructor), enforced in the data layer | `lib/admin/users.ts` |
+| Validation | zod schemas: invite (email+role), role-change, disable toggle, delete | `lib/validation/admin-users.ts` |
+| Resolver | Allowlist code -> localized key (anti-injection), codes double as `AdminUsers.messages` keys | `lib/admin/resolve-users-message.ts` |
+| Actions | Tier-2 FormData server actions with `?notice=`/`?error=` redirects; destructive actions two-step confirm via `?confirm=` | `lib/admin/users-actions.ts` |
+| Pages | `admin/users/layout.tsx` (thin `requireAdmin` guard, no `<main>`), `admin/users/page.tsx` (invite form + paginated table), `admin/users/[userId]/page.tsx` (detail + role/disable/delete forms) | `app/[locale]/admin/users/*` |
+| Nav | Users link added to the admin nav (shown on the dashboard and every admin page) | `app/[locale]/admin/layout.tsx` |
+| i18n | New `AdminUsers` namespace + `Admin.nav.users`, key-identical EN+HE | `messages/en-US.json`, `messages/he-IL.json` |
+
+### Decisions
+
+- Env var is `SUPABASE_SECRET_KEY` (repo actual), not the spec's
+  `SUPABASE_SERVICE_ROLE_KEY`. No new env var. See `docs/DECISIONS.md`.
+- Role writes are delete-then-insert (`user_roles` PK is composite
+  `(user_id, role)`; an `onConflict:"user_id"` upsert has no target).
+- Disable uses `ban_duration` (`"876000h"` to disable, `"none"` to reactivate);
+  no `profiles.disabled` column.
+- The users layout adds no `<main>` (the parent admin layout owns it).
+- Invite uses Supabase's built-in mailer; the styled Invite template is a
+  documented manual dashboard paste (Auth -> Email Templates -> Invite).
+
+### Verification (gates, exit 0)
+
+- `npm run lint` - clean.
+- `npm run lint:i18n` - catalogs in sync (668 keys; +new `AdminUsers` namespace).
+- `npm run typecheck` - exit 0 (checked by exit code, not log tail).
+- `npm run build` - exit 0; `/[locale]/admin/users` and
+  `/[locale]/admin/users/[userId]` routes registered; Proxy intact (no
+  `middleware.ts`).
+- `npm test` - 569 passed, 3 skipped (new: `tests/integration/admin-users.test.ts`,
+  `tests/integration/admin-users-actions.test.ts`,
+  `tests/unit/admin-users-validation.test.ts` - 47 new assertions covering
+  requireAdmin-on-every-fn, last-instructor, self-protection, set-based no-N+1,
+  action code mapping, validation, resolver anti-injection).
+- `npm run test:e2e` - 172 passed, 4 skipped (new: `e2e/admin-users.spec.ts` - 6
+  tests: anon redirect EN/HE, student redirected from `/admin/users`, table
+  render, no-overflow/RTL at 390/768/1280 EN+HE, live role round-trip with
+  finally-restore).
+- Live DB: seed invariant verified after the suite (instructor + student); the
+  seeded student's role was restored via the Supabase MCP after an earlier
+  failing run left it promoted.
+
+### Known Follow-Up
+
+- Batch 27 (About content + Contact Google Maps) is next; independent, needs
+  `NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY`.
+- Optional: brand the Supabase Invite email template (manual dashboard paste;
+  template provided in `docs/DECISIONS.md`).

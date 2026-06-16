@@ -1207,3 +1207,91 @@ accumulating orphans and matches the per-user RLS prefix; the cache-buster is th
 standard fix for a fixed-key public object. Migrations against shared infra are
 gated by the classifier even inside an authorized build run, so the live apply
 needs a per-action confirm.
+
+### 2026-06-16 - Batch 26 - Admin user management: env var, role write, ban, invite
+
+The spec and prompt name the service-role secret `SUPABASE_SERVICE_ROLE_KEY`,
+but this repo's actual secret is `SUPABASE_SECRET_KEY` (it is what `.env.local`,
+`lib/supabase/server.ts` `createAdminClient`, and `npm run seed` already use).
+`lib/admin/users.ts` reads `SUPABASE_SECRET_KEY`. No new env var was introduced;
+the spec's env table row should be read as that name.
+
+`lib/admin/users.ts` builds its service-role client with
+`@supabase/supabase-js` `createClient` directly (not the SSR
+`createAdminClient`), because the `auth.admin.*` namespace (listUsers, invite,
+updateUserById, deleteUser) is only reliably available on a supabase-js client
+created with the secret key and `persistSession:false` - matching `seed.mjs`.
+
+Role writes are delete-then-insert, not upsert. The `user_roles` primary key is
+the composite `(user_id, role)` with no unique constraint on `user_id` alone, so
+`upsert(..., {onConflict:"user_id"})` has no valid conflict target and would add
+a second role row instead of switching it. `writeRole()` clears the user's role
+rows and inserts the new one, enforcing one role per user. An e2e role-change
+round-trip caught the original upsert bug (it returned `roleChangeFailed`).
+
+Disable is reversible via `auth.admin.updateUserById({ ban_duration })` - a
+~100-year ban (`"876000h"`) to disable, `"none"` to reactivate. No
+`profiles.disabled` column was added. `ban_duration` is absent from the
+generated types, so the attributes object is cast at the call site.
+
+Self-protection and the last-instructor guard live in the data layer (not just
+the UI): an admin cannot delete/disable/demote their own account, and the final
+instructor cannot be demoted or deleted (no admin lockout). Destructive actions
+(disable, delete) are Tier-2 two-step: the first submit bounces back with a
+`?confirm=` flag and the page renders an explicit confirm affordance whose submit
+carries `confirm=yes`.
+
+`app/[locale]/admin/users/layout.tsx` is a thin `requireAdmin()` guard with NO
+markup - the parent `app/[locale]/admin/layout.tsx` already owns the
+`<main id="main-content">` landmark and the admin nav (the Users link was added
+there); a second `<main>` would duplicate the landmark.
+
+E2E live-DB hazard: the role round-trip test mutates the seeded student's role
+in the live project. The demotion-back is in a `finally` so a mid-test failure
+cannot leave the student promoted and break the student-dashboard / count specs
+(an earlier failing run did exactly that; the student row was restored to
+`student` via the Supabase MCP). Seed invariant: `talorlik@gmail.com` =
+instructor, `talorlik@hotmail.com` (E2E_STUDENT_EMAIL) = student.
+
+Invite email: invites use Supabase's built-in invite mailer
+(`auth.admin.inviteUserByEmail`); the role is assigned immediately after. The
+flow works with Supabase's default Invite template. To brand it, paste a styled
+HTML template into the Supabase dashboard at **Auth -> Email Templates ->
+Invite** (a one-time manual step; not a repo artifact). A usable starting
+template:
+
+```html
+<!doctype html>
+<html>
+  <body style="margin:0;background:#f6f7f9;font-family:system-ui,Segoe UI,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      <tr><td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" style="max-width:480px;background:#ffffff;border-radius:12px;border:1px solid #e5e7eb;">
+          <tr><td style="padding:32px;">
+            <h1 style="margin:0 0 16px;font-size:20px;color:#111827;">You're invited to Eyal's Coding Academy</h1>
+            <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#374151;">
+              An instructor invited you to join the academy. Click below to set your
+              password and start learning.
+            </p>
+            <a href="{{ .ConfirmationURL }}"
+               style="display:inline-block;background:#111827;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-size:15px;">
+              Accept invitation
+            </a>
+            <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">
+              If you did not expect this invitation you can ignore this email.
+            </p>
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>
+```
+
+**Why:** the secret key name, the composite-PK role-write, the `ban_duration`
+disable model, and the duplicate-`<main>` trap are all non-obvious adaptations
+where this repo diverges from the reference/spec, and each was confirmed by a
+gate (typecheck, e2e round-trip, build). The invite template is dashboard-only
+because Supabase does not template invite mail from repo files; the default
+template already works, so the styling step is optional and documented rather
+than coded.
