@@ -495,6 +495,48 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
   }
+
+  /* Tailwind v4 dropped the UA `cursor: pointer` on buttons; restore a pointer
+     for every clickable affordance site-wide so the interaction reads
+     consistently. Covers native interactives plus ARIA-role and shadcn/Base UI
+     `[role]` controls; the `:where()` keeps specificity at 0 so component
+     styles still win. */
+  :where(
+    a[href],
+    button,
+    label[for],
+    select,
+    summary,
+    [role="button"],
+    [role="link"],
+    [role="menuitem"],
+    [role="menuitemcheckbox"],
+    [role="menuitemradio"],
+    [role="option"],
+    [role="tab"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="radio"]
+  ) {
+    cursor: pointer;
+  }
+
+  /* Disabled controls must not imply they are clickable. */
+  :where(
+    button,
+    select,
+    [role="button"],
+    [role="link"],
+    [role="menuitem"],
+    [role="option"],
+    [role="tab"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="radio"]
+  ):disabled,
+  :where([aria-disabled="true"], [data-disabled]) {
+    cursor: default;
+  }
 }
 
 /* A visually hidden element that becomes visible when focused. Used by the
