@@ -41,6 +41,7 @@ Recommended order:
 | 26 | `25_USER_PROFILE_PAGE.md` | User profile page | Sections 4, 6.3, 10, 11, 12, 15 |
 | 27 | `26_ADMIN_USER_MANAGEMENT.md` | Admin user management | Sections 4, 7, 10, 11, 15 |
 | 28 | `27_ABOUT_CONTENT_AND_CONTACT_MAPS.md` | About content + Contact maps | Sections 4, 10, 11, 12, 15 |
+| 29 | `28_GITHUB_PAGES_LANDING_SITE.md` | GitHub Pages landing site (static, in /docs) | DESIGN.md (static; outside the app build) |
 
 The catalog/content batches (16-20 above) are backed by the design spec at
 `docs/superpowers/specs/2026-06-14-courses-catalog-and-content-pages-design.md`.
@@ -57,6 +58,12 @@ and the plan
 `docs/superpowers/plans/2026-06-16-admin-profile-fixes-and-user-management.md`.
 For these, the prompt-file number equals the batch number (no offset). Run them
 in order 24 -> 25 -> 26 -> 27.
+
+Batch 28 (prompt file `28_GITHUB_PAGES_LANDING_SITE.md`) is a standalone STATIC
+GitHub Pages landing site under `docs/` (plain HTML/CSS/JS, English only,
+light+dark, built to `docs/design/DESIGN.md`). It is NOT part of the Next.js
+app, is independent of batches 24-27, and is not covered by the app gate set -
+verify it as a static site. Run it any time.
 
 Rule: after every prompt, run the verification commands and commit a stable
 checkpoint before moving to the next prompt.

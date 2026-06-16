@@ -35,10 +35,13 @@ shadcn/ui, Supabase (auth + DB + Storage), next-intl, Playwright, Vitest.
 | 25 | `25_USER_PROFILE_PAGE.md` | 7 | `feature/25-user-profile` |
 | 26 | `26_ADMIN_USER_MANAGEMENT.md` | 8 | `feature/26-admin-user-management` |
 | 27 | `27_ABOUT_CONTENT_AND_CONTACT_MAPS.md` | 5, 6 | `feature/27-about-content-and-maps` |
+| 28 | `28_GITHUB_PAGES_LANDING_SITE.md` | GitHub Pages site | `feature/28-github-pages-site` |
 
 Order matters: 24 lands the role-branch that 26 depends on; 25 establishes the
 profile/header-menu patterns 26 reuses; 27 is independent and carries the new
-env var, so nothing earlier blocks on the Google Maps key.
+env var, so nothing earlier blocks on the Google Maps key. Batch 28 is a
+standalone static GitHub Pages site under `docs/`, independent of 24-27 and
+outside the app build; it may run in any order.
 
 ---
 
@@ -287,11 +290,64 @@ env var, so nothing earlier blocks on the Google Maps key.
 
 ---
 
+## Batch 28: GitHub Pages Landing Site
+
+**GitHub Pages site.** Standalone static site under `docs/`; NOT part of the
+Next.js app; outside the app gate set; independent of 24-27.
+
+**Files:**
+
+- Create: `docs/index.html`
+- Create: `docs/site-assets/css/styles.css`
+- Create: `docs/site-assets/js/main.js`
+- Create: `docs/site-assets/img/{header_banner.png,logo_dark.png,logo_light.png,favicon.ico}`
+  (copied from `docs/design/`)
+- Create: `docs/.nojekyll`
+
+### Task 28.1: Scaffold, assets, design tokens
+
+- [ ] Create `docs/.nojekyll` (empty) and `docs/site-assets/img/` with copies of
+  the four brand assets.
+- [ ] Create `docs/site-assets/css/styles.css` porting the DESIGN.md token
+  system: shared non-color structure in `:root`; color/background/border/shadow
+  only in `.light` and `.dark`; load Inter + JetBrains Mono from Google Fonts.
+- [ ] Create `docs/index.html` shell: semantic landmarks, one `<h1>`, favicon,
+  OG/Twitter card, relative asset references only.
+- [ ] Commit.
+
+### Task 28.2: Sections
+
+- [ ] Build the nav, hero, Terminal Code Panel, Feature Cards grid, Stats Block,
+  and final CTA + footer per DESIGN.md, using semantic tokens throughout. The
+  primary CTA targets the live app via a single easy-to-edit constant.
+- [ ] Commit.
+
+### Task 28.3: Theme toggle + behavior
+
+- [ ] Create `docs/site-assets/js/main.js`: theme from `prefers-color-scheme` on
+  first load; a `<button>` toggle (aria-label, aria-pressed) flipping
+  `.light`/`.dark` on `<html>`; persist in `localStorage`; apply before first
+  paint (minimal inline head snippet) to avoid a flash; swap the logo per theme;
+  smooth in-page nav respecting `prefers-reduced-motion`.
+- [ ] Commit.
+
+### Task 28.4: Verify (static) + capture
+
+- [ ] Verify as a static site (do NOT run the app gate set): both themes render,
+  the toggle persists across reload, relative asset paths resolve (no 404), one
+  `<h1>`, no console errors, no overflow at 390/768/1280; capture proof via the
+  preview tooling.
+- [ ] DECISIONS (incl. the one-time Pages setting) + IMPLEMENTATION_LOG + memory.
+- [ ] Squash-merge into local `main`.
+
+---
+
 ## Self-Review
 
 - **Spec coverage:** All ten issues map to a task (1->24.1, 2/3->24.2, 4->24.3,
-  9->24.4, 10->24.5, 7->25.x, 8->26.x, 5->27.1, 6->27.2). Env vars covered in the
-  spec env section and surfaced in batches 26 (service-role) and 27 (maps key).
+  9->24.4, 10->24.5, 7->25.x, 8->26.x, 5->27.1, 6->27.2). The follow-up GitHub
+  Pages site maps to batch 28 (28.1-28.4). Env vars covered in the spec env
+  section and surfaced in batches 26 (service-role) and 27 (maps key).
 - **Placeholder scan:** No TBD/TODO; each task names exact files and the action.
   Code-level specifics live in the prompt files (the execution briefs), per this
   project's convention where the prompt file is the verbatim brief.

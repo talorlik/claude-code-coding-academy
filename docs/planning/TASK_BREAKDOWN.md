@@ -59,13 +59,17 @@ inline.
 - Tasks 26.1-26.4 (Batch 26): `docs/prompts/26_ADMIN_USER_MANAGEMENT.md`
 - Tasks 27.1-27.3 (Batch 27):
   `docs/prompts/27_ABOUT_CONTENT_AND_CONTACT_MAPS.md`
+- Tasks 28.1-28.4 (Batch 28):
+  `docs/prompts/28_GITHUB_PAGES_LANDING_SITE.md`
 
 The batches above 13 were appended after the initial 00-13 build (14-15 are
 post-build add-ons; 16-19 implement the courses-catalog and content-pages
 design spec; 20-23 implement the design-system & UX/UI overhaul spec; 24-27
-implement the admin/profile/fixes spec). For batches 24-27 the prompt-file
-number equals the batch number (no offset). Their detailed task sections live at
-the end of this document, under the matching `## Batch NN` headings.
+implement the admin/profile/fixes spec; 28 is a standalone static GitHub Pages
+landing site under `docs/`, outside the app build). For batches 24-28 the
+prompt-file number equals the batch number (no offset). Their detailed task
+sections live at the end of this document, under the matching `## Batch NN`
+headings.
 
 ## Requirement Cross-Reference Map
 
@@ -1807,3 +1811,55 @@ Files:
   `messages/en-US.json`, `messages/he-IL.json`, `e2e/*`
 
 Prompt file: `docs/prompts/27_ABOUT_CONTENT_AND_CONTACT_MAPS.md`
+
+## Batch 28: GitHub Pages Landing Site
+
+A standalone STATIC GitHub Pages landing site that advertises the academy and
+links to the live app. Plain HTML/CSS/JS served from `docs/` (GitHub Pages
+source = main branch /docs). English only; light + dark themes; built to
+`docs/design/DESIGN.md`. NOT part of the Next.js app and NOT covered by the app
+gate set. Independent of batches 24-27; runs in any order. All paths relative
+(project Pages subpath); CTA targets the live Vercel app; no analytics.
+
+### Task 28.1: Scaffold + Assets + Design Tokens
+
+Objective: `docs/index.html` (single semantic page, one `<h1>`, favicon, OG/
+Twitter card via `header_banner.png`); `docs/site-assets/css/styles.css` (port
+the DESIGN.md token system - shared structure in `:root`, color only in `.light`/
+`.dark`; Inter + JetBrains Mono from Google Fonts); copy the four brand assets
+into `docs/site-assets/img/`; add an empty `docs/.nojekyll`.
+
+### Task 28.2: Sections
+
+Objective: fixed nav (logo + center anchors + theme toggle + primary CTA paired
+with a secondary link); hero (centered stack, one accent-highlighted word,
+framed `header_banner.png`, primary+secondary CTAs); the DESIGN.md signature
+Terminal Code Panel (JetBrains Mono + syntax colors, illustrative JSON); a
+Feature Cards grid (structured paths, AI tutor, progress, bilingual app); a
+Stats Block; a final CTA band + footer (app link + repo link).
+
+### Task 28.3: Theme Toggle + Behavior
+
+Objective: `docs/site-assets/js/main.js` - first load from
+`prefers-color-scheme`; a header `<button>` toggle (aria-label, aria-pressed)
+flips `.light`/`.dark` on `<html>`; choice persisted in `localStorage` and
+re-applied before first paint (minimal inline head snippet to avoid a theme
+flash); swap the logo image per theme. Smooth in-page nav respecting
+`prefers-reduced-motion`. The app URL is a single easy-to-edit constant.
+
+### Task 28.4: Verify (Static), Capture
+
+Objective: verify as a STATIC site (do NOT run the app gate set) - light and
+dark both render, the toggle persists across reload, all assets load via
+relative paths (no 404), one `<h1>`, no console errors, no horizontal overflow
+at 390/768/1280; capture proof via the preview tooling. Append to DECISIONS
+(including the one-time Pages setting: Settings -> Pages -> Source = Deploy from
+a branch, Branch = main, Folder = /docs); update IMPLEMENTATION_LOG + memory.
+
+Files:
+
+- `docs/index.html`, `docs/site-assets/css/styles.css`,
+  `docs/site-assets/js/main.js`, `docs/site-assets/img/*` (header_banner.png,
+  logo_dark.png, logo_light.png, favicon.ico), `docs/.nojekyll`
+
+Prompt file: `docs/prompts/28_GITHUB_PAGES_LANDING_SITE.md`

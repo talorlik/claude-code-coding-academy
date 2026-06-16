@@ -44,8 +44,8 @@ non-negative integer AND a matching `docs/prompts/NN_*.md` exists. Do not assume
 the highest batch listed here is the last one; always check
 `ls docs/prompts/` for the batches that currently exist.
 
-The table below lists the batches that exist **as of 2026-06-16** (00-27). It
-is a snapshot, not a ceiling - expect rows beyond 27 in future.
+The table below lists the batches that exist **as of 2026-06-16** (00-28). It
+is a snapshot, not a ceiling - expect rows beyond 28 in future.
 
 | Batch | Prompt File | Nature | Branch Prefix | Status |
 | --- | --- | --- | --- | --- |
@@ -77,6 +77,7 @@ is a snapshot, not a ceiling - expect rows beyond 27 in future.
 | 25 | `25_USER_PROFILE_PAGE.md` | User profile page | `feature/` | Pending |
 | 26 | `26_ADMIN_USER_MANAGEMENT.md` | Admin user management | `feature/` | Pending |
 | 27 | `27_ABOUT_CONTENT_AND_CONTACT_MAPS.md` | About content + Contact maps | `feature/` | Pending |
+| 28 | `28_GITHUB_PAGES_LANDING_SITE.md` | GitHub Pages landing site | `feature/` | Pending |
 
 Notes:
 
@@ -109,6 +110,15 @@ Notes:
   existing `SUPABASE_SERVICE_ROLE_KEY` (Sensitive, server-only) and requires a
   one-time manual paste of the styled invite template into Supabase Auth ->
   Email Templates -> Invite. See the spec's Environment Variables section.
+- Batch 28 is a standalone STATIC GitHub Pages landing site under `docs/`
+  (plain HTML/CSS/JS, English only, light+dark), NOT part of the Next.js app. It
+  is independent of 24-27 and may run in any order relative to them. It ships no
+  app code, so the standard app gate set does NOT apply to it; its acceptance is
+  the static-site verification in the prompt (renders in both themes, toggle
+  persists, relative asset paths resolve, no overflow at 390/768/1280). One-time
+  GitHub setting after merge: Settings -> Pages -> Source = Deploy from a branch,
+  Branch = `main`, Folder = `/docs`. Pages URL:
+  `https://talorlik.github.io/claude-code-coding-academy/`.
 
 ## Branch Prefix Selection
 

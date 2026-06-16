@@ -17,6 +17,7 @@ reference repo uses them, not to invent new ones.
 - [Batch 25: User Profile Page](#batch-25-user-profile-page)
 - [Batch 26: Admin User Management](#batch-26-admin-user-management)
 - [Batch 27: About Content And Contact Google Maps](#batch-27-about-content-and-contact-google-maps)
+- [Batch 28: GitHub Pages Landing Site](#batch-28-github-pages-landing-site)
 - [Environment Variables](#environment-variables)
 - [Cross-Cutting Non-Negotiables](#cross-cutting-non-negotiables)
 - [Reference Repo Adaptation Map](#reference-repo-adaptation-map)
@@ -26,6 +27,12 @@ reference repo uses them, not to invent new ones.
 Approved by Tal on 2026-06-16 after brainstorming. Batch decomposition: four
 batches (24-27), order 24 to 27. Do not start coding from this spec; the work is
 executed batch-by-batch via `/run-batch NN` against the prompt files.
+
+Batch 28 (a standalone static GitHub Pages landing site) was added on 2026-06-16
+as a follow-up request. It is independent of the ten issues above and of batches
+24-27, lives entirely under `docs/` as plain HTML/CSS/JS, and is outside the
+Next.js app build. It is documented here for a single planning home; see
+[Batch 28](#batch-28-github-pages-landing-site).
 
 ## Verified Root Causes
 
@@ -297,6 +304,60 @@ secret.
 - e2e: the real About headings render in EN+HE with no-overflow at the three
   breakpoints; the Contact page renders the map iframe when the key is present
   and the placeholder when it is absent.
+
+## Batch 28: GitHub Pages Landing Site
+
+A standalone static landing site advertising the academy and linking to the live
+app. Plain HTML/CSS/JS served by GitHub Pages from the repo's `/docs` folder.
+English only. Light and dark themes, built to `docs/design/DESIGN.md`. NOT part
+of the Next.js app and NOT covered by the app gate set. Independent of batches
+24-27; runs in any order.
+
+### 28.1 Location And Serving
+
+GitHub Pages source is the `main` branch `/docs` folder, so the site root is
+`docs/index.html`. The existing planning markdown under `docs/` stays in place.
+The site is served under the project subpath
+`https://talorlik.github.io/claude-code-coding-academy/`, so every asset and
+internal link is RELATIVE, never root-absolute. An empty `docs/.nojekyll`
+disables Jekyll so the tree is served as-is.
+
+### 28.2 Structure (Clear HTML/CSS/JS Separation)
+
+- `docs/index.html` - the only HTML; semantic landmarks, one `<h1>`, favicon,
+  OG/Twitter card via `header_banner.png`.
+- `docs/site-assets/css/styles.css` - all styles; the DESIGN.md token system
+  ported verbatim (shared structure in `:root`, color only in `.light`/`.dark`),
+  Inter + JetBrains Mono from Google Fonts.
+- `docs/site-assets/js/main.js` - all behavior (theme toggle, in-page nav).
+- `docs/site-assets/img/` - self-contained copies of the four brand assets.
+- `docs/.nojekyll`.
+
+### 28.3 Content
+
+Full marketing landing per DESIGN.md: fixed nav (logo + center anchors + theme
+toggle + primary CTA paired with a secondary link), a hero with one
+accent-highlighted word and the framed `header_banner.png`, the signature
+Terminal Code Panel (illustrative JSON), a Feature Cards grid (structured paths,
+AI tutor, progress, bilingual app), a Stats Block, and a final CTA band +
+footer. The primary CTA links to the live Vercel app via a single easy-to-edit
+constant. No analytics.
+
+### 28.4 Theme And Accessibility
+
+First load from `prefers-color-scheme`; a header `<button>` toggle flips
+`.light`/`.dark` on `<html>`; the choice persists in `localStorage` and is
+applied before first paint to avoid a flash; the logo image swaps per theme.
+Keyboard-operable, visible focus, `prefers-reduced-motion` respected, AA
+contrast in both themes, no horizontal overflow at 390/768/1280.
+
+### 28.5 Acceptance
+
+Verified as a static site (NOT via the app gate set): both themes render, the
+toggle persists across reload, relative asset paths resolve (no 404), one
+`<h1>`, no console errors, no overflow at the three breakpoints. One-time GitHub
+setting after merge: Settings -> Pages -> Source = Deploy from a branch,
+Branch = `main`, Folder = `/docs`.
 
 ## Environment Variables
 
