@@ -10,8 +10,13 @@ const reminderStatusSchema = z.enum(["queued", "sent", "failed", "skipped"])
  * (e.g. general re-engagement nudges for inactive users).
  */
 export const reminderActionSchema = z.object({
-  userId: z.string().uuid("User ID must be a valid UUID"),
-  courseId: z.string().uuid("Course ID must be a valid UUID").optional(),
+  // `.guid()` not `.string().uuid()`: Zod 4's `.uuid()` enforces RFC 9562
+  // version/variant nibbles and rejects the repeated-character placeholder course
+  // IDs the seed data uses. Postgres stores those as valid `uuid`, so the column
+  // type is the contract. `.guid()` accepts any 8-4-4-4-12 hex string. `userId` is
+  // a real RFC UUID from Supabase auth; kept on `.guid()` for consistency.
+  userId: z.guid("User ID must be a valid UUID"),
+  courseId: z.guid("Course ID must be a valid UUID").optional(),
   reason: z.string().min(1, "Reason is required"),
   status: reminderStatusSchema,
 })

@@ -68,7 +68,12 @@ export const updateCourseSchema = z.object({
  * needed from the client.
  */
 export const enrollmentSchema = z.object({
-  courseId: z.string().uuid("Course ID must be a valid UUID"),
+  // `.guid()` not `.string().uuid()`: Zod 4's `.uuid()` enforces RFC 9562
+  // version/variant nibbles and rejects the repeated-character placeholder course
+  // IDs the seed data uses (e.g. `11111111-...`). Postgres stores those as valid
+  // `uuid`, so the column type is the contract. `.guid()` accepts any 8-4-4-4-12
+  // hex string.
+  courseId: z.guid("Course ID must be a valid UUID"),
 })
 
 // ---------------------------------------------------------------------------
@@ -84,7 +89,8 @@ export const enrollmentSchema = z.object({
  * `courseId` comes from the form's hidden field and is validated as a UUID.
  */
 export const reviewSchema = z.object({
-  courseId: z.string().uuid("Course ID must be a valid UUID"),
+  // See `enrollmentSchema` above: `.guid()` accepts the seed placeholder course IDs.
+  courseId: z.guid("Course ID must be a valid UUID"),
   rating: z.coerce
     .number()
     .int("Rating must be a whole number")
@@ -107,8 +113,10 @@ export const reviewSchema = z.object({
  * Both IDs come from the URL params so they are validated as UUIDs.
  */
 export const markWatchedSchema = z.object({
-  courseId: z.string().uuid("Course ID must be a valid UUID"),
-  lessonId: z.string().uuid("Lesson ID must be a valid UUID"),
+  // See `enrollmentSchema` above: `.guid()` accepts the seed placeholder course
+  // and lesson IDs (e.g. `aaaaaaaa-...`).
+  courseId: z.guid("Course ID must be a valid UUID"),
+  lessonId: z.guid("Lesson ID must be a valid UUID"),
 })
 
 // ---------------------------------------------------------------------------

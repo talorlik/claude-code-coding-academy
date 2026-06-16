@@ -89,7 +89,12 @@ export const updateLessonSchema = z.object({
  */
 export const reorderLessonsSchema = z.array(
   z.object({
-    id: z.string().uuid("Lesson ID must be a valid UUID"),
+    // `.guid()` not `.string().uuid()`: Zod 4's `.uuid()` enforces RFC 9562
+    // version/variant nibbles and rejects the repeated-character placeholder
+    // lesson IDs the seed data uses (e.g. `aaaaaaaa-...`). Postgres stores those
+    // as valid `uuid`, so the column type is the contract. `.guid()` accepts any
+    // 8-4-4-4-12 hex string.
+    id: z.guid("Lesson ID must be a valid UUID"),
     sortOrder: sortOrderSchema,
   })
 )

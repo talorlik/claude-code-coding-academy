@@ -8,7 +8,12 @@ import { z } from "zod"
  * No real card data is collected - this is a simulation-only flow.
  */
 export const checkoutSchema = z.object({
-  courseId: z.string().uuid("Course ID must be a valid UUID"),
+  // `.guid()` not `.string().uuid()`: Zod 4's `.uuid()` enforces RFC 9562
+  // version/variant nibbles and rejects the repeated-character placeholder IDs
+  // the seed data uses (e.g. `11111111-1111-1111-1111-111111111111`). Postgres
+  // stores those as valid `uuid`, so the column type is the contract, not RFC
+  // strictness. `.guid()` accepts any 8-4-4-4-12 hex string.
+  courseId: z.guid("Course ID must be a valid UUID"),
 })
 
 /**
@@ -19,7 +24,8 @@ export const checkoutSchema = z.object({
  * `fakeSummary` is optional human-readable text for display in the UI or logs.
  */
 export const confirmPaymentSchema = z.object({
-  courseId: z.string().uuid("Course ID must be a valid UUID"),
+  // See `checkoutSchema` above: `.guid()` accepts the seed placeholder course IDs.
+  courseId: z.guid("Course ID must be a valid UUID"),
   simulationEventId: z
     .string()
     .min(1, "Simulation event ID is required"),

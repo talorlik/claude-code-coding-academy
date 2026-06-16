@@ -44,7 +44,12 @@ export type InviteInput = z.infer<typeof inviteSchema>
  * and last-instructor guards.
  */
 export const roleChangeSchema = z.object({
-  userId: z.string().uuid("Invalid user id."),
+  // `.guid()` not `.string().uuid()`: Zod 4's `.uuid()` enforces RFC 9562
+  // version/variant nibbles and would reject the repeated-character placeholder
+  // IDs the seed data uses. These `userId`s are real RFC UUIDs from Supabase auth,
+  // but `.guid()` (any 8-4-4-4-12 hex string) is used for consistency with the
+  // other validators and to avoid the same class of bug if a fixture uses one.
+  userId: z.guid("Invalid user id."),
   role: z.enum(ROLE_VALUES),
 })
 
@@ -57,7 +62,8 @@ export type RoleChangeInput = z.infer<typeof roleChangeSchema>
  * is reversible and never deletes data.
  */
 export const disableSchema = z.object({
-  userId: z.string().uuid("Invalid user id."),
+  // See `roleChangeSchema` above for why `.guid()` rather than `.string().uuid()`.
+  userId: z.guid("Invalid user id."),
   disabled: z.boolean(),
 })
 
@@ -69,7 +75,8 @@ export type DisableInput = z.infer<typeof disableSchema>
  * FK-referencing rows (enrollments, lesson_progress, user_roles, profiles).
  */
 export const deleteSchema = z.object({
-  userId: z.string().uuid("Invalid user id."),
+  // See `roleChangeSchema` above for why `.guid()` rather than `.string().uuid()`.
+  userId: z.guid("Invalid user id."),
 })
 
 /** Validated delete input. */
