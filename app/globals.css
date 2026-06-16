@@ -500,7 +500,8 @@
      for every clickable affordance site-wide so the interaction reads
      consistently. Covers native interactives plus ARIA-role and shadcn/Base UI
      `[role]` controls; the `:where()` keeps specificity at 0 so component
-     styles still win. */
+     styles still win. These elements carry no competing `cursor-*` utility, so
+     a base-layer rule is enough. */
   :where(
     a[href],
     button,
@@ -520,23 +521,42 @@
   ) {
     cursor: pointer;
   }
+}
 
-  /* Disabled controls must not imply they are clickable. */
-  :where(
-    button,
-    select,
-    [role="button"],
-    [role="link"],
-    [role="menuitem"],
-    [role="option"],
-    [role="tab"],
-    [role="switch"],
-    [role="checkbox"],
-    [role="radio"]
-  ):disabled,
-  :where([aria-disabled="true"], [data-disabled]) {
-    cursor: default;
-  }
+/* shadcn menu/select/combobox/command items ship with a `cursor-default`
+   utility on their clickable rows and triggers - the chevron/check-icon
+   controls that otherwise read as not-clickable. That utility lives in
+   Tailwind's `utilities` layer, which is ordered after every `@layer`, so a
+   layered rule cannot beat it no matter its specificity. This block is
+   deliberately UNLAYERED: unlayered styles win over any `@layer`, so it
+   overrides `cursor-default` on those slots. Keep the slot list in sync with
+   the vendored primitives in components/ui. */
+[data-slot$="-item"],
+[data-slot$="-trigger"],
+[data-slot$="-checkbox-item"],
+[data-slot$="-radio-item"],
+[data-slot$="-sub-trigger"] {
+  cursor: pointer;
+}
+
+/* Disabled controls must not imply they are clickable. Also unlayered, and
+   placed after the rule above so a disabled menu/select item (which matches
+   both) resolves to the default cursor by source order. */
+:where(
+  button,
+  select,
+  [role="button"],
+  [role="link"],
+  [role="menuitem"],
+  [role="option"],
+  [role="tab"],
+  [role="switch"],
+  [role="checkbox"],
+  [role="radio"]
+):disabled,
+[aria-disabled="true"],
+[data-disabled] {
+  cursor: default;
 }
 
 /* A visually hidden element that becomes visible when focused. Used by the
