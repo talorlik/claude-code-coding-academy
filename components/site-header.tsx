@@ -78,18 +78,16 @@ export async function SiteHeader() {
           aria-label={t("home")}
           className="flex shrink-0 items-center"
         >
-          {/* The logo PNG is 4:3 with a baked-in background and generous dead
-              padding around the wordmark, so the previous max-h-9 (36px) cap
-              left the visible mark tiny and nearly invisible against the nav
-              surface (issue #9 fix was too conservative). Cap the inner <Image>
-              height to max-h-14 (56px), which keeps a ~4px hairline gap inside
-              the 64px header while letting the mark fill most of the bar; width
-              follows the aspect ratio. Capping the image (not just the wrapping
-              span) is what actually clips it. */}
+          {/* The logo PNG is a transparent, tightly-trimmed wordmark (~5.2:1),
+              so capping the inner <Image> height fills the bar with the actual
+              glyphs rather than dead padding. max-h-12 (48px) leaves an ~8px
+              gap inside the 64px header and keeps the wide wordmark from
+              crowding the controls on mobile; width follows the aspect ratio.
+              Capping the image (not just the wrapping span) is what clips it. */}
           <Logo
-            width={200}
+            width={260}
             priority
-            className="[&_img]:max-h-14 [&_img]:w-auto"
+            className="[&_img]:max-h-12 [&_img]:w-auto"
           />
         </Link>
 

@@ -3,9 +3,11 @@ import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
-/** Intrinsic pixel dimensions of the brand logo PNGs (both are 1448x1086). */
-const LOGO_INTRINSIC_WIDTH = 1448
-const LOGO_INTRINSIC_HEIGHT = 1086
+/** Intrinsic pixel dimensions of the brand logo PNGs. Both are transparent,
+ *  tightly-trimmed wordmarks (~5.2:1); logo_dark is 1224x237 and logo_light
+ *  1214x236, close enough to share one aspect ratio for the height attribute. */
+const LOGO_INTRINSIC_WIDTH = 1224
+const LOGO_INTRINSIC_HEIGHT = 237
 const LOGO_ASPECT = LOGO_INTRINSIC_HEIGHT / LOGO_INTRINSIC_WIDTH
 
 /**

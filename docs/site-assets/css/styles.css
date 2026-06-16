@@ -414,9 +414,9 @@ a:hover {
   padding-inline: var(--spacing-24);
 }
 
-/* The brand PNGs are 4:3 wordmarks (1448x1086) that are now
-   background-transparent, so they sit directly on the nav surface with no
-   plaque and no mismatched rectangle in either theme. */
+/* The brand PNGs are background-transparent, tightly-trimmed wordmarks
+   (~5.2:1, ~1224x237), so they sit directly on the nav surface with no plaque
+   and no mismatched rectangle, and the visible glyphs fill the bar height. */
 .site-nav__brand {
   display: inline-flex;
   align-items: center;
@@ -425,9 +425,9 @@ a:hover {
 
 .site-nav__logo {
   /* Size by height so the wordmark fills most of the 64px nav and stays
-     legible; the previous 32px cap left it tiny and barely visible. 56px
-     keeps a ~4px gap inside the bar and matches the app header logo. */
-  height: 56px;
+     legible; the previous 32px cap (and the untrimmed canvas) left it tiny.
+     48px leaves an ~8px gap inside the bar and matches the app header logo. */
+  height: 48px;
   width: auto;
   display: block;
 }
