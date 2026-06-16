@@ -2,6 +2,10 @@ import { getTranslations } from "next-intl/server"
 import { Search as SearchIcon } from "lucide-react"
 
 import type { CatalogCategory, CatalogSort } from "@/lib/catalog/types"
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select"
 
 /**
  * The catalog filter bar: search box, category select, sort select, and a
@@ -45,9 +49,6 @@ export async function CatalogFilters({
 }) {
   const t = await getTranslations("Catalog")
 
-  const selectClass =
-    "min-w-0 rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-
   return (
     <form
       method="GET"
@@ -86,19 +87,19 @@ export async function CatalogFilters({
         >
           {t("categoryLabel")}
         </label>
-        <select
+        <NativeSelect
           id="catalog-category"
           name="category"
           defaultValue={category}
-          className={selectClass}
+          className="w-full"
         >
-          <option value="">{t("allCategories")}</option>
+          <NativeSelectOption value="">{t("allCategories")}</NativeSelectOption>
           {categories.map((c) => (
-            <option key={c.id} value={c.slug}>
+            <NativeSelectOption key={c.id} value={c.slug}>
               {c.name}
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
+        </NativeSelect>
       </div>
 
       {/* Sort */}
@@ -106,16 +107,22 @@ export async function CatalogFilters({
         <label htmlFor="catalog-sort" className="text-xs text-muted-foreground">
           {t("sortLabel")}
         </label>
-        <select
+        <NativeSelect
           id="catalog-sort"
           name="sort"
           defaultValue={sort}
-          className={selectClass}
+          className="w-full"
         >
-          <option value="popular">{t("sort.popular")}</option>
-          <option value="rated">{t("sort.rated")}</option>
-          <option value="newest">{t("sort.newest")}</option>
-        </select>
+          <NativeSelectOption value="popular">
+            {t("sort.popular")}
+          </NativeSelectOption>
+          <NativeSelectOption value="rated">
+            {t("sort.rated")}
+          </NativeSelectOption>
+          <NativeSelectOption value="newest">
+            {t("sort.newest")}
+          </NativeSelectOption>
+        </NativeSelect>
       </div>
 
       {/* My Courses (signed-in only) */}
