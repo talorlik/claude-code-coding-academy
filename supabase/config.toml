@@ -1,4 +1,138 @@
-# Supabase CLI project configuration. `project_id` is the project ref used by
-# `supabase link` / `supabase db push`. The stack (auth, database) is managed
-# remotely; this file pins the ref so CLI commands target the right project.
+# Supabase CLI project configuration.
+#
+# This is the CLI's DECLARATIVE config: it is pushed to the remote with
+# `supabase config push`, not pulled from it. The Supabase CLI has no
+# "serialize remote config into config.toml" command, so this file is the
+# hand-maintained source of truth for project settings that otherwise live
+# only in the dashboard. Keeping it complete is what makes a from-cold rebuild
+# seamless: after `supabase db reset` + `npm run seed`, run `supabase config
+# push` to reapply auth/API settings instead of re-clicking the dashboard.
+#
+# Values below were verified against the live project (ref
+# nlqpuppwjtxhfcfyjfre, region eu-central-1, Postgres 17) on 2026-06-30 via the
+# Supabase MCP and the app's own auth code. Anything that could NOT be read
+# without a Management API token is marked `# VERIFY:` - confirm it in
+# Dashboard -> Authentication / Project Settings before relying on a push.
+# Secrets are referenced with env() and never inlined.
+
 project_id = "nlqpuppwjtxhfcfyjfre"
+
+# --- API (PostgREST) ---------------------------------------------------------
+[api]
+enabled = true
+# PostgREST exposes these schemas. `private` is intentionally NOT exposed: it
+# holds is_admin()/is_instructor_self() helpers kept off the REST RPC surface.
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+# Max rows a single PostgREST request returns. 1000 is the Supabase default.
+max_rows = 1000
+
+# --- Database ----------------------------------------------------------------
+[db]
+# Live project runs Postgres 17 (server_version_num 170006). Match this on a
+# local stack so behavior is identical.
+major_version = 17
+
+[db.pooler]
+# Connection pooler (Supavisor). The Next.js app connects via PostgREST /
+# supabase-js, not a direct PG socket, so the pooler is not required for app
+# traffic. Keep defaults; enable only if a direct pooled connection is added.
+enabled = false
+default_pool_size = 20
+max_client_conn = 100
+
+# --- Auth (GoTrue) -----------------------------------------------------------
+# site_url and redirect URLs are derived from NEXT_PUBLIC_APP_URL in the app
+# (lib/utils/site-url.ts). The auth callback route is /auth/confirm
+# (app/auth/confirm/route.ts). Signup is enabled; email confirmation is ON
+# (app/[locale]/login/actions.ts uses signUp + emailRedirectTo and relies on
+# anti-enumeration). Captcha is DISABLED (no Turnstile wiring in the app).
+[auth]
+enabled = true
+# VERIFY: site_url must match the production domain set in Vercel
+# (NEXT_PUBLIC_APP_URL). env() keeps it per-environment rather than hard-coded.
+site_url = "env(NEXT_PUBLIC_APP_URL)"
+# Every URL the auth service will redirect back to after email links / OAuth.
+# Must include the production domain + localhost for local dev. A wildcard
+# covers Vercel preview deploys.
+additional_redirect_urls = [
+  "http://localhost:3000/auth/confirm",
+  "http://localhost:3000/**",
+  # VERIFY: add the exact production + preview domains, e.g.
+  # "https://<your-domain>/auth/confirm",
+  # "https://<your-domain>/**",
+  # "https://*-<your-vercel-scope>.vercel.app/**",
+]
+# JWT access-token lifetime (seconds). 3600 = 1h is the Supabase default.
+# VERIFY against Dashboard -> Authentication -> Sessions if it was changed.
+jwt_expiry = 3600
+# Refresh-token rotation + reuse detection (Supabase defaults).
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Allow new signups (the app exposes a sign-up tab).
+enable_signup = true
+# Manual linking of multiple identities to one user (default off).
+enable_manual_linking = false
+
+[auth.email]
+# Email/password signup is the app's primary auth path.
+enable_signup = true
+# Require confirmation of an email CHANGE at both the old and new addresses.
+double_confirm_changes = true
+# Email confirmation is ON: a session is created only after the link is clicked
+# (see /auth/confirm). This is the shipped behavior.
+enable_confirmations = true
+# Use the secure one-time hash flow for password-change confirmation.
+secure_password_change = true
+# OTP / magic-link validity window (seconds). 3600 = 1h is the default.
+# VERIFY if changed in the dashboard.
+otp_expiry = 3600
+
+# --- SMTP --------------------------------------------------------------------
+# The app sends TRANSACTIONAL reminder mail through nodemailer directly
+# (lib/email/transport.ts, SMTP_* env vars) - that path is independent of
+# GoTrue. The block below is for GoTrue's OWN mail (signup confirmation,
+# password recovery). If the project relies on Supabase's built-in sender,
+# leave [auth.email.smtp] unset. If auth email was switched to custom SMTP in
+# the dashboard, mirror it here so a rebuild restores it.
+# VERIFY: is custom SMTP configured for auth emails in the dashboard?
+# [auth.email.smtp]
+# enabled = true
+# host = "env(SMTP_HOST)"
+# port = "env(SMTP_PORT)"
+# user = "env(SMTP_USER)"
+# pass = "env(SMTP_PASSWORD)"
+# admin_email = "env(EMAIL_FROM)"
+# sender_name = "Eyal's Coding Academy"
+
+# --- Captcha -----------------------------------------------------------------
+# DISABLED by project decision (batch-00). .env.example documents
+# NEXT_PUBLIC_TURNSTILE_SITE_KEY / TURNSTILE_SECRET_KEY for if it is ever
+# enabled, but no captcha is wired into the auth forms today.
+[auth.captcha]
+enabled = false
+
+# --- External OAuth providers ------------------------------------------------
+# None are wired in the app (email/password only). If a provider was enabled in
+# the dashboard, add its [auth.external.<provider>] block here with env() refs
+# so a rebuild restores it. VERIFY: Dashboard -> Authentication -> Providers.
+
+# --- Storage -----------------------------------------------------------------
+# The `avatars` bucket (public read, per-user-prefix write) is created and
+# policed by migration 0006_avatars_storage_bucket.sql, so `supabase db reset`
+# recreates it. No additional storage config is needed here.
+[storage]
+enabled = true
+# Max upload size accepted by the storage API. 50MiB is the Supabase default.
+# VERIFY if the dashboard sets a different limit.
+file_size_limit = "50MiB"
+
+# --- Edge Functions ----------------------------------------------------------
+# None deployed (the AI tutor runs in the Next.js API route via the Vercel AI
+# Gateway, not as a Supabase edge function). Add [functions.<name>] blocks if
+# any are introduced.
+
+# --- Realtime ----------------------------------------------------------------
+# Not used by the app. Left at defaults.
+[realtime]
+enabled = true
