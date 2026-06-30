@@ -57,3 +57,7 @@ context-practice-files/
 
 # Project-local git worktrees (per-batch isolated workspaces)
 .worktrees/
+
+# Supabase backups (scripts/backup-supabase.sh output).
+# Contains real row data, storage objects, and role definitions — sensitive.
+backups/
